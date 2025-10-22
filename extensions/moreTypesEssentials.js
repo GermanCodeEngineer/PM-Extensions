@@ -1080,7 +1080,6 @@
                   defaultValue: "Insert Anything Here"
                 }
               },
-              hideFromPalette: true // this one too
             },
             {
               opcode: "classNameOf",
