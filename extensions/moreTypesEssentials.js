@@ -949,7 +949,7 @@
             this.makeLabel("If you hover over blocks,"),
             this.makeLabel("there will be a tooltip."),
             "---",
-            /*this.makeLabel("Variable Access and Utility"),
+            this.makeLabel("Variable Access and Utility"),
             {
               opcode: "getVar",
               blockType: Scratch.BlockType.REPORTER,
@@ -1005,6 +1005,7 @@
                   type: Scratch.ArgumentType.STRING,
                 },
               },
+              hideFromPalette: true // this one too
             },
             {
               opcode: "deleteVar",
@@ -1027,7 +1028,7 @@
                 },
               },
             },
-            "---",*/
+            "---",
             this.makeLabel("Core"),
             {
               opcode: 'log',
