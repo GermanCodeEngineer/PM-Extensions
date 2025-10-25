@@ -1,11 +1,14 @@
-/**
- * Author: GermanCodeEngineer
- * Credit: Inspired by & Based on
- *     - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
- *     - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwArray/index.js
- *     - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/DogeisCut/dogeiscutObject.js
- *     - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
- */
+// Name: Classes
+// ID: gceClasses
+// Description: Python-like classes and OOP
+// By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
+// License: MIT
+// Credit: Inspired by & Based on
+//  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
+//  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwArray/index.js
+//  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/DogeisCut/dogeiscutObject.js
+//  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
+
 
 (function(Scratch) {
 "use strict"
@@ -14,7 +17,10 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed")
 }
 
-// Helper Classes
+/************************************************************************************
+*                            Internal Types and Constants                           *
+************************************************************************************/
+
 class Script {
     /**
      * @param {string} name 
@@ -55,7 +61,6 @@ class Method {
     }
 }
 
-
 class ClassType {
     /**
      * @param {string} name 
@@ -72,7 +77,6 @@ class ClassType {
         return "Classes do not save."
     }
 }
-
 
 class VariableManager {
     constructor() {
@@ -99,26 +103,43 @@ class VariableManager {
         return this.classes[name]
     }
     getClassNames() {
-        return Array.from(this.classes)
+        return Object.keys(this.classes)
     }
 }
 
 const BlockType = Scratch.BlockType
 const BlockShape = Scratch.BlockShape
 const ArgumentType = Scratch.ArgumentType
-const Cast = Scratch.Cast
+const ScratchCast = Scratch.Cast
 const runtime = Scratch.vm.runtime
 const vars = new VariableManager()
 
-// Add required extensions
+const config = {
+    INIT_METHOD_NAME: "__init__"
+}
+
+class Cast extends ScratchCast {
+    static toArray(value) {
+        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly")
+        return Scratch.vm.jwArray.Type.toArray(value)
+    }
+
+    static toObject(value, copy = false) {
+        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly")
+        return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
+    }
+}
+
+/************************************************************************************
+*                            Dependencies and Value Types                           *
+************************************************************************************/
+
 if (!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
 if (!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
     "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
 )
 
-
-// Types
-const jwArray = {
+const jwArrayStub = {
     Type: null,
     Block: {
         blockType: BlockType.REPORTER,
@@ -136,7 +157,7 @@ const jwArray = {
         }
     },
 }
-const dogeiscutObject = {
+const dogeiscutObjectStub = {
     Type: null,
     Block: {
         blockType: BlockType.REPORTER,
@@ -150,6 +171,7 @@ const dogeiscutObject = {
         check: ["Object"]
     }
 }
+
 class ClassInstanceType {
     customId = "gceClassInstance"
 
@@ -166,10 +188,9 @@ class ClassInstanceType {
         return `<Instance of '${this.cls.name}'>`
     }
     toJSON() {
-        console.log("running .toJSON")
         return "Class Instances do not save."
     }
-    // TODO: defined toReporterContent for better visualization
+    // TODO: define toReporterContent for better visualization
 }
 const gceClassInstance = {
     Type: ClassInstanceType,
@@ -186,6 +207,9 @@ const gceClassInstance = {
     }
 }
 
+/************************************************************************************
+*                                  Extension Class                                  *
+************************************************************************************/
 
 class Extension {
     constructor() {
@@ -200,8 +224,7 @@ class Extension {
     reset() {
         // block id => ClassType
         this.blockClasses = {}
-        this.resetNextMethodArgConfig()
-        console.clear() // TODO: remove on release
+        this.nextMethodArgConfig = {names: [], defaults: []}
     }
 
     resetNextMethodArgConfig() {
@@ -212,12 +235,7 @@ class Extension {
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo() {
-        const makeLabel = (text) => {
-            return {
-            blockType: Scratch.BlockType.LABEL,
-            text: text
-            }
-        }
+        const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
         return {
             id: "gceClasses",
             name: "Classes",
@@ -230,10 +248,7 @@ class Extension {
                     blockType: BlockType.REPORTER,
                     text: "get variable [NAME]",
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
                     },
                 },
                 {
@@ -241,10 +256,7 @@ class Extension {
                     blockType: BlockType.COMMAND,
                     text: "delete variable [NAME]",
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
                     },
                 },
                 {
@@ -253,37 +265,15 @@ class Extension {
                     text: "delete all variables"
                 },
                 {
-                    opcode: "allClasses",
-                    blockType: BlockType.REPORTER,
-                    text: "all classes",
-                    disableMonitor: true,
-                },
-                {
                     opcode: "varExists",
                     blockType: BlockType.BOOLEAN,
                     text: "variable [NAME] exists?",
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
                     },
                 },
                 "---",
-                {
-                    opcode: "return",
-                    text: "return [THING]",
-                    blockType: BlockType.COMMAND,
-                    isTerminal: true,
-                    arguments: {
-                        THING: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "1"
-                        }
-                    },
-                },
-                "---",
-                makeLabel("Class Creation"),
+                makeLabel("Classes"),
                 // New
                 {
                     opcode: "createClass",
@@ -291,20 +281,33 @@ class Extension {
                     text: ["create class [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "MyClass"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
                     },
                 },
+                {
+                    opcode: "allClasses",
+                    blockType: BlockType.REPORTER,
+                    text: "all classes",
+                    ...jwArrayStub.Block
+                },
+                {
+                    opcode: "createInstance",
+                    text: "create instance of class [NAME] with positional args [POSARGS]",
+                    arguments: {
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                    ...gceClassInstance.Block,
+                },
+                makeLabel("Methods"),
                 {
                     opcode: "configureNextMethodArguments",
                     blockType: BlockType.COMMAND,
                     text: "configure next method with argument names [ARGNAMES] defaults [ARGDEFAULTS]",
                     arguments: {
-                        ARGNAMES: jwArray.Argument,
-                        ARGDEFAULTS: jwArray.Argument,
-                    }
+                        ARGNAMES: jwArrayStub.Argument,
+                        ARGDEFAULTS: jwArrayStub.Argument,
+                    },
                 },
                 {
                     opcode: "defineMethod",
@@ -312,34 +315,34 @@ class Extension {
                     text: ["define method [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "myMethod"
-                        },
+                        NAME: {type: ArgumentType.STRING, defaultValue: "myMethod"},
+                    },
+                },
+                {
+                    opcode: "defineInitMethod",
+                    blockType: BlockType.CONDITIONAL,
+                    text: ["define init method"],
+                    branchCount: 1,
+                },
+                {
+                    opcode: "return",
+                    text: "return [VALUE]",
+                    blockType: BlockType.COMMAND,
+                    isTerminal: true,
+                    arguments: {
+                        VALUE: {type: ArgumentType.STRING, defaultValue: "1"},
                     },
                 },
                 {
                     opcode: "methodArgs",
                     text: "method arguments",
-                    ...dogeiscutObject.Block,
+                    ...dogeiscutObjectStub.Block,
                 },
+                makeLabel("Instances"),
                 {
                     opcode: "self",
                     text: "self",
                     ...gceClassInstance.Block,
-                },
-                "---",
-                makeLabel("Class Usage"),
-                {
-                    opcode: "createInstance",
-                    text: "create instance of class [NAME]",
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "MyClass"
-                        },
-                    },
-                    ...gceClassInstance.Block
                 },
                 {
                     opcode: "callMethod",
@@ -347,11 +350,8 @@ class Extension {
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "myMethod"
-                        },
-                        POSARGS: jwArray.Argument,
+                        NAME: {type: ArgumentType.STRING, defaultValue: "myMethod"},
+                        POSARGS: jwArrayStub.Argument,
                     },
                 },
                 "---",
@@ -364,15 +364,157 @@ class Extension {
                         VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
                     },
                 },
-                {
-                    opcode: "inside",
-                    blockType: BlockType.COMMAND,
-                },
             ],
         }
     }
+    
+    /************************************************************************************
+    *                                       Blocks                                      *
+    ************************************************************************************/
 
-    // Helpers
+    // Blocks: Variables n Stuff
+
+    getVar(args) {e
+        const name = Cast.toString(args.NAME)
+        return Cast.toString(vars.getClass(name))
+    }
+
+    deleteVar(args) {
+        vars.deleteClass(Cast.toString(args.NAME))
+    }
+
+    deleteAll() {
+        vars.reset()
+    }
+
+    varExists(args) {
+        const name = Cast.toString(args.NAME)
+        return Cast.toBoolean(vars.hasClass(name))
+    }
+
+    // Blocks: Classes
+
+    createClass(args, util) {
+        const name = Cast.toString(args.NAME)
+        const cls = new ClassType(name)
+        vars.setClass(name, cls)
+        
+        const tempScript = this._createScriptFromBranch(util, "<class body>")
+        this._runScript(util, tempScript, {cls: cls})
+    }
+
+    allClasses() {
+        return Cast.toArray(vars.getClassNames())
+    }
+
+    createInstance(args, util) {
+        const cls_name = Cast.toString(args.NAME)
+        const cls = vars.getClass(cls_name)
+        
+        const method = cls.methods[config.INIT_METHOD_NAME]
+        const instance = new ClassInstanceType(cls)
+        if (!method) return instance
+
+        const posArgs = Cast.toArray(args.POSARGS).array
+        const evaluatedArgs = this._evaluateArgs(method, posArgs)
+        const context = {
+            self: instance,
+            args: evaluatedArgs,
+        }
+        this._runScript(util, method.script, context)
+        return instance
+    }
+
+    // Blocks: Methods
+
+    configureNextMethodArguments(args, util) {
+        const argnames = Cast.toArray(args.ARGNAMES)
+        const argdefaults = Cast.toArray(args.ARGDEFAULTS)
+        argnames.array.forEach(argName => {
+            this.nextMethodArgConfig.names.push(Cast.toString(argName))
+        });
+        argdefaults.array.forEach(argDefault => {
+            this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
+        });
+        if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
+            this.resetNextMethodArgConfig()
+            throw new Error("there can only be as many default values as argument names")
+        }
+    }
+
+    defineMethod(args, util) {
+        const name = Cast.toString(args.NAME)
+        const cls = util.thread.GCEclass
+        util.thread.blockContainer.runtime = null
+        util.thread.blockContainer.runtime = Scratch.vm.runtime
+        if (!cls) throw new Error("'define method' can only be used within a class")
+        
+        const methodArgConfig = this.nextMethodArgConfig
+        this.resetNextMethodArgConfig()
+        const script = this._createScriptFromBranch(util, "<anonymous>")
+        cls.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
+    }
+
+    defineInitMethod(args, util) {
+        const cls = util.thread.GCEclass
+        util.thread.blockContainer.runtime = null
+        util.thread.blockContainer.runtime = Scratch.vm.runtime
+        if (!cls) throw new Error("'define init method' can only be used within a class")
+        
+        const methodArgConfig = this.nextMethodArgConfig
+        this.resetNextMethodArgConfig()
+        const script = this._createScriptFromBranch(util, "<anonymous>")
+        cls.methods[config.INIT_METHOD_NAME] = new Method(config.INIT_METHOD_NAME, script, methodArgConfig.names, methodArgConfig.defaults)
+    }
+
+    return (args, util) {
+        util.thread.report = Cast.toString(args.VALUE)
+    }
+
+    methodArgs(blockArgs, util) {
+        const args = util.thread.GCEargs
+        if (!args) throw new Error("'method arguments' can only be used within a method")
+        return args
+    }
+
+    // Block: Instances
+    
+    self(args, util) {
+        const self = util.thread.GCEself
+        if (!self) throw new Error("'self' can only be used within a class")
+        return self
+    }
+    
+    callMethod(args, util) {
+        const instance = args.INSTANCE
+        if (!(instance instanceof ClassInstanceType)) {
+            throw new Error("instance argument of 'call method' must be a class instance")
+        }
+        const name = Cast.toString(args.NAME)
+        const posArgs = Cast.toArray(args.POSARGS).array
+        
+        const method = instance.cls.methods[name]
+        if (!method) {
+            throw new Error(`undefined method '${name}'`)
+        }
+        const evaluatedArgs = this._evaluateArgs(method, posArgs)
+        const context = {
+            self: instance,
+            args: evaluatedArgs,
+        }
+        this._runScript(util, method.script, context)
+    }
+
+    // Blocks: Temporary
+
+    typeof(args, util) {
+        console.log("value", args.VALUE)
+        console.log("typeof value", typeof args.VALUE)
+    }
+
+    /************************************************************************************
+    *                                      Helpers                                      *
+    ************************************************************************************/
 
     _createScriptFromBranch(util, name) {
         const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
@@ -443,127 +585,6 @@ class Extension {
         }
     
         return args
-    }
-    
-    // Old or modified Blocks
-
-    getVar(args) {
-        const name = Cast.toString(args.NAME)
-        return Cast.toString(vars.getClass(name))
-    }
-
-    deleteVar(args) {
-        vars.deleteClass(Cast.toString(args.NAME))
-    }
-
-    deleteAll() {
-        vars.reset()
-    }
-
-    allClasses() {
-        return JSON.stringify(vars.getClassNames())
-    }
-
-    varExists(args) {
-        const name = Cast.toString(args.NAME)
-        return Cast.toBoolean(vars.hasClass(name))
-    }
-
-    return (args, util) {
-        util.thread.report = Cast.toString(args.THING)
-    }
-
-    // New Blocks
-
-    createClass(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = new ClassType(name)
-        const ownId = util.thread.peekStack()
-        vars.setClass(name, cls)
-        
-        const tempScript = this._createScriptFromBranch(util, "<class body>")
-        this._runScript(util, tempScript, {cls: cls})
-    }
-
-    configureNextMethodArguments(args, util) {
-        if ((args.ARGNAMES?.customId !== "jwArray") || (args.ARGDEFAULTS?.customId !== "jwArray")) {
-            this.resetNextMethodArgConfig()
-            throw new Error("argument names and defaults must both be an array from the array extension")
-        }
-        if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
-            this.resetNextMethodArgConfig()
-            throw new Error("there can only be as many default values as argument names")
-        }
-        args.ARGNAMES.array.forEach(argName => {
-            this.nextMethodArgConfig.names.push(Cast.toString(argName))
-        });
-        args.ARGDEFAULTS.array.forEach(argDefault => {
-            this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
-        });
-    }
-
-    defineMethod(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = util.thread.GCEclass
-        util.thread.blockContainer.runtime = null
-        util.thread.blockContainer.runtime = Scratch.vm.runtime
-        if (!cls) throw new Error("'define method' can only be used within a class")
-        
-        const methodArgConfig = this.nextMethodArgConfig
-        this.resetNextMethodArgConfig()
-        const script = this._createScriptFromBranch(util, "<anonymous>")
-        cls.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
-    }
-
-    createInstance(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = vars.getClass(name)
-        return new ClassInstanceType(cls)
-    }
-    
-    callMethod(args, util) {
-        const instance = args.INSTANCE
-        if (instance?.customId !== "gceClassInstance") {
-            throw new Error("instance argument of 'call method' must be a class instance")
-        }
-        const name = Cast.toString(args.NAME)
-        if (args.POSARGS?.customId !== "jwArray") {
-            throw new Error("positional arguments of 'call method' must be an array from the array extension")
-        }
-        const posArgs = args.POSARGS.array
-        
-        const method = instance.cls.methods[name]
-        if (!method) {
-            throw new Error(`undefined method '${name}'`)
-        }
-        const evaluatedArgs = this._evaluateArgs(method, posArgs)
-        const context = {
-            cls: instance.cls,
-            self: instance,
-            args: evaluatedArgs,
-        }
-        this._runScript(util, method.script, context)
-    }
-
-    methodArgs(blockArgs, util) {
-        const args = util.thread.GCEargs
-        if (!args) throw new Error("'method arguments' can only be used within a method")
-        return args
-    }
-    
-    self(args, util) {
-        const self = util.thread.GCEself
-        if (!self) throw new Error("'self' can only be used within a class")
-        return self
-     }
-
-    typeof(args, util) {
-        console.log("value", args.VALUE)
-        console.log("typeof value", typeof args.VALUE)
-    }
-    
-    inside(args, util) {
-        console.error("inside", new Error())
     }
 }
 
