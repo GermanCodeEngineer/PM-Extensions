@@ -69,6 +69,7 @@ class ClassType {
     constructor(name) {
         this.name = name
         this.methods = {}
+        console.error(new Error("new"))
     }
     toString() {
         return `<Class '${this.name}'>`
@@ -224,6 +225,7 @@ class Extension {
     reset() {
         // block id => ClassType
         this.blockClasses = {}
+        this.scripts = {}
         this.nextMethodArgConfig = {names: [], defaults: []}
     }
 
@@ -364,6 +366,31 @@ class Extension {
                         VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
                     },
                 },
+                "---",
+                makeLabel("Scripts"),
+                {
+                    opcode: "createScriptFromBranch",
+                    blockType: BlockType.CONDITIONAL,
+                    text: ["create script [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "Script1"
+                        }
+                    },
+                },
+                {
+                    opcode: "runScript",
+                    text: "run script [NAME]",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        NAME: {
+                            type: ArgumentType.STRING,
+                            defaultValue: "Script1"
+                        }
+                    },
+                },
             ],
         }
     }
@@ -400,7 +427,7 @@ class Extension {
         vars.setClass(name, cls)
         
         const tempScript = this._createScriptFromBranch(util, "<class body>")
-        this._runScript(util, tempScript, {cls: cls})
+        this._runScript(util, tempScript, false, {cls: cls})
     }
 
     allClasses() {
@@ -421,7 +448,7 @@ class Extension {
             self: instance,
             args: evaluatedArgs,
         }
-        this._runScript(util, method.script, context)
+        this._runScript(util, method.script, true, context)
         return instance
     }
 
@@ -453,6 +480,7 @@ class Extension {
         this.resetNextMethodArgConfig()
         const script = this._createScriptFromBranch(util, "<anonymous>")
         cls.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
+        console.log("added", cls)
     }
 
     defineInitMethod(args, util) {
@@ -502,7 +530,7 @@ class Extension {
             self: instance,
             args: evaluatedArgs,
         }
-        this._runScript(util, method.script, context)
+        return this._runScript(util, method.script, true, context)
     }
 
     // Blocks: Temporary
@@ -510,6 +538,35 @@ class Extension {
     typeof(args, util) {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
+    }
+
+    // Blocks: Scripts
+
+    createScriptFromBranch(args, util) {
+        class OScript {
+            /**
+             * @param {string} name 
+             * @param {Object} block
+             */
+            constructor(name, block) {
+                this.name = name
+                this.block = block
+            }
+            toString() {
+                return `<Script '${this.name}'`
+            }
+        }
+
+        const name = Cast.toString(args.NAME)
+        const script = this._createScriptFromBranch(util, name)
+        this.scripts[name] = script
+    }
+
+    runScript(args, util) {
+        const name = Cast.toString(args.NAME)
+        const script = this.scripts[name]
+        if (!script) throw new Error("%no-script&")
+        return this._runScript(util, script, true, {self: 'hi'})
     }
 
     /************************************************************************************
@@ -523,28 +580,45 @@ class Extension {
 
     /**
      * @param {Script} script
+     * @param {boolean} doYield
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
+     * @param {?Object} args
      */
-    _runScript(util, script, {cls = null, self = null, args = null}) {
+    
+    _runScript(util, script, doYield, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
-        let thread = frame.JGthread = ""
+        if (frame.JGindex === undefined) frame.JGindex = 0
+        let thread = frame.JGthread
 
-        // Make a thread
-        if (script.target.blocks.getBlock(script.branch) !== undefined) {
+        // Make a thread if there is none
+        if (script.target.blocks.getBlock(script.branch) === undefined) return
+        if (!thread && frame.JGindex < 1) {
             thread = runtime._pushThread(script.branch, script.target, {stackClick: false})
-            
+
             thread.GCEclass = cls
             thread.GCEself = self
             thread.GCEargs = args
-            
-            thread.target = util.target
+
+            thread.target = script.target
             thread.tryCompile() // update thread
+            
             frame.JGthread = thread
+            frame.JGindex = frame.JGindex + 1
         }
-        
-        delete frame.JGthread
+
+        // Yeah thanks to JG, this section is really confusing, but it works  ¯\_(ツ)_/¯
+        // Run the thread if it is active, otherwise set return value and clean up
+        if (frame.JGthread && runtime.isActiveThread(frame.JGthread) && doYield) util.yield()
+        else {
+            if (frame.JGthread.report !== undefined) {
+                frame.JGreport = frame.JGthread.report
+                frame.JGindex = 1 + 1
+            }
+            frame.JGthread = ""
+        }
+        if ((frame.JGindex < 1) && doYield) util.yield()
         return frame.JGreport
     }
     
