@@ -2,6 +2,7 @@
  * Author: GermanCodeEngineer
  * Credit: Inspired by & Based on
  *     - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
+ *     - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwArray/index.js
  *     - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/DogeisCut/dogeiscutObject.js
  *     - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
  */
@@ -17,11 +18,13 @@ if (!Scratch.extensions.unsandboxed) {
 class Script {
     /**
      * @param {string} name 
-     * @param {Array} blocks 
+     * @param {string} branch
+     * @param {Target} target 
      */
-    constructor(name, blocks) {
+    constructor(name, branch, target) {
         this.name = name
-        this.blocks = blocks
+        this.branch = branch
+        this.target = target
     }
     toString() {
         return `<Script '${this.name}'`
@@ -52,35 +55,21 @@ class Method {
     }
 }
 
-class CustomClass {
+
+class ClassType {
     /**
      * @param {string} name 
      */
+     
     constructor(name) {
         this.name = name
         this.methods = {}
     }
     toString() {
-        return `<Custom Class '${this.name}'>`
+        return `<Class '${this.name}'>`
     }
     toJSON() {
-        return "Custom Classes do not save."
-    }
-}
-
-class CustomClassInstance {
-    /**
-     * @param {CustomClass} cls 
-     */
-    constructor(cls) {
-        this.cls = cls
-        this.attributes = {}
-    }
-    toString() {
-        return `<Instance of '${this.cls.name}'>`
-    }
-    toJSON() {
-        return "Custom Class Instances do not save."
+        return "Classes do not save."
     }
 }
 
@@ -90,61 +79,24 @@ class VariableManager {
         this.reset()
     }
     reset() {
-        this.variables = {}
-        this.scripts = new Set()
-        this.classes = new Set()
+        this.classes = {}
     }
-    assertFree(name) {
-        if (this.has(name)) {
-            throw new Error(`Name '${name}' is already occupied. Please delete it or pick another name.`)
+    setClass(name, value) {
+        this.classes[name] = value
+    }
+    deleteClass(name) {
+        if (this.hasClass(name)) {
+            this.classes[name]
         }
-    }
-    has(name) {
-        return (name in this.variables)
-    }
-    get(name) {
-        if (!this.has(name)) {
-            throw new Error(`Name '${name}' is not defined.`)
-        }
-        return this.variables[name]
-    }
-    delete(name) {
-        if (this.has(name)) {
-            delete this.variables[name]
-            this.scripts.delete(name)
-            this.classes.delete(name)
-        }
-    }
-    addScript(name, value) {
-        this.variables[name] = value
-        this.scripts.add(name)
-    }
-    addClass(name, value) {
-        this.variables[name] = value
-        this.classes.add(name)
-    }
-    hasScript(name) {
-        return this.scripts.has(name)
     }
     hasClass(name) {
-        return this.classes.has(name)
-    }
-    getScript(name) {
-        const value = this.get(name) // Also checks if exists
-        if (!this.hasScript(name)) {
-            throw new Error(`'${name}' is not a script.`)
-        }
-        return value
+        return name in this.classes
     }
     getClass(name) {
-        const value = this.get(name) // Also checks if exists
         if (!this.hasClass(name)) {
             throw new Error(`'${name}' is not a class.`)
         }
-        return value
-    }
-    getScriptNames() {
-        return Array.from(this.scripts)
+        return this.classes[name]
     }
     getClassNames() {
         return Array.from(this.classes)
@@ -159,10 +111,10 @@ const runtime = Scratch.vm.runtime
 const vars = new VariableManager()
 
 // Add required extensions
-Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
-if (!Scratch.vm.dogeiscutObject) (async () => {
-    await Scratch.vm.extensionManager.loadExtensionURL("https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js");
-})();
+if (!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
+if (!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
+    "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
+)
 
 
 // Types
@@ -198,18 +150,39 @@ const dogeiscutObject = {
         check: ["Object"]
     }
 }
+class ClassInstanceType {
+    customId = "gceClassInstance"
+
+    /**
+     * @param {ClassType} cls 
+     */
+    constructor(cls) {
+        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given")
+        this.cls = cls
+        this.attributes = {}
+    }
+    
+    toString() {
+        return `<Instance of '${this.cls.name}'>`
+    }
+    toJSON() {
+        console.log("running .toJSON")
+        return "Class Instances do not save."
+    }
+    // TODO: defined toReporterContent for better visualization
+}
 const gceClassInstance = {
-    Type: null, // TODO: eventually create
+    Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: BlockShape.BUMPED,
-        //forceOutputType: "Object",
+        blockShape: BlockShape.PLUS,
+        forceOutputType: "gceClassInstance",
         disableMonitor: true
     },
     Argument: {
-        shape: BlockShape.BUMPED,
+        shape: BlockShape.PLUS,
         exemptFromNormalization: true,
-        //check: ["Object"]
+        check: ["gceClassInstance"]
     }
 }
 
@@ -217,16 +190,17 @@ const gceClassInstance = {
 class Extension {
     constructor() {
         this.reset()
+        vars.reset()
+        this.vars = vars
         // TODO: possibly remove? // TODO: change on release
         runtime.on("PROJECT_START", this.reset)
         runtime.on("PROJECT_STOP_ALL", this.reset)
     }
 
     reset() {
-        // block id => Custom Class
+        // block id => ClassType
         this.blockClasses = {}
         this.resetNextMethodArgConfig()
-        vars.reset()
         console.clear() // TODO: remove on release
     }
 
@@ -279,12 +253,6 @@ class Extension {
                     text: "delete all variables"
                 },
                 {
-                    opcode: "allScripts",
-                    blockType: BlockType.REPORTER,
-                    text: "all scripts",
-                    disableMonitor: true,
-                },
-                {
                     opcode: "allClasses",
                     blockType: BlockType.REPORTER,
                     text: "all classes",
@@ -311,88 +279,6 @@ class Extension {
                         THING: {
                             type: ArgumentType.STRING,
                             defaultValue: "1"
-                        }
-                    },
-                },
-                "---",
-                {
-                    opcode: "scriptData",
-                    text: "script data",
-                    blockType: BlockType.REPORTER,
-                    allowDropAnywhere: true,
-                    disableMonitor: true
-                },
-                "---",
-                makeLabel("Running Scripts"),
-                {
-                    opcode: "runBlocks",
-                    text: "run script [NAME] in [SPRITE]",
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: -1,
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        },
-                        SPRITE: {
-                            type: ArgumentType.STRING,
-                            menu: "TARGETS"
-                        }
-                    },
-                },
-                {
-                    opcode: "runBlocksData",
-                    text: "run script [NAME] in [SPRITE] with data [DATA]",
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: -1,
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        },
-                        SPRITE: {
-                            type: ArgumentType.STRING,
-                            menu: "TARGETS"
-                        },
-                        DATA: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "data"
-                        }
-                    },
-                },
-                {
-                    opcode: "reportBlocks",
-                    text: "run script [NAME] in [SPRITE]",
-                    blockType: BlockType.REPORTER,
-                    allowDropAnywhere: true,
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        },
-                        SPRITE: {
-                            type: ArgumentType.STRING,
-                            menu: "TARGETS"
-                        }
-                    },
-                },
-                {
-                    opcode: "reportBlocksData",
-                    text: "run script [NAME] in [SPRITE] with data [DATA]",
-                    blockType: BlockType.REPORTER,
-                    allowDropAnywhere: true,
-                    arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        },
-                        SPRITE: {
-                            type: ArgumentType.STRING,
-                            menu: "TARGETS"
-                        },
-                        DATA: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "data"
                         }
                     },
                 },
@@ -437,6 +323,11 @@ class Extension {
                     text: "method arguments",
                     ...dogeiscutObject.Block,
                 },
+                {
+                    opcode: "self",
+                    text: "self",
+                    ...gceClassInstance.Block,
+                },
                 "---",
                 makeLabel("Class Usage"),
                 {
@@ -450,156 +341,123 @@ class Extension {
                     },
                     ...gceClassInstance.Block
                 },
-                "---",
-                makeLabel("Script Creation"),
                 {
-                    opcode: "createScriptFromBranch",
-                    blockType: BlockType.CONDITIONAL,
-                    text: ["create script [NAME]"],
-                    branchCount: 1,
+                    opcode: "callMethod",
+                    blockType: BlockType.REPORTER,
+                    text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
                     arguments: {
+                        INSTANCE: gceClassInstance.Argument,
                         NAME: {
                             type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                            defaultValue: "myMethod"
+                        },
+                        POSARGS: jwArray.Argument,
                     },
                 },
                 "---",
                 makeLabel("Temporary"),
                 {
                     opcode: "typeof",
-                    text: "typeof [VALUE] [X]",
+                    text: "typeof [VALUE]",
                     blockType: BlockType.REPORTER,
-                    arguments: {VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true}, X: gceClassInstance.Argument},
+                    arguments: {
+                        VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
+                    },
                 },
-
+                {
+                    opcode: "inside",
+                    blockType: BlockType.COMMAND,
+                },
             ],
-            menus: {
-                TARGETS: {
-                    acceptReporters: true,
-                    items: "_getTargets"
-                }
-            },
         }
     }
 
     // Helpers
 
-    _getTargets() {
-        const spriteNames = [{
-                text: "myself",
-                value: "_myself_"
-            },
-            {
-                text: "Stage",
-                value: "_stage_"
-            }
-        ]
-        const targets = runtime.targets
-        for (let index = 1; index < targets.length; index++) {
-            const target = targets[index]
-            if (target.isOriginal) spriteNames.push({
-                text: target.getName(),
-                value: target.getName()
-            })
-        }
-        return spriteNames.length > 0 ? spriteNames : [""]
-    }
-
     _createScriptFromBranch(util, name) {
-        const script = new Script(name, [])
-        const branch = util.thread.target.blocks.getBranch(util.thread.peekStack(), 1)
-        if (branch) {
-            script.blocks.push({
-                stack: branch,
-                target: util.target
-            })
-        }
-        return script
-    }
-
-    _getMenuTarget(sprite, util) {
-        if (sprite === "_myself_") return util.target
-        else if (sprite === "_stage_") return runtime.getTargetForStage()
-        else return runtime.getSpriteTargetByName(sprite)
-    }
-
-    _prepareRun(args, util) {
-        // Get target, script name and script data
-        const target = this._getMenuTarget(args.SPRITE, util)
-        const name = Cast.toString(args.NAME)
-        const data = args.DATA ? Cast.toString(args.DATA) : ""
-        if (!vars.hasScript(name) || !target) return [null, null]
-
-        // Prepare stack frame and get thread
-        const frame = util.stackFrame
-        if (frame.JGindex === undefined) frame.JGindex = 0
-        if (frame.JGthread === undefined) frame.JGthread = ""
-        const blocks = vars.getScript(name).blocks
-        let thread = frame.JGthread
-
-        // Make a thread if there is none
-        if (!thread && frame.JGindex < blocks.length) {
-            const thisStack = blocks[frame.JGindex]
-            if (thisStack.target.blocks.getBlock(thisStack.stack) !== undefined) {
-                thread = runtime._pushThread(thisStack.stack, thisStack.target, {
-                    stackClick: false
-                })
-                thread.scriptData = data
-                thread.target = target
-                thread.tryCompile() // update thread
-                frame.JGthread = thread
-            }
-            frame.JGindex = frame.JGindex + 1
-        }
-
-        return [frame, blocks] // For later use
+        const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
+        return new Script(name, branch, util.target)
     }
 
     /**
-     * @return {CustomClass}
+     * @param {Script} script
+     * @param {?ClassType} cls
+     * @param {?ClassInstanceType} self
      */
-    _getContainerClass(ownId, blockContainer) {
-        let currentId = ownId
-        let parentId = null
-        let currentBlock = null
-        let parentBlock = null
-        let finalId = null
+    _runScript(util, script, {cls = null, self = null, args = null}) {
+        // Prepare stack frame and get thread
+        const frame = util.stackFrame
+        let thread = frame.JGthread = ""
 
-        while (true) {
-            currentBlock = blockContainer.getBlock(currentId)
-            parentId = currentBlock.parent
-            if (parentId === null) break
-            parentBlock = blockContainer.getBlock(parentId)
-            if ((parentBlock.next !== currentId) && (parentBlock.opcode === "gceClasses_createClass")) {
-                // this ensures the parent block is to the left and not above the current block
-                finalId = parentId
-                break
-            }
-            currentId = parentId
+        // Make a thread
+        if (script.target.blocks.getBlock(script.branch) !== undefined) {
+            thread = runtime._pushThread(script.branch, script.target, {stackClick: false})
+            
+            thread.GCEclass = cls
+            thread.GCEself = self
+            thread.GCEargs = args
+            
+            thread.target = util.target
+            thread.tryCompile() // update thread
+            frame.JGthread = thread
         }
-        if (finalId === null) return null
-        else return this.blockClasses[finalId]
+        
+        delete frame.JGthread
+        return frame.JGreport
     }
-
-
+    
+    /**
+     * @param {Method} method
+     * @param {Array} posargs
+     * @returns {Object}
+     */
+    _evaluateArgs(method, posArgs) {
+        const args = {}
+        let name
+    
+        // Ensure there are not too many arguments
+        if (posArgs.length > method.argNames.length) {
+            throw new Error(`calling method '${method.name}': expected at most ${method.argNames.length}, but got ${posArgs.length} arguments`)
+        }
+    
+        // Count how many arguments do NOT have defaults
+        const posOnlyCount = method.argNames.length - method.argDefaults.length
+    
+        // Ensure enough positional arguments
+        if (posArgs.length < posOnlyCount) {
+            throw new Error(`calling method '${method.name}': expected at least ${posOnlyCount} positional arguments, but got only ${posArgs.length}`)
+        }
+    
+        // Assign positional arguments
+        for (let i = 0; i < posArgs.length; i++) {
+            name = method.argNames[i]
+            args[name] = posArgs[i]
+        }
+    
+        // Fill in defaults for missing arguments
+        const defaultsStartIndex = method.argNames.length - method.argDefaults.length
+        for (let i = posArgs.length; i < method.argNames.length; i++) {
+            name = method.argNames[i]
+            const defaultIndex = i - defaultsStartIndex
+            args[name] = method.argDefaults[defaultIndex]
+        }
+    
+        return args
+    }
+    
     // Old or modified Blocks
 
     getVar(args) {
         const name = Cast.toString(args.NAME)
-        return Cast.toString(vars.get(name))
+        return Cast.toString(vars.getClass(name))
     }
 
     deleteVar(args) {
-        vars.delete(Cast.toString(args.NAME))
+        vars.deleteClass(Cast.toString(args.NAME))
     }
 
     deleteAll() {
         vars.reset()
-    }
-
-    allScripts() {
-        return JSON.stringify(vars.getScriptNames())
     }
 
     allClasses() {
@@ -608,115 +466,104 @@ class Extension {
 
     varExists(args) {
         const name = Cast.toString(args.NAME)
-        return Cast.toBoolean(vars.has(name))
+        return Cast.toBoolean(vars.hasClass(name))
     }
 
     return (args, util) {
         util.thread.report = Cast.toString(args.THING)
     }
 
-    scriptData(args, util) {
-        const data = util.thread.scriptData
-        return data ? data : ""
-    }
-
-    runBlocksData(args, util) {
-        this.runBlocks(args, util)
-    }
-    runBlocks(args, util) {
-        const [frame, blocks] = this._prepareRun(args, util)
-        if (frame === null) return
-
-        // Run the thread if it is active, otherwise clean up
-        if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) util.startBranch(1, true)
-        else frame.JGthread = ""
-        if (frame.JGindex < blocks.length) util.startBranch(1, true)
-    }
-
-    reportBlocksData(args, util) {
-        return this.reportBlocks(args, util) || ""
-    }
-    reportBlocks(args, util) {
-        const [frame, blocks] = this._prepareRun(args, util)
-        if (frame === null) return
-
-        // Run the thread if it is active, otherwise set return value and clean up
-        if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) util.yield()
-        else {
-            if (frame.JGthread.report !== undefined) {
-                frame.JGreport = frame.JGthread.report
-                frame.JGindex = blocks.length + 1
-            }
-            frame.JGthread = ""
-        }
-        if (frame.JGindex < blocks.length) util.yield()
-        return frame.JGreport || ""
-    }
-
     // New Blocks
 
-    createClass(args, util, blockInfo) {
+    createClass(args, util) {
         const name = Cast.toString(args.NAME)
-        vars.assertFree(name)
-        const cls = new CustomClass(name)
+        const cls = new ClassType(name)
         const ownId = util.thread.peekStack()
-
-        this.blockClasses[ownId] = cls
-        vars.addClass(name, cls)
-        util.startBranch(1, false)
+        vars.setClass(name, cls)
+        
+        const tempScript = this._createScriptFromBranch(util, "<class body>")
+        this._runScript(util, tempScript, {cls: cls})
     }
 
     configureNextMethodArguments(args, util) {
-        this.resetNextMethodArgConfig()
-        if (args.ARGNAMES?.customId === "jwArray") {
-            args.ARGNAMES.array.forEach(argName => {
-                this.nextMethodArgConfig.names.push(Cast.toString(argName))
-            });
-        }
-        if (args.ARGDEFAULTS?.customId === "jwArray") {
-            args.ARGDEFAULTS.array.forEach(argDefault => {
-                this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
-            });
+        if ((args.ARGNAMES?.customId !== "jwArray") || (args.ARGDEFAULTS?.customId !== "jwArray")) {
+            this.resetNextMethodArgConfig()
+            throw new Error("argument names and defaults must both be an array from the array extension")
         }
         if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
             this.resetNextMethodArgConfig()
-            throw new Error("there can only be as many defaults as argument names")
+            throw new Error("there can only be as many default values as argument names")
         }
+        args.ARGNAMES.array.forEach(argName => {
+            this.nextMethodArgConfig.names.push(Cast.toString(argName))
+        });
+        args.ARGDEFAULTS.array.forEach(argDefault => {
+            this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
+        });
     }
 
     defineMethod(args, util) {
         const name = Cast.toString(args.NAME)
-        const ownId = util.thread.peekStack()
-        const blockContainer = util.thread.blockContainer
-        const containerClass = this._getContainerClass(ownId, blockContainer)
-        if (containerClass === null) throw new Error("'add method' must be used within a class")
+        const cls = util.thread.GCEclass
+        util.thread.blockContainer.runtime = null
+        util.thread.blockContainer.runtime = Scratch.vm.runtime
+        if (!cls) throw new Error("'define method' can only be used within a class")
         
         const methodArgConfig = this.nextMethodArgConfig
         this.resetNextMethodArgConfig()
         const script = this._createScriptFromBranch(util, "<anonymous>")
-        containerClass.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
-        console.log(containerClass)
+        cls.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
     }
 
     createInstance(args, util) {
         const name = Cast.toString(args.NAME)
-        return new CustomClassInstance(vars.getClass(name))
+        const cls = vars.getClass(name)
+        return new ClassInstanceType(cls)
     }
-
-    methodArgs(args, util) {
-        // Step 2
-    }
-
-    createScriptFromBranch(args, util) {
+    
+    callMethod(args, util) {
+        const instance = args.INSTANCE
+        if (instance?.customId !== "gceClassInstance") {
+            throw new Error("instance argument of 'call method' must be a class instance")
+        }
         const name = Cast.toString(args.NAME)
-        vars.assertFree(name)
-        const script = this._createScriptFromBranch(util, name)
-        vars.addScript(name, script)
+        if (args.POSARGS?.customId !== "jwArray") {
+            throw new Error("positional arguments of 'call method' must be an array from the array extension")
+        }
+        const posArgs = args.POSARGS.array
+        
+        const method = instance.cls.methods[name]
+        if (!method) {
+            throw new Error(`undefined method '${name}'`)
+        }
+        const evaluatedArgs = this._evaluateArgs(method, posArgs)
+        const context = {
+            cls: instance.cls,
+            self: instance,
+            args: evaluatedArgs,
+        }
+        this._runScript(util, method.script, context)
     }
+
+    methodArgs(blockArgs, util) {
+        const args = util.thread.GCEargs
+        if (!args) throw new Error("'method arguments' can only be used within a method")
+        return args
+    }
+    
+    self(args, util) {
+        const self = util.thread.GCEself
+        if (!self) throw new Error("'self' can only be used within a class")
+        return self
+     }
 
     typeof(args, util) {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
+    }
+    
+    inside(args, util) {
+        console.error("inside", new Error())
     }
 }
 
