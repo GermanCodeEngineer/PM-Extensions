@@ -3,6 +3,7 @@
 // Description: Python-like classes and OOP
 // By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
 // License: MIT
+// Requires and automatically adds jwArray and dogeiscutObject
 // Credit: Inspired by & Based on
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwArray/index.js
@@ -14,68 +15,11 @@
 "use strict"
 
 if (!Scratch.extensions.unsandboxed) {
-    throw new Error("Classes Extension must run unsandboxed")
+    throw new Error("Classes Extension must run unsandboxed.")
 }
 
+const IS_DEVELOPMENT = true; // TODO: change on release
 
-/**
- * Safely stringify an object with:
- *  - circular reference protection
- *  - max depth control
- *  - automatic handling of Immutable-like objects
- *
- * Works in environments without `require` or `import`.
- *
- * @param {any} value - The value to stringify.
- * @param {number} [maxDepth=3] - Maximum recursion depth.
- * @param {number} [space=2] - Indentation for JSON.
- * @returns {string}
- */
-function safeStringify(value, maxDepth = 4, space = 2) {
-  const seen = new WeakSet();
-
-  function _normalize(val, depth = 0) {
-    // Handle Immutable-like structures
-    if (val && typeof val === 'object') {
-      if (typeof val.toJS === 'function') {
-        try {
-          return _normalize(val.toJS(), depth + 1);
-        } catch {
-          return '[ImmutableError]';
-        }
-      }
-      if (typeof val.toJSON === 'function' && !Array.isArray(val)) {
-        try {
-          return _normalize(val.toJSON(), depth + 1);
-        } catch {
-          return '[JSONError]';
-        }
-      }
-    }
-
-    // Handle circulars and depth limit
-    if (typeof val === 'object' && val !== null) {
-      if (seen.has(val)) return '[Circular]';
-      if (depth >= maxDepth) return '[MaxDepth]';
-      seen.add(val);
-
-      const out = Array.isArray(val) ? [] : {};
-      for (const k in val) {
-        try {
-          out[k] = _normalize(val[k], depth + 1);
-        } catch {
-          out[k] = '[Error]';
-        }
-      }
-      seen.delete(val);
-      return out;
-    }
-
-    return val;
-  }
-
-  return JSON.stringify(_normalize(value), null, space);
-}
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
@@ -95,7 +39,7 @@ class Script {
         return `<Script '${this.name}'`
     }
     toJSON() {
-        return "Scripts do not save."
+        return "Scripts can not be serialized."
     }
 }
 
@@ -116,24 +60,7 @@ class Method {
         return `<Method '${this.name}'`
     }
     toJSON() {
-        return "Methods do not save."
-    }
-}
-
-class ClassType {
-    /**
-     * @param {string} name 
-     */
-     
-    constructor(name) {
-        this.name = name
-        this.methods = {}
-    }
-    toString() {
-        return `<Class '${this.name}'>`
-    }
-    toJSON() {
-        return "Classes do not save."
+        return "Methods can not be serialized."
     }
 }
 
@@ -157,7 +84,7 @@ class VariableManager {
     }
     get(name) {
         if (!this.has(name)) {
-            throw new Error(`'${name}' is not a class.`)
+            throw new Error(`'${name}' is not defined.`)
         }
         return this.variables[name]
     }
@@ -188,25 +115,28 @@ class SpecialBlockStorageManager {
     }
 }
 
-const BlockType = Scratch.BlockType
-const BlockShape = Scratch.BlockShape
-const ArgumentType = Scratch.ArgumentType
-const ScratchCast = Scratch.Cast
+const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
-const config = {
+const CONFIG = {
     INIT_METHOD_NAME: "__init__"
 }
 
-class Cast extends ScratchCast {
+class Cast extends Scratch.Cast {
     static toArray(value) {
-        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly")
+        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
 
     static toObject(value, copy = false) {
-        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly")
+        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
+    }
+
+    static toClass(value) {
+        if (value instanceof ClassType) return value
+        else if ((typeof value) === "string") return extensionClassInstance.classVars.get(value)
+        else throw new Error("Expected a class or class variable name.")
     }
 }
 
@@ -234,7 +164,7 @@ const jwArrayStub = {
         check: ["Array"],
         compilerInfo: {
             jwArrayUnmodified: true
-        }
+        },
     },
 }
 const dogeiscutObjectStub = {
@@ -243,13 +173,52 @@ const dogeiscutObjectStub = {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.PLUS,
         forceOutputType: "Object",
-        disableMonitor: true
+        disableMonitor: true,
     },
     Argument: {
         shape: BlockShape.PLUS,
         exemptFromNormalization: true,
-        check: ["Object"]
+        check: ["Object"],
+    },
+}
+
+class ClassType {
+    customId = "gceClass"
+
+    /**
+     * @param {string} name 
+     */
+     
+    constructor(name) {
+        this.name = name
+        this.methods = {}
     }
+    toString() {
+        return `<Class '${this.name}'>`
+    }
+    toJSON() {
+        return "Classes can not be serialized."
+    }
+}
+
+const gceClass = {
+    Type: ClassType,
+    Block: {
+        blockType: BlockType.REPORTER,
+        blockShape: BlockShape.PLUS,
+        forceOutputType: "gceClass",
+        disableMonitor: true,
+    },
+    Argument: {
+        shape: BlockShape.PLUS,
+        exemptFromNormalization: true,
+        check: ["gceClass"],
+    },
+    ArgumentAllowVarName: {
+        type: ArgumentType.STRING,
+        exemptFromNormalization: true,
+        defaultValue: IS_DEVELOPMENT ? undefined : "MyClass",
+    },
 }
 
 class ClassInstanceType {
@@ -259,17 +228,15 @@ class ClassInstanceType {
      * @param {ClassType} cls 
      */
     constructor(cls) {
-        console.error(new Error("new instance"))
-        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given")
+        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given.")
         this.cls = cls
         this.attributes = {}
     }
-    
     toString() {
         return `<Instance of '${this.cls.name}'>`
     }
     toJSON() {
-        return "Class Instances do not save."
+        return "Class Instances can not be serialized."
     }
     // TODO: define toReporterContent for better visualization
 }
@@ -279,39 +246,20 @@ const gceClassInstance = {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.PLUS,
         forceOutputType: "gceClassInstance",
-        disableMonitor: true
+        disableMonitor: true,
     },
     Argument: {
         shape: BlockShape.PLUS,
         exemptFromNormalization: true,
-        check: ["gceClassInstance"]
-    }
+        check: ["gceClassInstance"],
+    },
 }
 
 /************************************************************************************
 *                                  Extension Class                                  *
 ************************************************************************************/
 
-class Extension {
-    constructor() {
-        this.classVars = new VariableManager()
-        this.scriptVars = new VariableManager()
-        this.specialBlockStorage = new SpecialBlockStorageManager()
-        this.reset()
-        // TODO: possibly remove? // TODO: change on release
-        runtime.on("PROJECT_START", this.reset)
-        runtime.on("PROJECT_STOP_ALL", this.reset)
-        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.onThreadFinished(thread)})
-    }
-
-    reset() {
-        this.resetNextMethodArgConfig()
-    }
-
-    resetNextMethodArgConfig() {
-        this.nextMethodArgConfig = {names: [], defaults: []}
-    }
-    
+class GCEClassBlocks {
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -329,7 +277,7 @@ class Extension {
                     blockType: BlockType.REPORTER,
                     text: "get class [NAME]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
                     },
                 },
                 {
@@ -337,7 +285,7 @@ class Extension {
                     blockType: BlockType.COMMAND,
                     text: "delete class [NAME]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
                     },
                 },
                 {
@@ -371,15 +319,6 @@ class Extension {
                     text: "all classes",
                     ...jwArrayStub.Block
                 },
-                {
-                    opcode: "createInstance",
-                    text: "create instance of class [NAME] with positional args [POSARGS]",
-                    arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
-                        POSARGS: jwArrayStub.Argument,
-                    },
-                    ...gceClassInstance.Block,
-                },
                 "---",
                 makeLabel("Methods"),
                 {
@@ -412,8 +351,16 @@ class Extension {
                     blockType: BlockType.COMMAND,
                     isTerminal: true,
                     arguments: {
-                        VALUE: {type: ArgumentType.STRING, defaultValue: "1"},
+                        VALUE: {
+                            type: ArgumentType.STRING, defaultValue: "", 
+                            exemptFromNormalization: true,
+                        },
                     },
+                },
+                {
+                    opcode: "self",
+                    text: "self",
+                    ...gceClassInstance.Block,
                 },
                 {
                     opcode: "allMethodArgs",
@@ -427,12 +374,27 @@ class Extension {
                     arguments: {
                         NAME: {type: ArgumentType.STRING, defaultValue: "myArg"},
                     },
+                    allowDropAnywhere: true,
+                },
+                { // BUTTON
+                    opcode: "addTempVars",
+                    blockType: BlockType.BUTTON,
+                    text: "add temporary variables extension",
+                },
+                {
+                    opcode: "transferMethodArgsToTempVars",
+                    blockType: BlockType.COMMAND,
+                    text: "transfer method arguments to temporary variables",
                 },
                 "---",
                 makeLabel("Instances"),
                 {
-                    opcode: "self",
-                    text: "self",
+                    opcode: "createInstance",
+                    text: "create instance of class [NAME] with positional args [POSARGS]",
+                    arguments: {
+                        NAME: gceClass.ArgumentAllowVarName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
                     ...gceClassInstance.Block,
                 },
                 {
@@ -442,7 +404,10 @@ class Extension {
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
-                        VALUE: {type: ArgumentType.STRING, defaultValue: ""},
+                        VALUE: {
+                            type: ArgumentType.STRING, defaultValue: "",
+                            exemptFromNormalization: true,
+                        },
                     },
                 },
                 {
@@ -453,6 +418,7 @@ class Extension {
                         NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
                         INSTANCE: gceClassInstance.Argument,
                     },
+                    allowDropAnywhere: true,
                 },
                 {
                     opcode: "callMethod",
@@ -472,10 +438,7 @@ class Extension {
                     text: ["create script [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
                     },
                 },
                 {
@@ -483,10 +446,7 @@ class Extension {
                     text: "run script [NAME]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        NAME: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Script1"
-                        }
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
                     },
                 },
                 "---",
@@ -499,9 +459,46 @@ class Extension {
                         VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
                     },
                 },
+                {
+                    opcode: 'getVariable',
+                    text: 'get [name]',
+                    arguments: {
+                        name: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Variable'
+                        }
+                    },
+                    allowDropAnywhere: true,
+                    blockType: BlockType.REPORTER
+                },
             ],
         }
     }
+    
+    constructor() {
+        this.classVars = new VariableManager()
+        this.scriptVars = new VariableManager()
+        this.specialBlockStorage = new SpecialBlockStorageManager()
+        this.environment = { // to allow access from the extension class
+            Script, Method, ClassType, VariableManager, SpecialBlockStorageManager,
+            CONFIG, Cast, ClassInstanceType, gceClassInstance,
+        }
+        
+        this.reset()
+        // TODO: possibly remove? // TODO: change on release
+        runtime.on("PROJECT_START", this.reset)
+        runtime.on("PROJECT_STOP_ALL", this.reset)
+        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.onThreadFinished(thread)})
+    }
+
+    reset() {
+        this.resetNextMethodArgConfig()
+    }
+
+    resetNextMethodArgConfig() {
+        this.nextMethodArgConfig = {names: [], defaults: []}
+    }
+    
     
     /************************************************************************************
     *                                       Blocks                                      *
@@ -511,7 +508,7 @@ class Extension {
 
     getClass(args) {
         const name = Cast.toString(args.NAME)
-        return Cast.toString(this.classVars.get(name))
+        return this.classVars.get(name)
     }
 
     deleteClass(args) {
@@ -549,32 +546,6 @@ class Extension {
     allClasses() {
         return Cast.toArray(this.classVars.getNames())
     }
-        
-    createInstance(args, util) { // WARNING: reran (contains script execution)
-        const clsName = Cast.toString(args.NAME)
-        const cls = this.classVars.get(clsName)
-        const method = cls.methods[config.INIT_METHOD_NAME]
-
-        if (method) {
-            const ownThread = util.thread
-            const ownBlockId = ownThread.peekStack()
-            let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
-            
-            if (!blockStorage) {
-                blockStorage = {instance: new ClassInstanceType(cls)}
-                this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
-            }
-        
-            const posArgs = Cast.toArray(args.POSARGS).array
-            const evaluatedArgs = this._evaluateArgs(method, posArgs)
-            const context = {
-                self: blockStorage.instance,
-                args: evaluatedArgs,
-            }
-            this._runScript(util, method.script, context)
-        }
-        return blockStorage.instance
-    }
 
     // Blocks: Methods
 
@@ -589,14 +560,14 @@ class Extension {
         });
         if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
             this.resetNextMethodArgConfig()
-            throw new Error("there can only be as many default values as argument names")
+            throw new Error("There can only be as many default values as argument names.")
         }
     }
 
     defineMethod(args, util) {
         const name = Cast.toString(args.NAME)
         const cls = util.thread.GCEclass
-        if (!cls) throw new Error("'define method' can only be used within a class")
+        if (!cls) throw new Error("'define method' can only be used within a class.")
         
         const methodArgConfig = this.nextMethodArgConfig
         this.resetNextMethodArgConfig()
@@ -605,40 +576,82 @@ class Extension {
     }
 
     defineInitMethod(args, util) {
-        this.defineMethod({NAME: config.INIT_METHOD_NAME}, util)
+        this.defineMethod({NAME: CONFIG.INIT_METHOD_NAME}, util)
     }
 
     return (args, util) {
         util.thread.report = Cast.toString(args.VALUE)
     }
+    
+    self(args, util) {
+        const self = util.thread.GCEself
+        if (!self) throw new Error("'self' can only be used within a method.")
+        return self
+    }
 
     allMethodArgs(blockArgs, util) {
         const args = util.thread.GCEargs
-        if (!args) throw new Error("method arguments can only be used within a method")
+        if (!args) throw new Error("Method arguments can only be used within a method.")
         return Cast.toObject(args)
     }
 
     methodArg(blockArgs, util) {
         const name = Cast.toString(blockArgs.NAME)
         const args = util.thread.GCEargs
-        if (!args) throw new Error("method arguments can only be used within a method")
+        if (!args) throw new Error("Method arguments can only be used within a method.")
         const value = args[name]
-        if (!value) throw new Error(`undefined method argument '${name}'`)
+        if (!value) throw new Error(`Undefined method argument '${name}'.`)
         return value
     }
 
+    addTempVars() { // BUTTON
+        if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
+            Scratch.vm.extensionManager.loadExtensionIdSync("tempVars")
+        }
+    }
+
+    transferMethodArgsToTempVars(blockArgs, util) {
+        //if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
+        //    throw new Error("This block requires the temporary variables extension. Click the button above this block to add it.")
+        //}
+        const args = util.thread.GCEargs
+        if (!args) throw new Error("Method arguments can only be used within a method.")
+        if (!util.thread.tempVars) util.thread.tempVars = Object.create(null);
+        for (const [argName, argValue] of Object.entries(args)) {
+            util.thread.tempVars[`threadVar_${argName}`] = argValue
+        }
+        console.log("transferred", util.thread)
+    }
+
+
     // Block: Instances
-    
-    self(args, util) {
-        const self = util.thread.GCEself
-        if (!self) throw new Error("'self' can only be used within a method")
-        return self
+        
+    createInstance(args, util) { // WARNING: reran (contains script execution)
+        const cls = Cast.toClass(args.NAME)
+        const method = cls.methods[CONFIG.INIT_METHOD_NAME]
+
+        const ownThread = util.thread
+        const ownBlockId = ownThread.peekStack()
+        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
+
+        if (!blockStorage) {
+            blockStorage = {instance: new ClassInstanceType(cls)}
+            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
+        }
+
+        if (method) {
+            const posArgs = Cast.toArray(args.POSARGS).array
+            const evaluatedArgs = this._evaluateArgs(method, posArgs)
+            const context = {self: blockStorage.instance, args: evaluatedArgs}
+            this._runScript(util, method.script, context)
+        }
+        return blockStorage.instance
     }
     
     setAttribute(args, util) {
         const instance = args.INSTANCE
         if (!(instance instanceof ClassInstanceType)) {
-            throw new Error("instance argument of 'set attribute' must be a class instance")
+            throw new Error("Instance argument of 'set attribute' must be a class instance.")
         }
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
@@ -648,11 +661,11 @@ class Extension {
     getAttribute(args, util) {
         const instance = args.INSTANCE
         if (!(instance instanceof ClassInstanceType)) {
-            throw new Error("instance argument of 'get attribute' must be a class instance")
+            throw new Error("Instance argument of 'get attribute' must be a class instance.")
         }
         const name = Cast.toString(args.NAME)
         if (!(name in instance.attributes)) {
-            throw new Error(`${instance} has no attribute '${name}'`)
+            throw new Error(`${instance} has no attribute '${name}'.`)
         }
         return instance.attributes[name]
     }
@@ -660,21 +673,20 @@ class Extension {
     callMethod(args, util) { // WARNING: reran (contains script execution)
         const instance = args.INSTANCE
         if (!(instance instanceof ClassInstanceType)) {
-            throw new Error("instance argument of 'call method' must be a class instance")
+            throw new Error("Instance argument of 'call method' must be a class instance.")
         }
         const name = Cast.toString(args.NAME)
         const posArgs = Cast.toArray(args.POSARGS).array
         
         const method = instance.cls.methods[name]
         if (!method) {
-            throw new Error(`undefined method '${name}'`)
+            throw new Error(`Undefined method '${name}'.`)
         }
         const evaluatedArgs = this._evaluateArgs(method, posArgs)
-        const context = {
-            self: instance,
-            args: evaluatedArgs,
-        }
-        return this._runScript(util, method.script, context)
+        const context = {self: instance, args: evaluatedArgs}
+        const {hasReturnValue, returnValue} = this._runScript(util, method.script, context)
+        if (hasReturnValue) return returnValue
+        else return "" // TODO: find other solution possibly
     }
 
     // Blocks: Scripts
@@ -688,10 +700,11 @@ class Extension {
     runScript(args, util) { // WARNING: reran (contains script execution)
         const name = Cast.toString(args.NAME)
         const script = this.scriptVars.get(name)
-        if (!script) throw new Error("%no-script%") // TODO: msg
+        if (!script) throw new Error(`Script '${name}' is not defined.`)
         
         const {hasReturnValue, returnValue} = this._runScript(util, script)
         if (hasReturnValue) return returnValue
+        else return "" // TODO: find other solution possibly
     }
 
     // Blocks: Temporary
@@ -699,6 +712,23 @@ class Extension {
     typeof(args, util) {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
+    }
+    
+    getThreadVars (thread) {
+        if (!thread.tempVars) {
+            thread.tempVars = Object.create(null)
+        }
+        return thread.tempVars
+    }
+
+    getVariable (args, util) {
+        const tempVars = this.getThreadVars(util.thread);
+        console.log("got all", tempVars)
+        const name = `threadVar_${args.name}`
+        const value = tempVars[name]
+        if (!value) return ''
+        console.log("got v", value)
+        return value
     }
 
     /************************************************************************************
@@ -712,14 +742,13 @@ class Extension {
 
     /**
      * WARNING: makes the block caling this run MULITPLE times on one activation
+     * @param {BlockUtility} util
      * @param {Script} script
-     * @param {boolean} doYield
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
      * @returns {{ hasReturnValue: boolean, returnValue: ?any }}
      */
-    
     _runScript(util, script, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
@@ -745,10 +774,7 @@ class Extension {
 
         // Yeah thanks to JG, this section is really confusing, but it works  ¯\_(ツ)_/¯
         // Run the thread if it is active, otherwise set return value and clean up
-        if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) {
-            console.log("still-active-yield")
-            util.yield()
-        }
+        if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) util.yield()
         else {
             if (frame.JGthread.report !== undefined) {
                 result = {hasReturnValue: true, returnValue: frame.JGthread.report}
@@ -756,10 +782,7 @@ class Extension {
             }
             frame.JGthread = ""
         }
-        if ((frame.JGindex < 1)) {
-            console.log("index-too-low-yield")
-            util.yield()
-        }
+        if ((frame.JGindex < 1)) util.yield()
         return result
     }
     
@@ -771,7 +794,7 @@ class Extension {
     _evaluateArgs(method, posArgs) {
         const args = {}
         let name
-        const prefix = (method.name === config.INIT_METHOD_NAME) ? "initalizing object" : `calling method '${method.name}'`
+        const prefix = (method.name === CONFIG.INIT_METHOD_NAME) ? "initalizing object" : `calling method '${method.name}'`
 
         // Ensure there are not too many arguments
         if (posArgs.length > method.argNames.length) {
@@ -803,6 +826,6 @@ class Extension {
         return args
     }
 }
-
-Scratch.extensions.register(new Extension())
+const extensionClassInstance = new GCEClassBlocks()
+Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
