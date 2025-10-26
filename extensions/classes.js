@@ -17,6 +17,65 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed")
 }
 
+
+/**
+ * Safely stringify an object with:
+ *  - circular reference protection
+ *  - max depth control
+ *  - automatic handling of Immutable-like objects
+ *
+ * Works in environments without `require` or `import`.
+ *
+ * @param {any} value - The value to stringify.
+ * @param {number} [maxDepth=3] - Maximum recursion depth.
+ * @param {number} [space=2] - Indentation for JSON.
+ * @returns {string}
+ */
+function safeStringify(value, maxDepth = 4, space = 2) {
+  const seen = new WeakSet();
+
+  function _normalize(val, depth = 0) {
+    // Handle Immutable-like structures
+    if (val && typeof val === 'object') {
+      if (typeof val.toJS === 'function') {
+        try {
+          return _normalize(val.toJS(), depth + 1);
+        } catch {
+          return '[ImmutableError]';
+        }
+      }
+      if (typeof val.toJSON === 'function' && !Array.isArray(val)) {
+        try {
+          return _normalize(val.toJSON(), depth + 1);
+        } catch {
+          return '[JSONError]';
+        }
+      }
+    }
+
+    // Handle circulars and depth limit
+    if (typeof val === 'object' && val !== null) {
+      if (seen.has(val)) return '[Circular]';
+      if (depth >= maxDepth) return '[MaxDepth]';
+      seen.add(val);
+
+      const out = Array.isArray(val) ? [] : {};
+      for (const k in val) {
+        try {
+          out[k] = _normalize(val[k], depth + 1);
+        } catch {
+          out[k] = '[Error]';
+        }
+      }
+      seen.delete(val);
+      return out;
+    }
+
+    return val;
+  }
+
+  return JSON.stringify(_normalize(value), null, space);
+}
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
@@ -104,6 +163,28 @@ class VariableManager {
     }
     getNames() {
         return Object.keys(this.variables)
+    }
+}
+
+// System for storing data for a block, which will automatically be deleted when its thread is finished or stopped
+class SpecialBlockStorageManager {
+    constructor() {
+        this.threads = new Map()
+    }    
+    storeBlockData(blockId, thread, data) {
+        if (!this.threads.has(thread)) {
+            this.threads.set(thread, {})
+        }
+        const threadBlockDatas = this.threads.get(thread)
+        threadBlockDatas[blockId] = data
+    }
+    getBlockData(blockId, thread) {
+        if (!this.threads.has(thread)) return
+        const threadBlockDatas = this.threads.get(thread)
+        return threadBlockDatas[blockId]        
+    }
+    onThreadFinished(thread) {
+        this.threads.delete(thread) // doesnt ever throw
     }
 }
 
@@ -215,10 +296,12 @@ class Extension {
     constructor() {
         this.classVars = new VariableManager()
         this.scriptVars = new VariableManager()
+        this.specialBlockStorage = new SpecialBlockStorageManager()
         this.reset()
         // TODO: possibly remove? // TODO: change on release
         runtime.on("PROJECT_START", this.reset)
         runtime.on("PROJECT_STOP_ALL", this.reset)
+        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.onThreadFinished(thread)})
     }
 
     reset() {
@@ -228,7 +311,7 @@ class Extension {
     resetNextMethodArgConfig() {
         this.nextMethodArgConfig = {names: [], defaults: []}
     }
-
+    
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
@@ -446,36 +529,51 @@ class Extension {
 
     // Blocks: Classes
 
-    createClass(args, util) {
+    createClass(args, util) { // WARNING: reran (contains script execution)
         const name = Cast.toString(args.NAME)
-        const cls = new ClassType(name)
-        this.classVars.set(name, cls)
+        
+        const ownThread = util.thread
+        const ownBlockId = ownThread.peekStack()
+        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
+        
+        if (!blockStorage) {
+            blockStorage = {cls: new ClassType(name)}
+            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
+            this.classVars.set(name, blockStorage.cls)
+        }
         
         const tempScript = this._createScriptFromBranch(util, "<class body>")
-        this._runScript(util, tempScript, false, {cls: cls})
+        this._runScript(util, tempScript, {cls: blockStorage.cls})
     }
 
     allClasses() {
         return Cast.toArray(this.classVars.getNames())
     }
-
-    createInstance(args, util) {
+        
+    createInstance(args, util) { // WARNING: reran (contains script execution)
         const clsName = Cast.toString(args.NAME)
         const cls = this.classVars.get(clsName)
-        
-        const instance = new ClassInstanceType(cls)
         const method = cls.methods[config.INIT_METHOD_NAME]
 
         if (method) {
+            const ownThread = util.thread
+            const ownBlockId = ownThread.peekStack()
+            let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
+            
+            if (!blockStorage) {
+                blockStorage = {instance: new ClassInstanceType(cls)}
+                this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
+            }
+        
             const posArgs = Cast.toArray(args.POSARGS).array
             const evaluatedArgs = this._evaluateArgs(method, posArgs)
             const context = {
-                self: instance,
+                self: blockStorage.instance,
                 args: evaluatedArgs,
             }
-            this._runScript(util, method.script, true, context)
+            this._runScript(util, method.script, context)
         }
-        return instance
+        return blockStorage.instance
     }
 
     // Blocks: Methods
@@ -533,7 +631,7 @@ class Extension {
     
     self(args, util) {
         const self = util.thread.GCEself
-        if (!self) throw new Error("'self' can only be used within a class")
+        if (!self) throw new Error("'self' can only be used within a method")
         return self
     }
     
@@ -559,7 +657,7 @@ class Extension {
         return instance.attributes[name]
     }
 
-    callMethod(args, util) {
+    callMethod(args, util) { // WARNING: reran (contains script execution)
         const instance = args.INSTANCE
         if (!(instance instanceof ClassInstanceType)) {
             throw new Error("instance argument of 'call method' must be a class instance")
@@ -576,7 +674,7 @@ class Extension {
             self: instance,
             args: evaluatedArgs,
         }
-        return this._runScript(util, method.script, true, context)
+        return this._runScript(util, method.script, context)
     }
 
     // Blocks: Scripts
@@ -586,12 +684,14 @@ class Extension {
         const script = this._createScriptFromBranch(util, name)
         this.scriptVars.set(name, script)
     }
-
-    runScript(args, util) {
+    
+    runScript(args, util) { // WARNING: reran (contains script execution)
         const name = Cast.toString(args.NAME)
         const script = this.scriptVars.get(name)
-        if (!script) throw new Error("%no-script&")
-        return this._runScript(util, script, true, {})
+        if (!script) throw new Error("%no-script%") // TODO: msg
+        
+        const {hasReturnValue, returnValue} = this._runScript(util, script)
+        if (hasReturnValue) return returnValue
     }
 
     // Blocks: Temporary
@@ -611,23 +711,24 @@ class Extension {
     }
 
     /**
+     * WARNING: makes the block caling this run MULITPLE times on one activation
      * @param {Script} script
      * @param {boolean} doYield
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
+     * @returns {{ hasReturnValue: boolean, returnValue: ?any }}
      */
     
-    _runScript(util, script, doYield, {cls = null, self = null, args = null}) {
-        console.log("running", script, new Error())
-        console.log(util.thread.blockContainer)
+    _runScript(util, script, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
         let thread = frame.JGthread
-
+        let result = {hasReturnValue: false, returnValue: null}
+        
         // Make a thread if there is none
-        if (script.target.blocks.getBlock(script.branch) === undefined) return
+        if (script.target.blocks.getBlock(script.branch) === undefined) return result
         if (!thread && (frame.JGindex < 1)) {
             thread = runtime._pushThread(script.branch, script.target, {stackClick: false})
 
@@ -639,21 +740,27 @@ class Extension {
             thread.tryCompile() // update thread
             
             frame.JGthread = thread
-            frame.JGindex = frame.JGindex + 1
+            frame.JGindex = 1
         }
 
         // Yeah thanks to JG, this section is really confusing, but it works  ¯\_(ツ)_/¯
         // Run the thread if it is active, otherwise set return value and clean up
-        if (frame.JGthread && runtime.isActiveThread(frame.JGthread) && doYield) util.yield()
+        if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) {
+            console.log("still-active-yield")
+            util.yield()
+        }
         else {
             if (frame.JGthread.report !== undefined) {
-                frame.JGreport = frame.JGthread.report
-                frame.JGindex = 1 + 1
+                result = {hasReturnValue: true, returnValue: frame.JGthread.report}
+                frame.JGindex = 2
             }
             frame.JGthread = ""
         }
-        if ((frame.JGindex < 1) && doYield) util.yield()
-        return frame.JGreport
+        if ((frame.JGindex < 1)) {
+            console.log("index-too-low-yield")
+            util.yield()
+        }
+        return result
     }
     
     /**
