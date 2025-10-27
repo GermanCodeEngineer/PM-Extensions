@@ -18,11 +18,15 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed.")
 }
 
-const IS_DEVELOPMENT = true; // TODO: change on release
-
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
+
+function quote(s) {
+    if (!s.includes("'")) return `"${s}"`
+    else if (!s.includes('"')) return `'${s}'`
+    else return `"${s.replace('"', '\\"')}"`
+}
 
 class Script {
     /**
@@ -36,7 +40,7 @@ class Script {
         this.target = target
     }
     toString() {
-        return `<Script '${this.name}'`
+        return `<Script ${quote(this.name)}`
     }
     toJSON() {
         return "Scripts can not be serialized."
@@ -57,7 +61,7 @@ class Method {
         this.argDefaults = argDefaults
     }
     toString() {
-        return `<Method '${this.name}'`
+        return `<Method ${quote(this.name)}`
     }
     toJSON() {
         return "Methods can not be serialized."
@@ -84,7 +88,7 @@ class VariableManager {
     }
     get(name) {
         if (!this.has(name)) {
-            throw new Error(`'${name}' is not defined.`)
+            throw new Error(`${quote(name)} is not defined.`)
         }
         return this.variables[name]
     }
@@ -119,7 +123,8 @@ const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
 const CONFIG = {
-    INIT_METHOD_NAME: "__init__"
+    INIT_METHOD_NAME: "__init__",
+    DISABLE_DEFAULT_VALUES: true, // TODO: change on release
 }
 
 class Cast extends Scratch.Cast {
@@ -194,7 +199,7 @@ class ClassType {
         this.methods = {}
     }
     toString() {
-        return `<Class '${this.name}'>`
+        return `<Class ${quote(this.name)}>`
     }
     toJSON() {
         return "Classes can not be serialized."
@@ -217,7 +222,6 @@ const gceClass = {
     ArgumentAllowVarName: {
         type: ArgumentType.STRING,
         exemptFromNormalization: true,
-        defaultValue: IS_DEVELOPMENT ? undefined : "MyClass",
     },
 }
 
@@ -233,7 +237,7 @@ class ClassInstanceType {
         this.attributes = {}
     }
     toString() {
-        return `<Instance of '${this.cls.name}'>`
+        return `<Instance of ${quote(this.cls.name)}>`
     }
     toJSON() {
         return "Class Instances can not be serialized."
@@ -265,7 +269,7 @@ class GCEClassBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
-        return {
+        let info = {
             id: "gceClasses",
             name: "Classes",
             color1: "#d9661a",
@@ -460,19 +464,37 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    opcode: 'getVariable',
-                    text: 'get [name]',
+                    opcode: "logThread",
+                    blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: "getVariable",
+                    text: "get [name]",
                     arguments: {
                         name: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'Variable'
+                            defaultValue: "Variable"
                         }
                     },
                     allowDropAnywhere: true,
                     blockType: BlockType.REPORTER
                 },
+                {
+                    opcode: "setVariableTest",
+                    blockType: BlockType.COMMAND,
+                },
             ],
         }
+        if (CONFIG.DISABLE_DEFAULT_VALUES) {
+            info.blocks.forEach((blockInfo) => {
+                if (blockInfo.arguments) {
+                    Object.keys(blockInfo.arguments).forEach((argumentName) => {
+                        delete blockInfo.arguments[argumentName]["defaultValue"]
+                    })
+                }
+            })
+        }
+        return info
     }
     
     constructor() {
@@ -600,7 +622,7 @@ class GCEClassBlocks {
         const args = util.thread.GCEargs
         if (!args) throw new Error("Method arguments can only be used within a method.")
         const value = args[name]
-        if (!value) throw new Error(`Undefined method argument '${name}'.`)
+        if (!value) throw new Error(`Undefined method argument ${quote(name)}.`)
         return value
     }
 
@@ -616,9 +638,17 @@ class GCEClassBlocks {
         //}
         const args = util.thread.GCEargs
         if (!args) throw new Error("Method arguments can only be used within a method.")
-        if (!util.thread.tempVars) util.thread.tempVars = Object.create(null);
+        //if (!util.thread.tempVars) util.thread.tempVars = Object.create(null);
+        //for (const [argName, argValue] of Object.entries(args)) {
+        //    util.thread.tempVars[`threadVar_${argName}`] = argValue
+        //}
+        
+        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
+        const setVariable = Object.getPrototypeOf(tempVarsExt).setVariable.bind(tempVarsExt)
         for (const [argName, argValue] of Object.entries(args)) {
-            util.thread.tempVars[`threadVar_${argName}`] = argValue
+            // this expects args (just arg name and value)
+            // and util (we can use the same util, as it should use the same thread)
+            setVariable({name: argName, value: argValue}, util)
         }
         console.log("transferred", util.thread)
     }
@@ -665,7 +695,7 @@ class GCEClassBlocks {
         }
         const name = Cast.toString(args.NAME)
         if (!(name in instance.attributes)) {
-            throw new Error(`${instance} has no attribute '${name}'.`)
+            throw new Error(`${instance} has no attribute ${quote(name)}.`)
         }
         return instance.attributes[name]
     }
@@ -680,7 +710,7 @@ class GCEClassBlocks {
         
         const method = instance.cls.methods[name]
         if (!method) {
-            throw new Error(`Undefined method '${name}'.`)
+            throw new Error(`Undefined method ${quote(name)}.`)
         }
         const evaluatedArgs = this._evaluateArgs(method, posArgs)
         const context = {self: instance, args: evaluatedArgs}
@@ -700,7 +730,7 @@ class GCEClassBlocks {
     runScript(args, util) { // WARNING: reran (contains script execution)
         const name = Cast.toString(args.NAME)
         const script = this.scriptVars.get(name)
-        if (!script) throw new Error(`Script '${name}' is not defined.`)
+        if (!script) throw new Error(`Script ${quote(name)} is not defined.`)
         
         const {hasReturnValue, returnValue} = this._runScript(util, script)
         if (hasReturnValue) return returnValue
@@ -720,15 +750,36 @@ class GCEClassBlocks {
         }
         return thread.tempVars
     }
+    
+    logThread (args, util) {
+        let bc = util.thread.blockContainer
+        util.thread.blockContainer = "[REMOVED]"
+        let t = util.thread.target
+        util.thread.target = "[REMOVED]"
+        console.log("logging thread", JSON.stringify(util.thread, null, 4))
+        console.log("logging thread tv", JSON.stringify(util.thread.tempVars, null, 4))
+        util.thread.blockContainer = bc
+        util.thread.target = t
+        
+        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
+        const getThreadVars = Object.getPrototypeOf(tempVarsExt).getThreadVars.bind(tempVarsExt)
+        console.log("but tv gives", getThreadVars(util.thread))
+    }
 
     getVariable (args, util) {
         const tempVars = this.getThreadVars(util.thread);
         console.log("got all", tempVars)
         const name = `threadVar_${args.name}`
         const value = tempVars[name]
-        if (!value) return ''
+        if (!value) return ""
         console.log("got v", value)
         return value
+    }
+    
+    setVariableTest (args, util) {
+        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
+        const setVariable = Object.getPrototypeOf(tempVarsExt).setVariable.bind(tempVarsExt)
+        setVariable({name: "myVar", value: "myVar.myVal"}, util)
     }
 
     /************************************************************************************
@@ -794,7 +845,7 @@ class GCEClassBlocks {
     _evaluateArgs(method, posArgs) {
         const args = {}
         let name
-        const prefix = (method.name === CONFIG.INIT_METHOD_NAME) ? "initalizing object" : `calling method '${method.name}'`
+        const prefix = (method.name === CONFIG.INIT_METHOD_NAME) ? "initalizing object" : `calling method ${quote(method.name)}`
 
         // Ensure there are not too many arguments
         if (posArgs.length > method.argNames.length) {

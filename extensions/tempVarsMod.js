@@ -31,9 +31,9 @@ class tempVars {
         return {
             id: 'tempVarsMod',
             name: 'Temporary Variables Mod',
-            color1: '#0069c2',
-            color2: '#0060B4',
-            color3: '#0060B4',
+            color1: '#5569c2',
+            color2: '#5560B4',
+            color3: '#5560B4',
             blocks: [
                 {
                     opcode: 'setVariable',
