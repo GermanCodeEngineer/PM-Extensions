@@ -23,9 +23,9 @@ if (!Scratch.extensions.unsandboxed) {
 ************************************************************************************/
 
 function quote(s) {
+    if (!s.includes('"')) return `'${s}'`
     if (!s.includes("'")) return `"${s}"`
-    else if (!s.includes('"')) return `'${s}'`
-    else return `"${s.replace('"', '\\"')}"`
+    return `'${s.replace("'", "\\'")}'`
 }
 
 class Script {
@@ -191,15 +191,18 @@ class ClassType {
     customId = "gceClass"
 
     /**
-     * @param {string} name 
+     * @param {string} name
+     * @param {ClassType} superCls
      */
      
-    constructor(name) {
+    constructor(name, superCls) {
         this.name = name
         this.methods = {}
+        this.superCls = superCls
     }
     toString() {
-        return `<Class ${quote(this.name)}>`
+        const suffix = this.superCls ? `(super ${quote(this.superCls.name)})` : ""
+        return `<Class ${quote(this.name)}${suffix}>`
     }
     toJSON() {
         return "Classes can not be serialized."
@@ -275,14 +278,47 @@ class GCEClassBlocks {
             color1: "#d9661a",
             color2: "#b34801",
             blocks: [
-                makeLabel("Variables n Stuff"),
+                makeLabel("Classes"),
+                // New
+                {
+                    opcode: "createClass",
+                    blockType: BlockType.CONDITIONAL,
+                    text: ["create class [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                    },
+                },
+                {
+                    opcode: "createSubClass",
+                    blockType: BlockType.CONDITIONAL,
+                    text: ["create class [NAME] with superclass [SUPERCLASS]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                        SUPERCLASS: gceClass.ArgumentAllowVarName,
+                    },
+                },
                 {
                     opcode: "getClass",
-                    blockType: BlockType.REPORTER,
                     text: "get class [NAME]",
                     arguments: {
                         NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
                     },
+                    ...gceClass.Block
+                },
+                {
+                    opcode: "classExists",
+                    blockType: BlockType.BOOLEAN,
+                    text: "class [NAME] exists?",
+                    arguments: {
+                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                    },
+                },
+                {
+                    opcode: "allClasses",
+                    text: "all classes",
+                    ...jwArrayStub.Block
                 },
                 {
                     opcode: "deleteClass",
@@ -298,30 +334,13 @@ class GCEClassBlocks {
                     text: "delete all classes"
                 },
                 {
-                    opcode: "classExists",
-                    blockType: BlockType.BOOLEAN,
-                    text: "class [NAME] exists?",
+                    opcode: "isSubclass",
+                    text: "is [SUBCLASS] a subclass of [SUPERCLASS]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        SUBCLASS: gceClass.ArgumentAllowVarName,
+                        SUPERCLASS: gceClass.ArgumentAllowVarName,
                     },
-                },
-                "---",
-                makeLabel("Classes"),
-                // New
-                {
-                    opcode: "createClass",
-                    blockType: BlockType.CONDITIONAL,
-                    text: ["create class [NAME]"],
-                    branchCount: 1,
-                    arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
-                    },
-                },
-                {
-                    opcode: "allClasses",
-                    blockType: BlockType.REPORTER,
-                    text: "all classes",
-                    ...jwArrayStub.Block
+                    ...gceClassInstance.Block,
                 },
                 "---",
                 makeLabel("Methods"),
@@ -394,9 +413,9 @@ class GCEClassBlocks {
                 makeLabel("Instances"),
                 {
                     opcode: "createInstance",
-                    text: "create instance of class [NAME] with positional args [POSARGS]",
+                    text: "create instance of class [CLASS] with positional args [POSARGS]",
                     arguments: {
-                        NAME: gceClass.ArgumentAllowVarName,
+                        CLASS: gceClass.ArgumentAllowVarName,
                         POSARGS: jwArrayStub.Argument,
                     },
                     ...gceClassInstance.Block,
@@ -434,6 +453,15 @@ class GCEClassBlocks {
                         POSARGS: jwArrayStub.Argument,
                     },
                 },
+                {
+                    opcode: "isInstance",
+                    blockType: BlockType.REPORTER,
+                    text: "is [INSTANCE] an instance of [CLASS]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                        CLASS: gceClass.ArgumentAllowVarName,
+                    },
+                },
                 "---",
                 makeLabel("Scripts"),
                 {
@@ -457,30 +485,15 @@ class GCEClassBlocks {
                 makeLabel("Temporary"),
                 {
                     opcode: "typeof",
-                    text: "typeof [VALUE]",
+                    text: "debugging: typeof [VALUE]",
                     blockType: BlockType.REPORTER,
                     arguments: {
                         VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
                     },
                 },
                 {
-                    opcode: "logThread",
-                    blockType: BlockType.COMMAND,
-                },
-                {
-                    opcode: "getVariable",
-                    text: "get [name]",
-                    arguments: {
-                        name: {
-                            type: ArgumentType.STRING,
-                            defaultValue: "Variable"
-                        }
-                    },
-                    allowDropAnywhere: true,
-                    blockType: BlockType.REPORTER
-                },
-                {
-                    opcode: "setVariableTest",
+                    opcode: "throw",
+                    text: "debugging: throw",
                     blockType: BlockType.COMMAND,
                 },
             ],
@@ -497,7 +510,24 @@ class GCEClassBlocks {
         return info
     }
     
+    getCompileInfo() {
+        return {
+            ir: {
+                transferMethodArgsToTempVars: (generator, block) => ({kind: "stack"}),
+            },
+            js: {
+                transferMethodArgsToTempVars: (node, compiler, imports) => {
+                    // tempVars seems to always be defined
+                    compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Method arguments can only be used within a method.");\n'
+                    compiler.source += 'try {Object.assign(tempVars, globalState.thread.GCEargs)} catch {throw new Error("Failed to transfer to temporary variables")};\n'
+                },
+            },
+        }
+    }
+    
     constructor() {
+        Scratch.vm.runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
+
         this.classVars = new VariableManager()
         this.scriptVars = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
@@ -526,26 +556,6 @@ class GCEClassBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
-    // Blocks: Variables n Stuff
-
-    getClass(args) {
-        const name = Cast.toString(args.NAME)
-        return this.classVars.get(name)
-    }
-
-    deleteClass(args) {
-        this.classVars.delete(Cast.toString(args.NAME))
-    }
-
-    deleteAllClasses() {
-        this.classVars.reset()
-    }
-
-    classExists(args) {
-        const name = Cast.toString(args.NAME)
-        return Cast.toBoolean(this.classVars.has(name))
-    }
-
     // Blocks: Classes
 
     createClass(args, util) { // WARNING: reran (contains script execution)
@@ -556,7 +566,7 @@ class GCEClassBlocks {
         let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
         
         if (!blockStorage) {
-            blockStorage = {cls: new ClassType(name)}
+            blockStorage = {cls: new ClassType(name, null)}
             this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
             this.classVars.set(name, blockStorage.cls)
         }
@@ -565,8 +575,50 @@ class GCEClassBlocks {
         this._runScript(util, tempScript, {cls: blockStorage.cls})
     }
 
+    createSubClass(args, util) { // WARNING: reran (contains script execution)
+        const name = Cast.toString(args.NAME)
+        const superCls = Cast.toClass(args.SUPERCLASS)
+        
+        const ownThread = util.thread
+        const ownBlockId = ownThread.peekStack()
+        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
+        
+        if (!blockStorage) {
+            blockStorage = {cls: new ClassType(name, superCls)}
+            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
+            this.classVars.set(name, blockStorage.cls)
+        }
+        
+        const tempScript = this._createScriptFromBranch(util, "<class body>")
+        this._runScript(util, tempScript, {cls: blockStorage.cls})
+    }
+
+    getClass(args) {
+        const name = Cast.toString(args.NAME)
+        return this.classVars.get(name)
+    }
+
+    classExists(args) {
+        const name = Cast.toString(args.NAME)
+        return Cast.toBoolean(this.classVars.has(name))
+    }
+
     allClasses() {
         return Cast.toArray(this.classVars.getNames())
+    }
+    
+    deleteClass(args) {
+        this.classVars.delete(Cast.toString(args.NAME))
+    }
+    
+    deleteAllClasses() {
+        this.classVars.reset()
+    }
+
+    isSubclass(args, util) {
+        const subCls = Cast.toClass(args.SUBCLASS)
+        const superCls = Cast.toClass(args.SUPERCLASS)
+        return Cast.toBoolean(this._isSubclass(subCls, superCls))
     }
 
     // Blocks: Methods
@@ -576,10 +628,10 @@ class GCEClassBlocks {
         const argDefaults = Cast.toArray(args.ARGDEFAULTS)
         argNames.array.forEach(argName => {
             this.nextMethodArgConfig.names.push(Cast.toString(argName))
-        });
+        })
         argDefaults.array.forEach(argDefault => {
             this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
-        });
+        })
         if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
             this.resetNextMethodArgConfig()
             throw new Error("There can only be as many default values as argument names.")
@@ -632,33 +684,15 @@ class GCEClassBlocks {
         }
     }
 
-    transferMethodArgsToTempVars(blockArgs, util) {
-        //if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
-        //    throw new Error("This block requires the temporary variables extension. Click the button above this block to add it.")
-        //}
-        const args = util.thread.GCEargs
-        if (!args) throw new Error("Method arguments can only be used within a method.")
-        //if (!util.thread.tempVars) util.thread.tempVars = Object.create(null);
-        //for (const [argName, argValue] of Object.entries(args)) {
-        //    util.thread.tempVars[`threadVar_${argName}`] = argValue
-        //}
-        
-        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
-        const setVariable = Object.getPrototypeOf(tempVarsExt).setVariable.bind(tempVarsExt)
-        for (const [argName, argValue] of Object.entries(args)) {
-            // this expects args (just arg name and value)
-            // and util (we can use the same util, as it should use the same thread)
-            setVariable({name: argName, value: argValue}, util)
-        }
-        console.log("transferred", util.thread)
+    transferMethodArgsToTempVars (args, util) { // is a compiled block
+        throw new Error("Please turn on the compiler. ")
     }
-
 
     // Block: Instances
         
     createInstance(args, util) { // WARNING: reran (contains script execution)
-        const cls = Cast.toClass(args.NAME)
-        const method = cls.methods[CONFIG.INIT_METHOD_NAME]
+        const cls = Cast.toClass(args.CLASS)
+        let method = cls.methods[CONFIG.INIT_METHOD_NAME]
 
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
@@ -669,12 +703,11 @@ class GCEClassBlocks {
             this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
         }
 
-        if (method) {
-            const posArgs = Cast.toArray(args.POSARGS).array
-            const evaluatedArgs = this._evaluateArgs(method, posArgs)
-            const context = {self: blockStorage.instance, args: evaluatedArgs}
-            this._runScript(util, method.script, context)
-        }
+        if (!method) method = new Method(CONFIG.INIT_METHOD_NAME, null, [], [])
+        const posArgs = Cast.toArray(args.POSARGS).array
+        const evaluatedArgs = this._evaluateArgs(method, posArgs)
+        const context = {self: blockStorage.instance, args: evaluatedArgs}
+        if (method.script) this._runScript(util, method.script, context)
         return blockStorage.instance
     }
     
@@ -719,6 +752,15 @@ class GCEClassBlocks {
         else return "" // TODO: find other solution possibly
     }
 
+    isInstance(args, util) {
+        const instance = args.INSTANCE
+        if (!(instance instanceof ClassInstanceType)) {
+            throw new Error("Instance argument of 'is instance' must be a class instance.")
+        }
+        const cls = Cast.toClass(args.CLASS)
+        return Cast.toBoolean(this._isSubclass(instance.cls, cls))
+    }
+
     // Blocks: Scripts
 
     createScript(args, util) {
@@ -743,49 +785,35 @@ class GCEClassBlocks {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
     }
-    
-    getThreadVars (thread) {
-        if (!thread.tempVars) {
-            thread.tempVars = Object.create(null)
-        }
-        return thread.tempVars
-    }
-    
-    logThread (args, util) {
-        let bc = util.thread.blockContainer
-        util.thread.blockContainer = "[REMOVED]"
-        let t = util.thread.target
-        util.thread.target = "[REMOVED]"
-        console.log("logging thread", JSON.stringify(util.thread, null, 4))
-        console.log("logging thread tv", JSON.stringify(util.thread.tempVars, null, 4))
-        util.thread.blockContainer = bc
-        util.thread.target = t
-        
-        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
-        const getThreadVars = Object.getPrototypeOf(tempVarsExt).getThreadVars.bind(tempVarsExt)
-        console.log("but tv gives", getThreadVars(util.thread))
-    }
 
-    getVariable (args, util) {
-        const tempVars = this.getThreadVars(util.thread);
-        console.log("got all", tempVars)
-        const name = `threadVar_${args.name}`
-        const value = tempVars[name]
-        if (!value) return ""
-        console.log("got v", value)
-        return value
-    }
-    
-    setVariableTest (args, util) {
-        const tempVarsExt = runtime.ext_tempVars ? runtime.ext_tempVars : runtime.ext_tempVarsMod
-        const setVariable = Object.getPrototypeOf(tempVarsExt).setVariable.bind(tempVarsExt)
-        setVariable({name: "myVar", value: "myVar.myVal"}, util)
+    throw () {
+        throw new Error("BREAK")
     }
 
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
 
+    /**
+     * @param {ClassType} subCls
+     * @param {ClassType} superCls
+     * @returns {boolean}
+     */
+    _isSubclass(subCls, superCls) {
+        if (subCls === superCls) return true
+        let currentCls = subCls
+        while (currentCls.superCls) {
+            if (currentCls.superCls === superCls) return true
+            currentCls = currentCls.superCls
+        }
+        return false
+    }
+
+    /**
+     * @param {BlockUtility} util
+     * @param {string} name
+     * @returns {Script}
+     */
     _createScriptFromBranch(util, name) {
         const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
         return new Script(name, branch, util.target)
@@ -843,7 +871,7 @@ class GCEClassBlocks {
      * @returns {Object}
      */
     _evaluateArgs(method, posArgs) {
-        const args = {}
+        const args = Object.create(null)
         let name
         const prefix = (method.name === CONFIG.INIT_METHOD_NAME) ? "initalizing object" : `calling method ${quote(method.name)}`
 
