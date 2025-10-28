@@ -115,7 +115,7 @@ class SpecialBlockStorageManager {
         return threadBlockDatas[blockId]        
     }
     onThreadFinished(thread) {
-        this.threads.delete(thread) // doesnt ever throw
+        this.threads.delete(thread) // does not ever throw
     }
 }
 
@@ -124,20 +124,89 @@ const runtime = Scratch.vm.runtime
 
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
-    DISABLE_DEFAULT_VALUES: true, // TODO: change on release
+    HIDE_ARGUMENT_DEFAULTS: false, // TODO: change on release
+}
+
+class TypeChecker {
+    // All custom types one can get from a reporter in PM
+    // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
+    // - Array
+    // - Object
+    // - Date
+    // - Set
+    // - Lambda
+    // - Color
+    // - JwNum (really Num, to avoid confusion)
+    // - Target
+    // - XML
+    
+    static isArray(value) {
+        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
+        return value instanceof Scratch.vm.jwArray.Type
+    }
+    
+    static isObject(value) {
+        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
+        return value instanceof Scratch.vm.dogeiscutObject.Type
+    }
+    
+    static isDate(value) { // There are three date extension
+        if (Scratch.vm.jwDate && (value instanceof Scratch.vm.jwDate.Type)) return true
+        if (runtime.ext_ddeDateFormat) {
+            const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
+            if (value instanceof dateType) return true
+        }
+        if (runtime.ext_ddeDateFormatV2) {
+            const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
+            if (value instanceof dateType) return true
+        }
+        return false;
+    }
+    
+    static isSet(value) {
+        if (!Scratch.vm.dogeiscutSet) return false;
+        return value instanceof Scratch.vm.dogeiscutSet.Type
+    }
+    
+    static isLambda(value) {
+        if (!Scratch.vm.jwLambda) return false;
+        return value instanceof Scratch.vm.jwLambda.Type
+    }
+    
+    static isColor(value) {
+        if (!Scratch.vm.jwColor) return false;
+        return value instanceof Scratch.vm.jwColor.Type
+    }
+    
+    static isJwNum(value) { // this is a weird one (basically just numbers)
+        if (!Scratch.vm.jwNum) return false;
+        return value instanceof Scratch.vm.jwNum.Type
+    }
+
+    static isTarget(value) {
+        if (!Scratch.vm.jwTargets) return false;
+        return value instanceof Scratch.vm.jwTargets.Type
+    }
+    
+    static isXML(value) {
+        if (!Scratch.vm.jwXML) return false;
+        return value instanceof Scratch.vm.jwXML.Type
+    }    
 }
 
 class Cast extends Scratch.Cast {
+    // Foreign
     static toArray(value) {
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
-
+    
     static toObject(value, copy = false) {
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
     }
-
+    
+    // Own
     static toClass(value) {
         if (value instanceof ClassType) return value
         else if ((typeof value) === "string") return extensionClassInstance.classVars.get(value)
@@ -222,8 +291,9 @@ const gceClass = {
         exemptFromNormalization: true,
         check: ["gceClass"],
     },
-    ArgumentAllowVarName: {
+    ArgumentClassOrVarName: {
         type: ArgumentType.STRING,
+        defaultValue: "MyClass",
         exemptFromNormalization: true,
     },
 }
@@ -262,6 +332,30 @@ const gceClassInstance = {
     },
 }
 
+const commonArguments = {
+    classVarName: {
+        type: ArgumentType.STRING,
+        defaultValue: "MyClass",
+    },
+    methodName: {
+        type: ArgumentType.STRING,
+        defaultValue: "myMethod",
+    },
+    argumentName: {
+        type: ArgumentType.STRING,
+        defaultValue: "myArg",
+    },
+    scriptName: {
+        type: ArgumentType.STRING,
+        defaultValue: "Script1",
+    },
+    anything: {
+        type: ArgumentType.STRING,
+        defaultValue: "", 
+        exemptFromNormalization: true,
+    },
+}
+
 /************************************************************************************
 *                                  Extension Class                                  *
 ************************************************************************************/
@@ -275,57 +369,56 @@ class GCEClassBlocks {
         let info = {
             id: "gceClasses",
             name: "Classes",
-            color1: "#d9661a",
-            color2: "#b34801",
+            color1: "#FFA01C",
+            color2: "#ff8C00",
             blocks: [
                 makeLabel("Classes"),
-                // New
                 {
                     opcode: "createClass",
                     blockType: BlockType.CONDITIONAL,
                     text: ["create class [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                        NAME: commonArguments.classVarName,
                     },
                 },
                 {
-                    opcode: "createSubClass",
+                    opcode: "createSubclass",
                     blockType: BlockType.CONDITIONAL,
-                    text: ["create class [NAME] with superclass [SUPERCLASS]"],
+                    text: ["create subclass [NAME] with superclass [SUPERCLASS]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
-                        SUPERCLASS: gceClass.ArgumentAllowVarName,
+                        NAME: commonArguments.classVarName,
+                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySuperClass"},
                     },
                 },
                 {
+                    ...gceClass.Block,
                     opcode: "getClass",
                     text: "get class [NAME]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                        NAME: commonArguments.classVarName,
                     },
-                    ...gceClass.Block
                 },
                 {
                     opcode: "classExists",
                     blockType: BlockType.BOOLEAN,
                     text: "class [NAME] exists?",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        NAME: commonArguments.classVarName,
                     },
                 },
                 {
+                    ...jwArrayStub.Block,
                     opcode: "allClasses",
                     text: "all classes",
-                    ...jwArrayStub.Block
                 },
                 {
                     opcode: "deleteClass",
                     blockType: BlockType.COMMAND,
                     text: "delete class [NAME]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "MyClass"},
+                        NAME: commonArguments.classVarName,
                     },
                 },
                 {
@@ -335,12 +428,12 @@ class GCEClassBlocks {
                 },
                 {
                     opcode: "isSubclass",
-                    text: "is [SUBCLASS] a subclass of [SUPERCLASS]",
+                    blockType: BlockType.BOOLEAN,
+                    text: "is [SUBCLASS] a subclass of [SUPERCLASS] ?",
                     arguments: {
-                        SUBCLASS: gceClass.ArgumentAllowVarName,
-                        SUPERCLASS: gceClass.ArgumentAllowVarName,
+                        SUBCLASS: gceClass.ArgumentClassOrVarName,
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
                     },
-                    ...gceClassInstance.Block,
                 },
                 "---",
                 makeLabel("Methods"),
@@ -359,7 +452,7 @@ class GCEClassBlocks {
                     text: ["define method [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "myMethod"},
+                        NAME: commonArguments.methodName,
                     },
                 },
                 {
@@ -374,30 +467,27 @@ class GCEClassBlocks {
                     blockType: BlockType.COMMAND,
                     isTerminal: true,
                     arguments: {
-                        VALUE: {
-                            type: ArgumentType.STRING, defaultValue: "", 
-                            exemptFromNormalization: true,
-                        },
+                        VALUE: commonArguments.anything,
                     },
                 },
                 {
+                    ...gceClassInstance.Block,
                     opcode: "self",
                     text: "self",
-                    ...gceClassInstance.Block,
                 },
                 {
+                    ...dogeiscutObjectStub.Block,
                     opcode: "allMethodArgs",
                     text: "method arguments",
-                    ...dogeiscutObjectStub.Block,
                 },
                 {
                     opcode: "methodArg",
                     blockType: BlockType.REPORTER,
                     text: "method arg [NAME]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "myArg"},
+                        NAME: commonArguments.argumentName,
                     },
-                    allowDropAnywhere: true,
+                    allowDropAnywhere: true, // TODO: is necessary? refractor?
                 },
                 { // BUTTON
                     opcode: "addTempVars",
@@ -412,13 +502,13 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Instances"),
                 {
+                    ...gceClassInstance.Block,
                     opcode: "createInstance",
                     text: "create instance of class [CLASS] with positional args [POSARGS]",
                     arguments: {
-                        CLASS: gceClass.ArgumentAllowVarName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
                         POSARGS: jwArrayStub.Argument,
                     },
-                    ...gceClassInstance.Block,
                 },
                 {
                     opcode: "setAttribute",
@@ -427,10 +517,7 @@ class GCEClassBlocks {
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
-                        VALUE: {
-                            type: ArgumentType.STRING, defaultValue: "",
-                            exemptFromNormalization: true,
-                        },
+                        VALUE: commonArguments.anything,
                     },
                 },
                 {
@@ -449,17 +536,27 @@ class GCEClassBlocks {
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
-                        NAME: {type: ArgumentType.STRING, defaultValue: "myMethod"},
+                        NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
                     },
                 },
                 {
                     opcode: "isInstance",
-                    blockType: BlockType.REPORTER,
-                    text: "is [INSTANCE] an instance of [CLASS]",
+                    blockType: BlockType.BOOLEAN,
+                    text: "is [INSTANCE] an instance of [CLASS] ?",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
-                        CLASS: gceClass.ArgumentAllowVarName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                "---",
+                makeLabel("Miscellaneous"),
+                {
+                    opcode: "typeof",
+                    text: "typeof [VALUE]",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        VALUE: commonArguments.anything,
                     },
                 },
                 "---",
@@ -470,7 +567,7 @@ class GCEClassBlocks {
                     text: ["create script [NAME]"],
                     branchCount: 1,
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        NAME: commonArguments.scriptName,
                     },
                 },
                 {
@@ -478,17 +575,17 @@ class GCEClassBlocks {
                     text: "run script [NAME]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "Script1"},
+                        NAME: commonArguments.scriptName,
                     },
                 },
                 "---",
-                makeLabel("Temporary"),
+                makeLabel("Debugging & Temporary"),
                 {
-                    opcode: "typeof",
-                    text: "debugging: typeof [VALUE]",
+                    opcode: "jsTypeof",
+                    text: "debugging: JS typeof [VALUE]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        VALUE: {type: ArgumentType.STRING, exemptFromNormalization: true},
+                        VALUE: commonArguments.anything,
                     },
                 },
                 {
@@ -498,7 +595,7 @@ class GCEClassBlocks {
                 },
             ],
         }
-        if (CONFIG.DISABLE_DEFAULT_VALUES) {
+        if (CONFIG.HIDE_ARGUMENT_DEFAULTS) {
             info.blocks.forEach((blockInfo) => {
                 if (blockInfo.arguments) {
                     Object.keys(blockInfo.arguments).forEach((argumentName) => {
@@ -526,15 +623,17 @@ class GCEClassBlocks {
     }
     
     constructor() {
-        Scratch.vm.runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
+        runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
 
         this.classVars = new VariableManager()
         this.scriptVars = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
         this.environment = { // to allow access from the extension class
-            Script, Method, ClassType, VariableManager, SpecialBlockStorageManager,
+            Script, Method, ClassType, gceClass, VariableManager, SpecialBlockStorageManager,
             CONFIG, Cast, ClassInstanceType, gceClassInstance,
         }
+        Scratch.vm.gceClass = gceClass
+        Scratch.vm.gceClassInstance = gceClassInstance
         
         this.reset()
         // TODO: possibly remove? // TODO: change on release
@@ -575,7 +674,7 @@ class GCEClassBlocks {
         this._runScript(util, tempScript, {cls: blockStorage.cls})
     }
 
-    createSubClass(args, util) { // WARNING: reran (contains script execution)
+    createSubclass(args, util) { // WARNING: reran (contains script execution)
         const name = Cast.toString(args.NAME)
         const superCls = Cast.toClass(args.SUPERCLASS)
         
@@ -760,6 +859,42 @@ class GCEClassBlocks {
         const cls = Cast.toClass(args.CLASS)
         return Cast.toBoolean(this._isSubclass(instance.cls, cls))
     }
+    
+    // Blocks: Miscellaneous
+    typeof(args, util) {
+        const value = args.VALUE
+        // My Types
+        if (value instanceof ClassType) return "Class"
+        if (value instanceof ClassInstanceType) return "Class Instance"
+        if (value instanceof Method) return "Method"
+        if (value instanceof Script) return "Script"
+        
+        // Safe JS data types
+        if (value === undefined) return "Nothing" // TODO: reconsider/refractor
+        if (value === null) return "Nothing" // TODO: reconsider/refractor
+        if (typeof value === "boolean") return "Boolean"
+        if (typeof value === "number") return "Number"
+        if (typeof value === "string") return "String"
+        
+        // Foreign Extensions
+        if (TypeChecker.isArray(value)) return "Array"
+        if (TypeChecker.isObject(value)) return "Object"
+        if (TypeChecker.isDate(value)) return "Date"
+        if (TypeChecker.isSet(value)) return "Set"
+        if (TypeChecker.isLambda(value)) return "Lambda"
+        if (TypeChecker.isColor(value)) return "Color"
+        if (TypeChecker.isJwNum(value)) return "Unlimited Number"
+        if (TypeChecker.isTarget(value)) return "Target"
+        if (TypeChecker.isXML(value)) return "XML"
+        
+        // Rare/Overlapping JS data types
+        if (typeof value === "bigint") return "JavaScript BigInt"
+        if (typeof value === "symbol") return "JavaScript Symbol"
+        if (typeof value === "function") return "JavaScript Function"
+        if (typeof value === "object") return "JavaScript Object"
+
+        return "Unknown"
+    }
 
     // Blocks: Scripts
 
@@ -781,7 +916,7 @@ class GCEClassBlocks {
 
     // Blocks: Temporary
 
-    typeof(args, util) {
+    jsTypeof(args, util) {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
     }
