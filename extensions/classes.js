@@ -136,7 +136,7 @@ class TypeChecker {
     // - Set
     // - Lambda
     // - Color
-    // - JwNum (really Num, to avoid confusion)
+    // - UnlimitedNum (really Num, to avoid confusion)
     // - Target
     // - XML
     
@@ -178,7 +178,7 @@ class TypeChecker {
         return value instanceof Scratch.vm.jwColor.Type
     }
     
-    static isJwNum(value) { // this is a weird one (basically just numbers)
+    static isUnlimitedNum(value) {
         if (!Scratch.vm.jwNum) return false;
         return value instanceof Scratch.vm.jwNum.Type
     }
@@ -369,8 +369,9 @@ class GCEClassBlocks {
         let info = {
             id: "gceClasses",
             name: "Classes",
-            color1: "#FFA01C",
-            color2: "#ff8C00",
+            color1: "#428af5ff", // leftof; consider jwtarget color
+            //blockText: "#ffffff",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5LDQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250LXdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90YXRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
             blocks: [
                 makeLabel("Classes"),
                 {
@@ -390,6 +391,15 @@ class GCEClassBlocks {
                     arguments: {
                         NAME: commonArguments.classVarName,
                         SUPERCLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySuperClass"},
+                    },
+                },
+                {
+                    ...gceClass.Block,
+                    opcode: "setClass",
+                    text: "set class [NAME] to [CLASS]",
+                    arguments: {
+                        NAME: commonArguments.classVarName,
+                        CLASS: gceClass.Argument,
                     },
                 },
                 {
@@ -559,6 +569,15 @@ class GCEClassBlocks {
                         VALUE: commonArguments.anything,
                     },
                 },
+                {
+                    opcode: "checkIdentity",
+                    text: "[INSTANCE1] is [INSTANCE2] ?",
+                    blockType: BlockType.BOOLEAN,
+                    arguments: {
+                        INSTANCE1: gceClassInstance.Argument,
+                        INSTANCE2: gceClassInstance.Argument,
+                    },
+                },
                 "---",
                 makeLabel("Scripts"),
                 {
@@ -581,9 +600,9 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Debugging & Temporary"),
                 {
+                    ...dogeiscutObjectStub.Block,
                     opcode: "jsTypeof",
                     text: "debugging: JS typeof [VALUE]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         VALUE: commonArguments.anything,
                     },
@@ -883,7 +902,7 @@ class GCEClassBlocks {
         if (TypeChecker.isSet(value)) return "Set"
         if (TypeChecker.isLambda(value)) return "Lambda"
         if (TypeChecker.isColor(value)) return "Color"
-        if (TypeChecker.isJwNum(value)) return "Unlimited Number"
+        if (TypeChecker.isUnlimitedNum(value)) return "Unlimited Number"
         if (TypeChecker.isTarget(value)) return "Target"
         if (TypeChecker.isXML(value)) return "XML"
         
@@ -894,6 +913,18 @@ class GCEClassBlocks {
         if (typeof value === "object") return "JavaScript Object"
 
         return "Unknown"
+    }
+
+    checkIdentity(args, util) {
+        const instance1 = args.INSTANCE1
+        const instance2 = args.INSTANCE2
+        if (!(instance1 instanceof ClassInstanceType)) {
+            throw new Error("Instance argument of 'is' must be a class instance.")
+        }
+        if (!(instance2 instanceof ClassInstanceType)) {
+            throw new Error("Instance argument of 'is' must be a class instance.")
+        }
+        return Cast.toBoolean(instance1 === instance2)
     }
 
     // Blocks: Scripts
@@ -909,7 +940,7 @@ class GCEClassBlocks {
         const script = this.scriptVars.get(name)
         if (!script) throw new Error(`Script ${quote(name)} is not defined.`)
         
-        const {hasReturnValue, returnValue} = this._runScript(util, script)
+        const {hasReturnValue, returnValue} = this._runScript(util, script, {})
         if (hasReturnValue) return returnValue
         else return "" // TODO: find other solution possibly
     }
@@ -919,6 +950,10 @@ class GCEClassBlocks {
     jsTypeof(args, util) {
         console.log("value", args.VALUE)
         console.log("typeof value", typeof args.VALUE)
+        return Cast.toObject({
+            typeof: typeof args.VALUE, 
+            proto: Object.getPrototypeOf(args.VALUE),
+        })
     }
 
     throw () {
