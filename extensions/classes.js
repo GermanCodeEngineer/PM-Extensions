@@ -18,64 +18,66 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed.")
 }
 
-Scratch.gui.getBlockly().then(ScratchBlocks => {
-    ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", {
-        emptyInputPath: "m 6 3 a 3 3 0 0 1 3 -3 h 7 h 10 h 7 a 3 3 0 0 1 3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 1 -3 3 h -7 h -10 h -7 a 3 3 0 0 1 -3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3",
-        emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
-        leftPath: (block) => {
-            const block_height = block.height
-            const emptyHeight = 32
-            const fifth = (block_height - emptyHeight) / 5
-            const fifthLine = `v -${fifth}`
-            const fifthLineExtended = `v -${fifth + 1}`
-            return [ 
-                "h -7 "+
-                "a 3 3 0 0 1 -3 -3 "+
-                fifthLine+
-                "a 3 3 0 0 0 -3 -3 "+
-                "a 3 3 0 0 1 -3 -3 "+
-                fifthLineExtended+
-                "a 3 3 0 0 1 3 -3 "+
-                "a 3 3 0 0 0 3 -3 "+
-                fifthLine+
-                "a 3 3 0 0 0 -3 -3 "+
-                "a 3 3 0 0 1 -3 -3 "+
-                fifthLineExtended+
-                "a 3 3 0 0 1 3 -3 "+
-                "a 3 3 0 0 0 3 -3 "+
-                fifthLine+
-                "a 3 3 0 0 1 3 -3 "+
-                "h 7 "
-            ]
-        },
-        rightPath: (block) => {
-            const block_height = block.edgeShapeWidth_ * 2 // block.height not available
-            const emptyHeight = 32
-            const fifth = (block_height - emptyHeight) / 5
-            const fifthLine = `v ${fifth}`
-            const fifthLineExtended = `v ${fifth + 1}`
-            return [ 
-                "h 7 "+
-                "a 3 3 0 0 1 3 3 "+
-                fifthLine+
-                "a 3 3 0 0 0 3 3 "+
-                "a 3 3 0 0 1 3 3 "+
-                fifthLineExtended+
-                "a 3 3 0 0 1 -3 3 "+
-                "a 3 3 0 0 0 -3 3 "+
-                fifthLine+
-                "a 3 3 0 0 0 3 3 "+
-                "a 3 3 0 0 1 3 3 "+
-                fifthLineExtended+
-                "a 3 3 0 0 1 -3 3 "+
-                "a 3 3 0 0 0 -3 3 "+
-                fifthLine+
-                "a 3 3 0 0 1 -3 3 "+
-                "h -7 "
-            ]
-        },
-    })
-})
+/************************************************************************************
+*                                Custom Block Shapes                                *
+************************************************************************************/
+
+const CUSTOM_SHAPE_DOUBLE_PLUS = {
+    emptyInputPath: "m 6 3 a 3 3 0 0 1 3 -3 h 7 h 10 h 7 a 3 3 0 0 1 3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 1 -3 3 h -7 h -10 h -7 a 3 3 0 0 1 -3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3",
+    emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+    leftPath: (block) => {
+        const block_height = block.height
+        const emptyHeight = 32
+        const fifth = (block_height - emptyHeight) / 5
+        const fifthLine = `v -${fifth}`
+        const fifthLineExtended = `v -${fifth + 1}`
+        return [ 
+            "h -7 "+
+            "a 3 3 0 0 1 -3 -3 "+
+            fifthLine+
+            "a 3 3 0 0 0 -3 -3 "+
+            "a 3 3 0 0 1 -3 -3 "+
+            fifthLineExtended+
+            "a 3 3 0 0 1 3 -3 "+
+            "a 3 3 0 0 0 3 -3 "+
+            fifthLine+
+            "a 3 3 0 0 0 -3 -3 "+
+            "a 3 3 0 0 1 -3 -3 "+
+            fifthLineExtended+
+            "a 3 3 0 0 1 3 -3 "+
+            "a 3 3 0 0 0 3 -3 "+
+            fifthLine+
+            "a 3 3 0 0 1 3 -3 "+
+            "h 7 "
+        ]
+    },
+    rightPath: (block) => {
+        const block_height = block.edgeShapeWidth_ * 2 // block.height not available
+        const emptyHeight = 32
+        const fifth = (block_height - emptyHeight) / 5
+        const fifthLine = `v ${fifth}`
+        const fifthLineExtended = `v ${fifth + 1}`
+        return [ 
+            "h 7 "+
+            "a 3 3 0 0 1 3 3 "+
+            fifthLine+
+            "a 3 3 0 0 0 3 3 "+
+            "a 3 3 0 0 1 3 3 "+
+            fifthLineExtended+
+            "a 3 3 0 0 1 -3 3 "+
+            "a 3 3 0 0 0 -3 3 "+
+            fifthLine+
+            "a 3 3 0 0 0 3 3 "+
+            "a 3 3 0 0 1 3 3 "+
+            fifthLineExtended+
+            "a 3 3 0 0 1 -3 3 "+
+            "a 3 3 0 0 0 -3 3 "+
+            fifthLine+
+            "a 3 3 0 0 1 -3 3 "+
+            "h -7 "
+        ]
+    },
+}
 
 /************************************************************************************
 *                            Internal Types and Constants                           *
@@ -86,45 +88,20 @@ function quote(s) {
     if (!s.includes("'")) return `"${s}"`
     return `'${s.replace("'", "\\'")}'`
 }
-
-class Script {
-    /**
-     * @param {string} name 
-     * @param {string} branch
-     * @param {Target} target 
-     */
-    constructor(name, branch, target) {
-        this.name = name
-        this.branch = branch
-        this.target = target
-    }
-    toString() {
-        return `<Script ${quote(this.name)}`
-    }
-    toJSON() {
-        return "Scripts can not be serialized."
-    }
-}
-
-class Method {
-    /**
-     * @param {string} name
-     * @param {Script} script 
-     * @param {Array<string>} argNames
-     * @param {Array<string>} argDefaults
-     */
-    constructor(name, script, argNames, argDefaults) {
-        this.name = name
-        this.script = script
-        this.argNames = argNames
-        this.argDefaults = argDefaults
-    }
-    toString() {
-        return `<Method ${quote(this.name)}`
-    }
-    toJSON() {
-        return "Methods can not be serialized."
-    }
+function safeSpan(text) {
+    text = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+    let element = document.createElement("span")
+    element.innerHTML = text
+    element.style.display = "hidden"
+    element.style.whiteSpace = "nowrap"
+    element.style.width = "100%"
+    element.style.textAlign = "center"
+    return element
 }
 
 class VariableManager {
@@ -183,7 +160,7 @@ const runtime = Scratch.vm.runtime
 
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
-    HIDE_ARGUMENT_DEFAULTS: false, // TODO: change on release
+    HIDE_ARGUMENT_DEFAULTS: false, // TODO: change to false on release
 }
 
 class TypeChecker {
@@ -219,39 +196,40 @@ class TypeChecker {
             const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
             if (value instanceof dateType) return true
         }
-        return false;
+        return false
     }
     
     static isSet(value) {
-        if (!Scratch.vm.dogeiscutSet) return false;
+        if (!Scratch.vm.dogeiscutSet) return false
         return value instanceof Scratch.vm.dogeiscutSet.Type
     }
     
     static isLambda(value) {
-        if (!Scratch.vm.jwLambda) return false;
+        if (!Scratch.vm.jwLambda) return false
         return value instanceof Scratch.vm.jwLambda.Type
     }
     
     static isColor(value) {
-        if (!Scratch.vm.jwColor) return false;
+        if (!Scratch.vm.jwColor) return false
         return value instanceof Scratch.vm.jwColor.Type
     }
     
     static isUnlimitedNum(value) {
-        if (!Scratch.vm.jwNum) return false;
+        if (!Scratch.vm.jwNum) return false
         return value instanceof Scratch.vm.jwNum.Type
     }
 
     static isTarget(value) {
-        if (!Scratch.vm.jwTargets) return false;
+        if (!Scratch.vm.jwTargets) return false
         return value instanceof Scratch.vm.jwTargets.Type
     }
     
     static isXML(value) {
-        if (!Scratch.vm.jwXML) return false;
+        if (!Scratch.vm.jwXML) return false
         return value instanceof Scratch.vm.jwXML.Type
-    }    
+    }
 }
+
 
 class Cast extends Scratch.Cast {
     // Foreign
@@ -270,6 +248,12 @@ class Cast extends Scratch.Cast {
         if (value instanceof ClassType) return value
         else if ((typeof value) === "string") return extensionClassInstance.classVars.get(value)
         else throw new Error("Expected a class or class variable name.")
+    }
+
+    static toFunction(value) {
+        if (value instanceof FunctionType) return value
+        else if ((typeof value) === "string") return extensionClassInstance.funcVars.get(value)
+        else throw new Error("Expected a function or function variable name.")
     }
 }
 
@@ -315,15 +299,55 @@ const dogeiscutObjectStub = {
     },
 }
 
-class ClassType {
+
+class CustomType {
+    toMonitorContent() {
+        return safeSpan(this.toString())
+    }
+}
+
+class FunctionType extends CustomType {
+    /**
+     * @param {string} name 
+     * @param {string} branch
+     * @param {Target} target
+     * @param {Array<string>} argNames
+     * @param {Array<string>} argDefaults
+     */
+    constructor(name, branch, target, argNames, argDefaults) {
+        super()
+        this.name = name
+        this.branch = branch
+        this.target = target
+        this.argNames = argNames
+        this.argDefaults = argDefaults
+    }
+    toString() {
+        return `<Function ${quote(this.name)}`
+    }
+    toJSON() {
+        return "Functions can not be serialized."
+    }
+}
+
+class MethodType extends FunctionType {
+    toString() {
+        return `<Method ${quote(this.name)}`
+    }
+    toJSON() {
+        return "Methods can not be serialized."
+    }
+}
+
+class ClassType extends CustomType {
     customId = "gceClass"
 
     /**
      * @param {string} name
      * @param {ClassType} superCls
      */
-     
     constructor(name, superCls) {
+        super()
         this.name = name
         this.methods = {}
         this.superCls = superCls
@@ -335,11 +359,75 @@ class ClassType {
     toJSON() {
         return "Classes can not be serialized."
     }
-    toMonitorContent() {
-        return this.toString()
-    }
 }
 
+class ClassInstanceType extends CustomType {
+    customId = "gceClassInstance"
+
+    /**
+     * @param {ClassType} cls 
+     */
+    constructor(cls) {
+        super()
+        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given.")
+        this.cls = cls
+        this.attributes = {}
+    }
+    toString() {
+        return `<Instance of ${quote(this.cls.name)}>`
+    }
+    toJSON() {
+        return "Class Instances can not be serialized."
+    }
+    // TODO: possibly define toReporterContent for better visualization
+}
+
+class NothingType extends CustomType {
+    customId = "gceNothing"
+
+    toString() {
+        return "<Nothing>"
+    }
+    toJSON() {
+        return {"gceNothing": true} // Just for debugging, not actually used anywhere
+    }
+}
+const Nothing = new NothingType()
+
+
+const gceFunction = {
+    Type: FunctionType,
+    Block: {
+        blockType: BlockType.REPORTER,
+        blockShape: BlockShape.ARROW,
+        forceOutputType: "gceFunction",
+        disableMonitor: true,
+    },
+    Argument: {
+        shape: BlockShape.ARROW,
+        exemptFromNormalization: true,
+        check: ["gceFunction"],
+    },
+    ArgumentFunctionOrVarName: {
+        type: ArgumentType.STRING,
+        defaultValue: "Function1",
+        exemptFromNormalization: true,
+    },
+}
+const gceMethod = {
+    Type: MethodType,
+    Block: {
+        blockType: BlockType.REPORTER,
+        blockShape: BlockShape.ARROW,
+        forceOutputType: "gceMethod",
+        disableMonitor: true,
+    },
+    Argument: {
+        shape: BlockShape.ARROW,
+        exemptFromNormalization: true,
+        check: ["gceMethod"],
+    },
+}
 const gceClass = {
     Type: ClassType,
     Block: {
@@ -359,29 +447,6 @@ const gceClass = {
         exemptFromNormalization: true,
     },
 }
-
-class ClassInstanceType {
-    customId = "gceClassInstance"
-
-    /**
-     * @param {ClassType} cls 
-     */
-    constructor(cls) {
-        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given.")
-        this.cls = cls
-        this.attributes = {}
-    }
-    toString() {
-        return `<Instance of ${quote(this.cls.name)}>`
-    }
-    toJSON() {
-        return "Class Instances can not be serialized."
-    }
-    toMonitorContent() {
-        return this.toString()
-    }
-    // TODO: define toReporterContent for better visualization???
-}
 const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
@@ -393,27 +458,9 @@ const gceClassInstance = {
     Argument: {
         shape: "gceClasses-doublePlus",
         exemptFromNormalization: true,
-        check: ["gceClassInstance"],
+        check: ["gceClassInstance", "dogeiscutObject"],
     },
 }
-
-class NothingType {
-    customId = "gceNothing"
-
-    constructor() {}
-    toString() {
-        return "<Nothing>"
-    }
-    toJSON() {
-        return {"gceNothing": true}
-    }
-    toMonitorContent() {
-        return this.toString()
-    }
-    // TODO: add monitor content method to all
-}
-const Nothing = new NothingType()
-
 const gceNothing = {
     Type: NothingType,
     Block: {
@@ -429,6 +476,7 @@ const gceNothing = {
     },
 }
 
+
 const commonArguments = {
     classVarName: {
         type: ArgumentType.STRING,
@@ -442,14 +490,19 @@ const commonArguments = {
         type: ArgumentType.STRING,
         defaultValue: "myArg",
     },
-    scriptName: {
+    funcName: {
         type: ArgumentType.STRING,
-        defaultValue: "Script1",
+        defaultValue: "Function1",
     },
-    anything: {
+    allowAnything: {
         type: ArgumentType.STRING,
-        defaultValue: "", 
         exemptFromNormalization: true,
+    },
+}
+const commonBlocks = {
+    returnsAnything: {
+        blockType: BlockType.REPORTER,
+        allowDropAnywhere: true,
     },
 }
 
@@ -463,11 +516,10 @@ class GCEClassBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
-        let info = {
+        const info = {
             id: "gceClasses",
             name: "Classes",
-            color1: "#428af5ff", // leftof; consider jwtarget color
-            //blockText: "#ffffff",
+            color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5LDQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250LXdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90YXRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
             blocks: [
                 makeLabel("Classes"),
@@ -491,8 +543,8 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...gceClass.Block,
                     opcode: "setClass",
+                    blockType: BlockType.COMMAND,
                     text: "set class [NAME] to [CLASS]",
                     arguments: {
                         NAME: commonArguments.classVarName,
@@ -543,16 +595,67 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                makeLabel("Methods"),
+                makeLabel("Functions & Methods"),
                 {
-                    opcode: "configureNextMethodArguments",
+                    opcode: "configureNextFunctionArgs",
                     blockType: BlockType.COMMAND,
-                    text: "configure next method with argument names [ARGNAMES] defaults [ARGDEFAULTS]",
+                    text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
                     arguments: {
                         ARGNAMES: jwArrayStub.Argument,
                         ARGDEFAULTS: jwArrayStub.Argument,
                     },
                 },
+                {
+                    opcode: "createFunction",
+                    blockType: BlockType.CONDITIONAL,
+                    text: ["create function [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...dogeiscutObjectStub.Block,
+                    opcode: "allFunctionArgs",
+                    text: "function arguments",
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "functionArg",
+                    text: "function arg [NAME]",
+                    arguments: {
+                        NAME: commonArguments.argumentName,
+                    },
+                },
+                {
+                    opcode: "return",
+                    text: "return [VALUE]",
+                    blockType: BlockType.COMMAND,
+                    isTerminal: true,
+                    arguments: {
+                        VALUE: commonArguments.allowAnything,
+                    },
+                },
+                {
+                    opcode: "runFunction",
+                    text: "run function [FUNC] with positional args [POSARGS]",
+                    blockType: BlockType.REPORTER,
+                    arguments: {
+                        FUNC: gceFunction.ArgumentFunctionOrVarName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                { // BUTTON
+                    opcode: "addTempVars",
+                    blockType: BlockType.BUTTON,
+                    text: "add temporary variables extension",
+                },
+                {
+                    opcode: "transferFunctionArgsToTempVars",
+                    blockType: BlockType.COMMAND,
+                    text: "transfer arguments to temporary variables",
+                },
+                "---",
                 {
                     opcode: "defineMethod",
                     blockType: BlockType.CONDITIONAL,
@@ -569,42 +672,9 @@ class GCEClassBlocks {
                     branchCount: 1,
                 },
                 {
-                    opcode: "return",
-                    text: "return [VALUE]",
-                    blockType: BlockType.COMMAND,
-                    isTerminal: true,
-                    arguments: {
-                        VALUE: commonArguments.anything,
-                    },
-                },
-                {
                     ...gceClassInstance.Block,
                     opcode: "self",
                     text: "self",
-                },
-                {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "allMethodArgs",
-                    text: "method arguments",
-                },
-                {
-                    opcode: "methodArg",
-                    blockType: BlockType.REPORTER,
-                    text: "method arg [NAME]",
-                    arguments: {
-                        NAME: commonArguments.argumentName,
-                    },
-                    allowDropAnywhere: true, // TODO: is necessary? refractor?
-                },
-                { // BUTTON
-                    opcode: "addTempVars",
-                    blockType: BlockType.BUTTON,
-                    text: "add temporary variables extension",
-                },
-                {
-                    opcode: "transferMethodArgsToTempVars",
-                    blockType: BlockType.COMMAND,
-                    text: "transfer method arguments to temporary variables",
                 },
                 "---",
                 makeLabel("Instances"),
@@ -624,18 +694,17 @@ class GCEClassBlocks {
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
-                        VALUE: commonArguments.anything,
+                        VALUE: commonArguments.allowAnything,
                     },
                 },
                 {
+                    ...commonBlocks.returnsAnything,
                     opcode: "getAttribute",
-                    blockType: BlockType.REPORTER,
                     text: "get attribute [NAME] of [INSTANCE]",
                     arguments: {
                         NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
                         INSTANCE: gceClassInstance.Argument,
                     },
-                    allowDropAnywhere: true,
                 },
                 {
                     opcode: "callMethod",
@@ -663,16 +732,16 @@ class GCEClassBlocks {
                     text: "typeof [VALUE]",
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        VALUE: commonArguments.anything,
+                        VALUE: commonArguments.allowAnything,
                     },
                 },
                 {
                     opcode: "checkIdentity",
-                    text: "[INSTANCE1] is [INSTANCE2] ?",
+                    text: "[VALUE1] is [VALUE2] ?",
                     blockType: BlockType.BOOLEAN,
                     arguments: {
-                        INSTANCE1: gceClassInstance.Argument,
-                        INSTANCE2: gceClassInstance.Argument,
+                        VALUE1: commonArguments.allowAnything,
+                        VALUE2: commonArguments.allowAnything,
                     },
                 },
                 {
@@ -681,32 +750,13 @@ class GCEClassBlocks {
                     text: "Nothing",
                 },
                 "---",
-                makeLabel("Scripts"),
-                {
-                    opcode: "createScript",
-                    blockType: BlockType.CONDITIONAL,
-                    text: ["create script [NAME]"],
-                    branchCount: 1,
-                    arguments: {
-                        NAME: commonArguments.scriptName,
-                    },
-                },
-                {
-                    opcode: "runScript",
-                    text: "run script [NAME]",
-                    blockType: BlockType.REPORTER,
-                    arguments: {
-                        NAME: commonArguments.scriptName,
-                    },
-                },
-                "---",
                 makeLabel("Debugging & Temporary"),
                 {
                     ...dogeiscutObjectStub.Block,
                     opcode: "jsTypeof",
                     text: "debugging: JS typeof [VALUE]",
                     arguments: {
-                        VALUE: commonArguments.anything,
+                        VALUE: commonArguments.allowAnything,
                     },
                 },
                 {
@@ -731,57 +781,45 @@ class GCEClassBlocks {
     getCompileInfo() {
         return {
             ir: {
-                transferMethodArgsToTempVars: (generator, block) => ({kind: "stack"}),
+                transferFunctionArgsToTempVars: (generator, block) => ({kind: "stack"}),
             },
             js: {
-                transferMethodArgsToTempVars: (node, compiler, imports) => {
+                transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
-                    compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Method arguments can only be used within a method.");\n'
-                    compiler.source += 'try {Object.assign(tempVars, globalState.thread.GCEargs)} catch {throw new Error("Failed to transfer to temporary variables")};\n'
+                    compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Function arguments can only be used within a function or method.");\n'
+                    compiler.source += 'try {Object.assign(tempVars, globalState.thread.GCEargs)} catch {throw new Error("Failed to transfer to temporary variables.")};\n'
                 },
             },
         }
     }
     
     constructor() {
-        Scratch.vm.gceClass = gceClass
-        Scratch.vm.gceClassInstance = gceClassInstance
-        this.environment = { // to allow access from the extension class
-            Script, Method, ClassType, gceClass, VariableManager, SpecialBlockStorageManager,
-            CONFIG, Cast, ClassInstanceType, gceClassInstance,
+        Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
+        this.environment = { // to allow other extensions access from the extension class
+            VariableManager, SpecialBlockStorageManager, TypeChecker, Cast,
+            CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
+            gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
-        vm.runtime.registerSerializer( // this basically copies variable serialization
+        vm.runtime.registerSerializer(
             "gceNothing",
-            v => {
-                if (v instanceof NothingType) return v.toJSON()
-                return null
-            },
-            v => {
-                if (v.customId === "gceNothing") return Nothing
-                return null
-            },
+            v => (v instanceof NothingType ? v.toJSON() : null),
+            v => Nothing,
         )
         runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
+        Scratch.gui.getBlockly().then(ScratchBlocks => {
+            ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
+        })
+
+        // manipulate Scratch.Cast.toBoolean to return false for Nothing
+        const oldToBool = Scratch.Cast.toBoolean
+        // LEFT OFF HERE
 
         this.classVars = new VariableManager()
-        this.scriptVars = new VariableManager()
+        this.funcVars = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
         
-        this.reset()
-        // TODO: possibly remove? // TODO: change on release
-        runtime.on("PROJECT_START", this.reset)
-        runtime.on("PROJECT_STOP_ALL", this.reset)
         runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.onThreadFinished(thread)})
-    }
-
-    reset() {
-        this.resetNextMethodArgConfig()
-    }
-
-    resetNextMethodArgConfig() {
-        this.nextMethodArgConfig = {names: [], defaults: []}
-    }
-    
+    }    
     
     /************************************************************************************
     *                                       Blocks                                      *
@@ -789,7 +827,7 @@ class GCEClassBlocks {
 
     // Blocks: Classes
 
-    createClass(args, util) { // WARNING: reran (contains script execution)
+    createClass(args, util) { // WARNING: reran (contains function execution)
         const name = Cast.toString(args.NAME)
         
         const ownThread = util.thread
@@ -802,11 +840,11 @@ class GCEClassBlocks {
             this.classVars.set(name, blockStorage.cls)
         }
         
-        const tempScript = this._createScriptFromBranch(util, "<class body>")
-        this._runScript(util, tempScript, {cls: blockStorage.cls})
+        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
+        this._runFunction(util, tempFunction, {cls: blockStorage.cls})
     }
 
-    createSubclass(args, util) { // WARNING: reran (contains script execution)
+    createSubclass(args, util) { // WARNING: reran (contains function execution)
         const name = Cast.toString(args.NAME)
         const superCls = Cast.toClass(args.SUPERCLASS)
         
@@ -820,8 +858,8 @@ class GCEClassBlocks {
             this.classVars.set(name, blockStorage.cls)
         }
         
-        const tempScript = this._createScriptFromBranch(util, "<class body>")
-        this._runScript(util, tempScript, {cls: blockStorage.cls})
+        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
+        this._runFunction(util, tempFunction, {cls: blockStorage.cls})
     }
 
     getClass(args) {
@@ -852,61 +890,50 @@ class GCEClassBlocks {
         return Cast.toBoolean(this._isSubclass(subCls, superCls))
     }
 
-    // Blocks: Methods
+    // Blocks: Functions & Methods
 
-    configureNextMethodArguments(args, util) {
-        const argNames = Cast.toArray(args.ARGNAMES)
-        const argDefaults = Cast.toArray(args.ARGDEFAULTS)
-        argNames.array.forEach(argName => {
-            this.nextMethodArgConfig.names.push(Cast.toString(argName))
-        })
-        argDefaults.array.forEach(argDefault => {
-            this.nextMethodArgConfig.defaults.push(Cast.toString(argDefault))
-        })
-        if (this.nextMethodArgConfig.defaults.length > this.nextMethodArgConfig.names.length) {
-            this.resetNextMethodArgConfig()
+    configureNextFunctionArgs(args, util) {
+        const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
+        const argDefaults = Cast.toArray(args.ARGDEFAULTS).array.map(val => Cast.toString(val))
+        if (argDefaults.length > argNames.length) {
             throw new Error("There can only be as many default values as argument names.")
         }
+        util.thread.GCEnextFuncConfig = {argNames, argDefaults}
     }
 
-    defineMethod(args, util) {
+    createFunction(args, util) {
         const name = Cast.toString(args.NAME)
-        const cls = util.thread.GCEclass
-        if (!cls) throw new Error("'define method' can only be used within a class.")
-        
-        const methodArgConfig = this.nextMethodArgConfig
-        this.resetNextMethodArgConfig()
-        const script = this._createScriptFromBranch(util, "<anonymous>")
-        cls.methods[name] = new Method(name, script, methodArgConfig.names, methodArgConfig.defaults)
+        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
+        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
+        this.funcVars.set(name, func)
     }
 
-    defineInitMethod(args, util) {
-        this.defineMethod({NAME: CONFIG.INIT_METHOD_NAME}, util)
-    }
-
-    return (args, util) {
-        util.thread.report = Cast.toString(args.VALUE)
-    }
-    
-    self(args, util) {
-        const self = util.thread.GCEself
-        if (!self) throw new Error("'self' can only be used within a method.")
-        return self
-    }
-
-    allMethodArgs(blockArgs, util) {
+    allFunctionArgs(blockArgs, util) {
         const args = util.thread.GCEargs
-        if (!args) throw new Error("Method arguments can only be used within a method.")
+        if (!args) throw new Error("Function arguments can only be used within a method.")
         return Cast.toObject(args)
     }
 
-    methodArg(blockArgs, util) {
+    functionArg(blockArgs, util) {
         const name = Cast.toString(blockArgs.NAME)
         const args = util.thread.GCEargs
-        if (!args) throw new Error("Method arguments can only be used within a method.")
+        if (!args) throw new Error("Function arguments can only be used within a method.")
         const value = args[name]
-        if (!value) throw new Error(`Undefined method argument ${quote(name)}.`)
+        if (!value) throw new Error(`Undefined function argument ${quote(name)}.`)
         return value
+    }
+
+    return (args, util) {
+        util.thread.report = args.VALUE
+    }
+    
+    runFunction(args, util) { // WARNING: reran (contains function execution)
+        const func = Cast.toFunction(args.FUNC)
+        const posArgs = Cast.toArray(args.POSARGS).array
+        
+        const evaluatedArgs = this._evaluateArgs(func, posArgs)
+        const {hasReturnValue, returnValue} = this._runFunction(util, func, {args: evaluatedArgs})
+        return hasReturnValue ? returnValue : Nothing
     }
 
     addTempVars() { // BUTTON
@@ -915,30 +942,53 @@ class GCEClassBlocks {
         }
     }
 
-    transferMethodArgsToTempVars (args, util) { // is a compiled block
+    transferFunctionArgsToTempVars (args, util) { // is a compiled block
         throw new Error("Please turn on the compiler. ")
+    }
+
+    defineMethod(args, util) {
+        const name = Cast.toString(args.NAME)
+        const cls = util.thread.GCEclass
+        if (!cls) throw new Error("'define method' can only be used within a class.")
+        
+        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
+        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
+        cls.methods[name] = new MethodType(func.name, func.branch, func.target, func.argNames, func.argDefaults)
+    }
+
+    defineInitMethod(args, util) {
+        this.defineMethod({NAME: CONFIG.INIT_METHOD_NAME}, util)
+    }
+    
+    self(args, util) {
+        const self = util.thread.GCEself
+        if (!self) throw new Error("'self' can only be used within a method.")
+        return self
     }
 
     // Block: Instances
         
-    createInstance(args, util) { // WARNING: reran (contains script execution)
+    createInstance(args, util) { // WARNING: reran (contains function execution)
         const cls = Cast.toClass(args.CLASS)
         let method = cls.methods[CONFIG.INIT_METHOD_NAME]
 
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
         let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
-
         if (!blockStorage) {
             blockStorage = {instance: new ClassInstanceType(cls)}
             this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
         }
 
-        if (!method) method = new Method(CONFIG.INIT_METHOD_NAME, null, [], [])
         const posArgs = Cast.toArray(args.POSARGS).array
-        const evaluatedArgs = this._evaluateArgs(method, posArgs)
-        const context = {self: blockStorage.instance, args: evaluatedArgs}
-        if (method.script) this._runScript(util, method.script, context)
+        if (method) {
+            const evaluatedArgs = this._evaluateArgs(method, posArgs)
+            const context = {self: blockStorage.instance, args: evaluatedArgs}
+            this._runFunction(util, method, context)
+        } else {
+            method = new MethodType(CONFIG.INIT_METHOD_NAME, null, null, [], [])
+            this._evaluateArgs(method, posArgs)
+        }
         return blockStorage.instance
     }
     
@@ -964,7 +1014,7 @@ class GCEClassBlocks {
         return instance.attributes[name]
     }
 
-    callMethod(args, util) { // WARNING: reran (contains script execution)
+    callMethod(args, util) { // WARNING: reran (contains function execution)
         const instance = args.INSTANCE
         if (!(instance instanceof ClassInstanceType)) {
             throw new Error("Instance argument of 'call method' must be a class instance.")
@@ -978,9 +1028,8 @@ class GCEClassBlocks {
         }
         const evaluatedArgs = this._evaluateArgs(method, posArgs)
         const context = {self: instance, args: evaluatedArgs}
-        const {hasReturnValue, returnValue} = this._runScript(util, method.script, context)
-        if (hasReturnValue) return returnValue
-        else return "" // TODO: find other solution possibly
+        const {hasReturnValue, returnValue} = this._runFunction(util, method, context)
+        return hasReturnValue ? returnValue : Nothing
     }
 
     isInstance(args, util) {
@@ -996,14 +1045,15 @@ class GCEClassBlocks {
     typeof(args, util) {
         const value = args.VALUE
         // My Types
+        if (value instanceof FunctionType) return "Function"
+        if (value instanceof MethodType) return "Method"
         if (value instanceof ClassType) return "Class"
         if (value instanceof ClassInstanceType) return "Class Instance"
-        if (value instanceof Method) return "Method"
-        if (value instanceof Script) return "Script"
+        if (value instanceof NothingType) return "Nothing"
         
         // Safe JS data types
-        if (value === undefined) return "Nothing" // TODO: reconsider/refractor
-        if (value === null) return "Nothing" // TODO: reconsider/refractor
+        if (value === undefined) return "JavaScript Undefined"
+        if (value === null) return "JavaScript Null"
         if (typeof value === "boolean") return "Boolean"
         if (typeof value === "number") return "Number"
         if (typeof value === "string") return "String"
@@ -1033,33 +1083,7 @@ class GCEClassBlocks {
     }
 
     checkIdentity(args, util) {
-        const instance1 = args.INSTANCE1
-        const instance2 = args.INSTANCE2
-        if (!(instance1 instanceof ClassInstanceType)) {
-            throw new Error("Instance argument of 'is' must be a class instance.")
-        }
-        if (!(instance2 instanceof ClassInstanceType)) {
-            throw new Error("Instance argument of 'is' must be a class instance.")
-        }
-        return Cast.toBoolean(instance1 === instance2)
-    }
-
-    // Blocks: Scripts
-
-    createScript(args, util) {
-        const name = Cast.toString(args.NAME)
-        const script = this._createScriptFromBranch(util, name)
-        this.scriptVars.set(name, script)
-    }
-    
-    runScript(args, util) { // WARNING: reran (contains script execution)
-        const name = Cast.toString(args.NAME)
-        const script = this.scriptVars.get(name)
-        if (!script) throw new Error(`Script ${quote(name)} is not defined.`)
-        
-        const {hasReturnValue, returnValue} = this._runScript(util, script, {})
-        if (hasReturnValue) return returnValue
-        else return "" // TODO: find other solution possibly
+        return Cast.toBoolean(Object.is(args.VALUE1, args.VALUE2))
     }
 
     // Blocks: Temporary
@@ -1099,23 +1123,23 @@ class GCEClassBlocks {
     /**
      * @param {BlockUtility} util
      * @param {string} name
-     * @returns {Script}
+     * @returns {FunctionType}
      */
-    _createScriptFromBranch(util, name) {
+    _createFunctionFromBranch(util, name, argNames, argDefaults) {
         const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
-        return new Script(name, branch, util.target)
+        return new FunctionType(name, branch, util.target, argNames, argDefaults)
     }
 
     /**
      * WARNING: makes the block caling this run MULITPLE times on one activation
      * @param {BlockUtility} util
-     * @param {Script} script
+     * @param {FunctionType} func
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
      * @returns {{ hasReturnValue: boolean, returnValue: ?any }}
      */
-    _runScript(util, script, {cls = null, self = null, args = null}) {
+    _runFunction(util, func, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
@@ -1123,15 +1147,15 @@ class GCEClassBlocks {
         let result = {hasReturnValue: false, returnValue: null}
         
         // Make a thread if there is none
-        if (script.target.blocks.getBlock(script.branch) === undefined) return result
+        if (func.target.blocks.getBlock(func.branch) === undefined) return result
         if (!thread && (frame.JGindex < 1)) {
-            thread = runtime._pushThread(script.branch, script.target, {stackClick: false})
+            thread = runtime._pushThread(func.branch, func.target, {stackClick: false})
 
             thread.GCEclass = cls
             thread.GCEself = self
             thread.GCEargs = args
 
-            thread.target = script.target
+            thread.target = func.target
             thread.tryCompile() // update thread
             
             frame.JGthread = thread
@@ -1153,22 +1177,26 @@ class GCEClassBlocks {
     }
     
     /**
-     * @param {Method} method
+     * @param {FunctionType} func
      * @param {Array} posargs
      * @returns {Object}
      */
-    _evaluateArgs(method, posArgs) {
+    _evaluateArgs(func, posArgs) {
         const args = Object.create(null)
         let name
-        const prefix = (method.name === CONFIG.INIT_METHOD_NAME) ? "initalizing object" : `calling method ${quote(method.name)}`
+        let prefix
+
+        if (func instanceof MethodType && (func.name === CONFIG.INIT_METHOD_NAME)) prefix = "initalizing object"
+        else if (func instanceof MethodType) prefix = `calling method ${quote(func.name)}`
+        else prefix = `calling function ${quote(func.name)}`
 
         // Ensure there are not too many arguments
-        if (posArgs.length > method.argNames.length) {
-            throw new Error(`${prefix}: expected at most ${method.argNames.length}, but got ${posArgs.length} arguments`)
+        if (posArgs.length > func.argNames.length) {
+            throw new Error(`${prefix}: expected at most ${func.argNames.length}, but got ${posArgs.length} arguments`)
         }
     
         // Count how many arguments do NOT have defaults
-        const posOnlyCount = method.argNames.length - method.argDefaults.length
+        const posOnlyCount = func.argNames.length - func.argDefaults.length
     
         // Ensure enough positional arguments
         if (posArgs.length < posOnlyCount) {
@@ -1177,16 +1205,16 @@ class GCEClassBlocks {
     
         // Assign positional arguments
         for (let i = 0; i < posArgs.length; i++) {
-            name = method.argNames[i]
+            name = func.argNames[i]
             args[name] = posArgs[i]
         }
     
         // Fill in defaults for missing arguments
-        const defaultsStartIndex = method.argNames.length - method.argDefaults.length
-        for (let i = posArgs.length; i < method.argNames.length; i++) {
-            name = method.argNames[i]
+        const defaultsStartIndex = func.argNames.length - func.argDefaults.length
+        for (let i = posArgs.length; i < func.argNames.length; i++) {
+            name = func.argNames[i]
             const defaultIndex = i - defaultsStartIndex
-            args[name] = method.argDefaults[defaultIndex]
+            args[name] = func.argDefaults[defaultIndex]
         }
     
         return args
@@ -1195,3 +1223,12 @@ class GCEClassBlocks {
 const extensionClassInstance = new GCEClassBlocks()
 Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
+/**
+ * TODOS:
+ * - implement subclasses correctly(e.g. recursive method search)
+ * - global stored vs. local not stored class, script
+ * - make "on class X" block
+ * - modify Scratch.Cast: toBoolean(Nothing) should be true
+ * - implement "set class"
+ */
+
