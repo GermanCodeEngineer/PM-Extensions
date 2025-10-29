@@ -18,6 +18,65 @@ if (!Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed.")
 }
 
+Scratch.gui.getBlockly().then(ScratchBlocks => {
+    ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", {
+        emptyInputPath: "m 6 3 a 3 3 0 0 1 3 -3 h 7 h 10 h 7 a 3 3 0 0 1 3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 1 -3 3 h -7 h -10 h -7 a 3 3 0 0 1 -3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3",
+        emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+        leftPath: (block) => {
+            const block_height = block.height
+            const emptyHeight = 32
+            const fifth = (block_height - emptyHeight) / 5
+            const fifthLine = `v -${fifth}`
+            const fifthLineExtended = `v -${fifth + 1}`
+            return [ 
+                "h -7 "+
+                "a 3 3 0 0 1 -3 -3 "+
+                fifthLine+
+                "a 3 3 0 0 0 -3 -3 "+
+                "a 3 3 0 0 1 -3 -3 "+
+                fifthLineExtended+
+                "a 3 3 0 0 1 3 -3 "+
+                "a 3 3 0 0 0 3 -3 "+
+                fifthLine+
+                "a 3 3 0 0 0 -3 -3 "+
+                "a 3 3 0 0 1 -3 -3 "+
+                fifthLineExtended+
+                "a 3 3 0 0 1 3 -3 "+
+                "a 3 3 0 0 0 3 -3 "+
+                fifthLine+
+                "a 3 3 0 0 1 3 -3 "+
+                "h 7 "
+            ]
+        },
+        rightPath: (block) => {
+            const block_height = block.edgeShapeWidth_ * 2 // block.height not available
+            const emptyHeight = 32
+            const fifth = (block_height - emptyHeight) / 5
+            const fifthLine = `v ${fifth}`
+            const fifthLineExtended = `v ${fifth + 1}`
+            return [ 
+                "h 7 "+
+                "a 3 3 0 0 1 3 3 "+
+                fifthLine+
+                "a 3 3 0 0 0 3 3 "+
+                "a 3 3 0 0 1 3 3 "+
+                fifthLineExtended+
+                "a 3 3 0 0 1 -3 3 "+
+                "a 3 3 0 0 0 -3 3 "+
+                fifthLine+
+                "a 3 3 0 0 0 3 3 "+
+                "a 3 3 0 0 1 3 3 "+
+                fifthLineExtended+
+                "a 3 3 0 0 1 -3 3 "+
+                "a 3 3 0 0 0 -3 3 "+
+                fifthLine+
+                "a 3 3 0 0 1 -3 3 "+
+                "h -7 "
+            ]
+        },
+    })
+})
+
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
@@ -276,18 +335,21 @@ class ClassType {
     toJSON() {
         return "Classes can not be serialized."
     }
+    toMonitorContent() {
+        return this.toString()
+    }
 }
 
 const gceClass = {
     Type: ClassType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: BlockShape.PLUS,
+        blockShape: BlockShape.BUMPED,
         forceOutputType: "gceClass",
         disableMonitor: true,
     },
     Argument: {
-        shape: BlockShape.PLUS,
+        shape: BlockShape.BUMPED,
         exemptFromNormalization: true,
         check: ["gceClass"],
     },
@@ -315,20 +377,55 @@ class ClassInstanceType {
     toJSON() {
         return "Class Instances can not be serialized."
     }
-    // TODO: define toReporterContent for better visualization
+    toMonitorContent() {
+        return this.toString()
+    }
+    // TODO: define toReporterContent for better visualization???
 }
 const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: BlockShape.PLUS,
+        blockShape: "gceClasses-doublePlus",
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: BlockShape.PLUS,
+        shape: "gceClasses-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance"],
+    },
+}
+
+class NothingType {
+    customId = "gceNothing"
+
+    constructor() {}
+    toString() {
+        return "<Nothing>"
+    }
+    toJSON() {
+        return {"gceNothing": true}
+    }
+    toMonitorContent() {
+        return this.toString()
+    }
+    // TODO: add monitor content method to all
+}
+const Nothing = new NothingType()
+
+const gceNothing = {
+    Type: NothingType,
+    Block: {
+        blockType: BlockType.REPORTER,
+        blockShape: BlockShape.SCRAPPED,
+        forceOutputType: "gceNothing",
+        disableMonitor: true,
+    },
+    Argument: {
+        shape: BlockShape.SCRAPPED,
+        exemptFromNormalization: true,
+        check: ["gceNothing"],
     },
 }
 
@@ -578,6 +675,11 @@ class GCEClassBlocks {
                         INSTANCE2: gceClassInstance.Argument,
                     },
                 },
+                {
+                    ...gceNothing.Block,
+                    opcode: "nothing",
+                    text: "Nothing",
+                },
                 "---",
                 makeLabel("Scripts"),
                 {
@@ -642,17 +744,28 @@ class GCEClassBlocks {
     }
     
     constructor() {
+        Scratch.vm.gceClass = gceClass
+        Scratch.vm.gceClassInstance = gceClassInstance
+        this.environment = { // to allow access from the extension class
+            Script, Method, ClassType, gceClass, VariableManager, SpecialBlockStorageManager,
+            CONFIG, Cast, ClassInstanceType, gceClassInstance,
+        }
+        vm.runtime.registerSerializer( // this basically copies variable serialization
+            "gceNothing",
+            v => {
+                if (v instanceof NothingType) return v.toJSON()
+                return null
+            },
+            v => {
+                if (v.customId === "gceNothing") return Nothing
+                return null
+            },
+        )
         runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
 
         this.classVars = new VariableManager()
         this.scriptVars = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
-        this.environment = { // to allow access from the extension class
-            Script, Method, ClassType, gceClass, VariableManager, SpecialBlockStorageManager,
-            CONFIG, Cast, ClassInstanceType, gceClassInstance,
-        }
-        Scratch.vm.gceClass = gceClass
-        Scratch.vm.gceClassInstance = gceClassInstance
         
         this.reset()
         // TODO: possibly remove? // TODO: change on release
@@ -913,6 +1026,10 @@ class GCEClassBlocks {
         if (typeof value === "object") return "JavaScript Object"
 
         return "Unknown"
+    }
+    
+    nothing(args, util) {
+        return Nothing
     }
 
     checkIdentity(args, util) {
