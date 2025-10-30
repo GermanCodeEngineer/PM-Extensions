@@ -524,22 +524,41 @@ class GCEClassBlocks {
             blocks: [
                 makeLabel("Classes"),
                 {
-                    opcode: "createClass",
+                    opcode: "createClassAt",
                     blockType: BlockType.CONDITIONAL,
-                    text: ["create class [NAME]"],
+                    text: ["create class at [NAME]"],
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
                     },
                 },
                 {
-                    opcode: "createSubclass",
+                    opcode: "createSubclassAt",
                     blockType: BlockType.CONDITIONAL,
-                    text: ["create subclass [NAME] with superclass [SUPERCLASS]"],
+                    text: ["create subclass at [NAME] with superclass [SUPERCLASS]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                {
+                    ...gceClass.Block,
+                    opcode: "createClassNamed",
+                    text: ["create class named [NAME]"],
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
-                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySuperClass"},
+                    },
+                },
+                {
+                    ...gceClass.Block,
+                    opcode: "createSubclassNamed",
+                    text: ["create subclass named [NAME] with superclass [SUPERCLASS]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
                 {
@@ -794,25 +813,30 @@ class GCEClassBlocks {
     }
     
     constructor() {
+        // to allow other extensions access from the extension class
         Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
-        this.environment = { // to allow other extensions access from the extension class
+        this.environment = {
             VariableManager, SpecialBlockStorageManager, TypeChecker, Cast,
             CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
-        vm.runtime.registerSerializer(
+        
+        runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
+        runtime.registerSerializer(
             "gceNothing",
             v => (v instanceof NothingType ? v.toJSON() : null),
             v => Nothing,
         )
-        runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
         Scratch.gui.getBlockly().then(ScratchBlocks => {
             ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
         })
 
-        // manipulate Scratch.Cast.toBoolean to return false for Nothing
-        const oldToBool = Scratch.Cast.toBoolean
-        // LEFT OFF HERE
+        // wrap Scratch.Cast.toBoolean to return false for Nothing
+        const oldToBoolean = Scratch.Cast.toBoolean
+        Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
+            if (value instanceof NothingType) return false
+            return oldToBoolean(value)
+        }
 
         this.classVars = new VariableManager()
         this.funcVars = new VariableManager()
@@ -826,10 +850,7 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     // Blocks: Classes
-
-    createClass(args, util) { // WARNING: reran (contains function execution)
-        const name = Cast.toString(args.NAME)
-        
+    _createClass(util, name, superCls) {
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
         let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
@@ -837,50 +858,67 @@ class GCEClassBlocks {
         if (!blockStorage) {
             blockStorage = {cls: new ClassType(name, null)}
             this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
-            this.classVars.set(name, blockStorage.cls)
         }
         
         const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
-        this._runFunction(util, tempFunction, {cls: blockStorage.cls})
+        const {hasReturnValue, returnValue, isDone} = this._runFunction(util, tempFunction, {cls: blockStorage.cls})
+        return {isDone, cls: blockStorage.cls}
     }
 
-    createSubclass(args, util) { // WARNING: reran (contains function execution)
+    createClassAt(args, util) { // WARNING: reran (contains function execution)
+        const name = Cast.toString(args.NAME)
+        const {isDone, cls} = this._createClass(util, name, null)
+        if (isDone) this.classVars.set(name, cls)
+    }
+
+    createSubclassAt(args, util) { // WARNING: reran (contains function execution)
         const name = Cast.toString(args.NAME)
         const superCls = Cast.toClass(args.SUPERCLASS)
-        
-        const ownThread = util.thread
-        const ownBlockId = ownThread.peekStack()
-        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
-        
-        if (!blockStorage) {
-            blockStorage = {cls: new ClassType(name, superCls)}
-            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
-            this.classVars.set(name, blockStorage.cls)
-        }
-        
-        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
-        this._runFunction(util, tempFunction, {cls: blockStorage.cls})
+        const {isDone, cls} = this._createClass(util, name, superCls)
+        if (isDone) this.classVars.set(name, cls)
+    }
+    
+    createClassNamed(args, util) { // WARNING: reran (contains function execution)
+        const name = Cast.toString(args.NAME)
+        const {isDone, cls} = this._createClass(util, name, null)
+        if (isDone) return cls
     }
 
-    getClass(args) {
+    createSubclassNamed(args, util) { // WARNING: reran (contains function execution)
+        const name = Cast.toString(args.NAME)
+        const superCls = Cast.toClass(args.SUPERCLASS)
+        const {isDone, cls} = this._createClass(util, name, superCls)
+        if (isDone) return cls
+    }
+    
+    setClass(args, util) {
+        const name = Cast.toString(args.NAME)
+        const cls = args.CLASS
+        if (!(cls instanceof ClassType)) {
+            throw new Error("Class argument of 'set class' must be a class.")
+        }
+        this.classVars.set(name, cls)
+    }
+    
+    getClass(args, util) {
         const name = Cast.toString(args.NAME)
         return this.classVars.get(name)
     }
 
-    classExists(args) {
+    classExists(args, util) {
         const name = Cast.toString(args.NAME)
         return Cast.toBoolean(this.classVars.has(name))
     }
 
-    allClasses() {
+    allClasses(args, util) {
         return Cast.toArray(this.classVars.getNames())
     }
     
-    deleteClass(args) {
+    deleteClass(args, util) {
         this.classVars.delete(Cast.toString(args.NAME))
     }
     
-    deleteAllClasses() {
+    deleteAllClasses(args, util) {
         this.classVars.reset()
     }
 
@@ -970,7 +1008,9 @@ class GCEClassBlocks {
         
     createInstance(args, util) { // WARNING: reran (contains function execution)
         const cls = Cast.toClass(args.CLASS)
-        let method = cls.methods[CONFIG.INIT_METHOD_NAME]
+        let method
+        try {method = this._getMethod(cls, CONFIG.INIT_METHOD_NAME)}
+        catch {method = null}
 
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
@@ -1022,10 +1062,7 @@ class GCEClassBlocks {
         const name = Cast.toString(args.NAME)
         const posArgs = Cast.toArray(args.POSARGS).array
         
-        const method = instance.cls.methods[name]
-        if (!method) {
-            throw new Error(`Undefined method ${quote(name)}.`)
-        }
+        const method = this._getMethod(instance.cls, name)
         const evaluatedArgs = this._evaluateArgs(method, posArgs)
         const context = {self: instance, args: evaluatedArgs}
         const {hasReturnValue, returnValue} = this._runFunction(util, method, context)
@@ -1104,7 +1141,21 @@ class GCEClassBlocks {
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
-
+    
+    /**
+     * @param {ClassType} cls
+     * @param {string} name
+     * @returns {MethodType}
+     */
+    _getMethod(cls, name) {
+        let currentCls = cls
+        while (currentCls) {
+            if (name in currentCls.methods) return currentCls.methods[name]
+            currentCls = currentCls.superCls
+        }
+        throw new Error(`Undefined method ${quote(name)}.`)
+    }
+    
     /**
      * @param {ClassType} subCls
      * @param {ClassType} superCls
@@ -1137,14 +1188,14 @@ class GCEClassBlocks {
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
-     * @returns {{ hasReturnValue: boolean, returnValue: ?any }}
+     * @returns {{ hasReturnValue: boolean, returnValue: ?any, isDone: boolean}}
      */
     _runFunction(util, func, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
         let thread = frame.JGthread
-        let result = {hasReturnValue: false, returnValue: null}
+        let result = {hasReturnValue: false, returnValue: null, isDone: false}
         
         // Make a thread if there is none
         if (func.target.blocks.getBlock(func.branch) === undefined) return result
@@ -1170,6 +1221,7 @@ class GCEClassBlocks {
                 result = {hasReturnValue: true, returnValue: frame.JGthread.report}
                 frame.JGindex = 2
             }
+            result.isDone = true;
             frame.JGthread = ""
         }
         if ((frame.JGindex < 1)) util.yield()
@@ -1225,10 +1277,9 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 /**
  * TODOS:
- * - implement subclasses correctly(e.g. recursive method search)
  * - global stored vs. local not stored class, script
+ * - fix "return" not acutally ending a function or method
  * - make "on class X" block
- * - modify Scratch.Cast: toBoolean(Nothing) should be true
- * - implement "set class"
+ * - more features for instances, classes and methods
  */
 
