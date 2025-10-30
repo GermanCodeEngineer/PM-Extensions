@@ -323,7 +323,7 @@ class FunctionType extends CustomType {
         this.argDefaults = argDefaults
     }
     toString() {
-        return `<Function ${quote(this.name)}`
+        return `<Function ${quote(this.name)}>`
     }
     toJSON() {
         return "Functions can not be serialized."
@@ -332,7 +332,7 @@ class FunctionType extends CustomType {
 
 class MethodType extends FunctionType {
     toString() {
-        return `<Method ${quote(this.name)}`
+        return `<Method ${quote(this.name)}>`
     }
     toJSON() {
         return "Methods can not be serialized."
@@ -625,9 +625,27 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    opcode: "createFunction",
+                    opcode: "createFunctionAt",
                     blockType: BlockType.CONDITIONAL,
-                    text: ["create function [NAME]"],
+                    text: ["(OLD) create function at [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...gceFunction.Block,
+                    opcode: "createFunctionNamed",
+                    text: ["(OLD) create function named [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...gceFunction.Block,
+                    opcode: "newCreateFunctionNamed",
+                    text: ["(NEW) create function named [NAME]"],
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.funcName,
@@ -780,8 +798,13 @@ class GCEClassBlocks {
                 },
                 {
                     opcode: "throw",
-                    text: "debugging: throw",
                     blockType: BlockType.COMMAND,
+                    text: "debugging: throw",
+                },
+                {
+                    opcode: "logThread",
+                    blockType: BlockType.COMMAND,
+                    text: "debugging: log thread",
                 },
             ],
         }
@@ -801,12 +824,36 @@ class GCEClassBlocks {
         return {
             ir: {
                 transferFunctionArgsToTempVars: (generator, block) => ({kind: "stack"}),
+                return: (generator, block) => ({
+                    kind: "stack",
+                    value: generator.descendInputOfBlock(block, "VALUE"),
+                }),
+                newCreateFunctionNamed: (generator, block) => ({
+                    kind: "input",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                }),
             },
             js: {
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
                     compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Function arguments can only be used within a function or method.");\n'
                     compiler.source += 'try {Object.assign(tempVars, globalState.thread.GCEargs)} catch {throw new Error("Failed to transfer to temporary variables.")};\n'
+                },
+                return: (node, compiler, imports) => {
+                    compiler.source += `return ${compiler.descendInput(node.value).asUnknown()};\n`
+                },
+                newCreateFunctionNamed: (node, compiler, imports) => {
+                    // big hack ALSO STOLEN
+                    const oldSrc = compiler.source
+                    compiler.descendStack(node.stack, new (imports.Frame)(false))
+                    const stackSrc = compiler.source.substring(oldSrc.length)
+                    compiler.source = oldSrc;
+                    const generatedCode = `(`+
+                        `  (function*(){`+
+                        `    ${stackSrc}`+
+                        `  })`+
+                        `)`
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
             },
         }
@@ -850,20 +897,6 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     // Blocks: Classes
-    _createClass(util, name, superCls) {
-        const ownThread = util.thread
-        const ownBlockId = ownThread.peekStack()
-        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
-        
-        if (!blockStorage) {
-            blockStorage = {cls: new ClassType(name, null)}
-            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
-        }
-        
-        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
-        const {hasReturnValue, returnValue, isDone} = this._runFunction(util, tempFunction, {cls: blockStorage.cls})
-        return {isDone, cls: blockStorage.cls}
-    }
 
     createClassAt(args, util) { // WARNING: reran (contains function execution)
         const name = Cast.toString(args.NAME)
@@ -939,11 +972,18 @@ class GCEClassBlocks {
         util.thread.GCEnextFuncConfig = {argNames, argDefaults}
     }
 
-    createFunction(args, util) {
+    createFunctionAt(args, util) {
         const name = Cast.toString(args.NAME)
         const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
         const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
         this.funcVars.set(name, func)
+    }
+
+    createFunctionNamed(args, util) {
+        const name = Cast.toString(args.NAME)
+        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
+        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
+        return func
     }
 
     allFunctionArgs(blockArgs, util) {
@@ -961,8 +1001,9 @@ class GCEClassBlocks {
         return value
     }
 
-    return (args, util) {
-        util.thread.report = args.VALUE
+    return (args, util) { // is a compiled block
+        //util.thread.report = args.VALUE
+        throw new Error("Please turn on the compiler. ")
     }
     
     runFunction(args, util) { // WARNING: reran (contains function execution)
@@ -1008,9 +1049,7 @@ class GCEClassBlocks {
         
     createInstance(args, util) { // WARNING: reran (contains function execution)
         const cls = Cast.toClass(args.CLASS)
-        let method
-        try {method = this._getMethod(cls, CONFIG.INIT_METHOD_NAME)}
-        catch {method = null}
+        let method = this._getMethod(cls, CONFIG.INIT_METHOD_NAME, false)
 
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
@@ -1062,7 +1101,7 @@ class GCEClassBlocks {
         const name = Cast.toString(args.NAME)
         const posArgs = Cast.toArray(args.POSARGS).array
         
-        const method = this._getMethod(instance.cls, name)
+        const method = this._getMethod(instance.cls, name, true)
         const evaluatedArgs = this._evaluateArgs(method, posArgs)
         const context = {self: instance, args: evaluatedArgs}
         const {hasReturnValue, returnValue} = this._runFunction(util, method, context)
@@ -1138,22 +1177,49 @@ class GCEClassBlocks {
         throw new Error("BREAK")
     }
 
+    logThread(args, util) {
+        console.log(util.thread)
+    }
+
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
+
+    /**
+     * @param {BlockUtility} util
+     * @param {string} name
+     * @param {ClassType} superCls
+     * @returns {{isDone: boolean, cls: ClassType}}
+     */
+    _createClass(util, name, superCls) {
+        const ownThread = util.thread
+        const ownBlockId = ownThread.peekStack()
+        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
+        
+        if (!blockStorage) {
+            blockStorage = {cls: new ClassType(name, superCls)}
+            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
+        }
+        
+        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
+        const {isDone} = this._runFunction(util, tempFunction, {cls: blockStorage.cls})
+        return {isDone, cls: blockStorage.cls}
+    }
     
     /**
      * @param {ClassType} cls
      * @param {string} name
-     * @returns {MethodType}
+     * @param {boolean} strict
+     * @returns {?MethodType}
      */
-    _getMethod(cls, name) {
+    _getMethod(cls, name, strict) {
         let currentCls = cls
         while (currentCls) {
             if (name in currentCls.methods) return currentCls.methods[name]
             currentCls = currentCls.superCls
         }
-        throw new Error(`Undefined method ${quote(name)}.`)
+        if (strict) throw new Error(`Undefined method ${quote(name)}.`)
+        else return null
     }
     
     /**
@@ -1188,17 +1254,20 @@ class GCEClassBlocks {
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
-     * @returns {{ hasReturnValue: boolean, returnValue: ?any, isDone: boolean}}
+     * @returns {{ hasReturnValue: boolean, isDone: boolean, returnValue: ?any}}
      */
     _runFunction(util, func, {cls = null, self = null, args = null}) {
         // Prepare stack frame and get thread
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
         let thread = frame.JGthread
-        let result = {hasReturnValue: false, returnValue: null, isDone: false}
+        let result = {hasReturnValue: false, isDone: false, returnValue: null}
         
         // Make a thread if there is none
-        if (func.target.blocks.getBlock(func.branch) === undefined) return result
+        if (func.target.blocks.getBlock(func.branch) === undefined) {
+            result.isDone = true
+            return result
+        }
         if (!thread && (frame.JGindex < 1)) {
             thread = runtime._pushThread(func.branch, func.target, {stackClick: false})
 
@@ -1218,7 +1287,8 @@ class GCEClassBlocks {
         if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) util.yield()
         else {
             if (frame.JGthread.report !== undefined) {
-                result = {hasReturnValue: true, returnValue: frame.JGthread.report}
+                result.hasReturnValue = true
+                result.returnValue = frame.JGthread.report
                 frame.JGindex = 2
             }
             result.isDone = true;
@@ -1277,7 +1347,6 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 /**
  * TODOS:
- * - global stored vs. local not stored class, script
  * - fix "return" not acutally ending a function or method
  * - make "on class X" block
  * - more features for instances, classes and methods
