@@ -309,6 +309,28 @@ class CustomType {
 class FunctionType extends CustomType {
     /**
      * @param {string} name 
+     * @param {Function} jsFunc
+     * @param {Array<string>} argNames
+     * @param {Array<string>} argDefaults
+     */
+    constructor(name, jsFunc, argNames, argDefaults) {
+        super()
+        this.name = name
+        this.jsFunc = jsFunc
+        this.argNames = argNames
+        this.argDefaults = argDefaults
+    }
+    toString() {
+        return `<Function ${quote(this.name)}>`
+    }
+    toJSON() {
+        return "Functions can not be serialized."
+    }
+}
+
+class FunctionTypeOld extends CustomType {
+    /**
+     * @param {string} name 
      * @param {string} branch
      * @param {Target} target
      * @param {Array<string>} argNames
@@ -323,14 +345,14 @@ class FunctionType extends CustomType {
         this.argDefaults = argDefaults
     }
     toString() {
-        return `<Function ${quote(this.name)}>`
+        return `<FunctionOld ${quote(this.name)}>`
     }
     toJSON() {
         return "Functions can not be serialized."
     }
 }
 
-class MethodType extends FunctionType {
+class MethodType extends FunctionTypeOld {
     toString() {
         return `<Method ${quote(this.name)}>`
     }
@@ -395,6 +417,25 @@ class NothingType extends CustomType {
 const Nothing = new NothingType()
 
 
+const gceFunctionOld = {
+    Type: FunctionTypeOld,
+    Block: {
+        blockType: BlockType.REPORTER,
+        blockShape: BlockShape.ARROW,
+        forceOutputType: "gceFunctionOld",
+        disableMonitor: true,
+    },
+    Argument: {
+        shape: BlockShape.ARROW,
+        exemptFromNormalization: true,
+        check: ["gceFunctionOld"],
+    },
+    ArgumentFunctionOrVarName: {
+        type: ArgumentType.STRING,
+        defaultValue: "Function1",
+        exemptFromNormalization: true,
+    },
+}
 const gceFunction = {
     Type: FunctionType,
     Block: {
@@ -634,7 +675,7 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...gceFunction.Block,
+                    ...gceFunctionOld.Block,
                     opcode: "createFunctionNamed",
                     text: ["(OLD) create function named [NAME]"],
                     branchCount: 1,
@@ -831,6 +872,7 @@ class GCEClassBlocks {
                 newCreateFunctionNamed: (generator, block) => ({
                     kind: "input",
                     name: generator.descendInputOfBlock(block, "NAME"),
+                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
                 }),
             },
             js: {
@@ -843,16 +885,22 @@ class GCEClassBlocks {
                     compiler.source += `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
                 newCreateFunctionNamed: (node, compiler, imports) => {
-                    // big hack ALSO STOLEN
+                    const name = compiler.descendInput(node.name)
+                    const funcConfig = `globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}`
+                    const funcConfigLocal = compiler.localVariables.next()
+                    
+                    // from more types
                     const oldSrc = compiler.source
-                    compiler.descendStack(node.stack, new (imports.Frame)(false))
+                    compiler.descendStack(node.funcStack, new (imports.Frame)(false))
                     const stackSrc = compiler.source.substring(oldSrc.length)
                     compiler.source = oldSrc;
-                    const generatedCode = `(`+
-                        `  (function*(){`+
-                        `    ${stackSrc}`+
-                        `  })`+
-                        `)`
+                    
+                    const generatedCode = `(() => {`+
+                        `const ${funcConfigLocal} = ${funcConfig};`+
+                        `return new runtime.ext_gceClasses.environment.FunctionType(`+
+                        `${name.asString()}, (function*(){${stackSrc}}), ${funcConfigLocal}.argNames, ${funcConfigLocal}.argDefaults`+
+                        `)})()`
+                    console.log(generatedCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
             },
@@ -861,11 +909,11 @@ class GCEClassBlocks {
     
     constructor() {
         // to allow other extensions access from the extension class
-        Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
+        Object.assign(Scratch.vm, {gceFunctionOld, gceMethod, gceClass, gceClassInstance, gceNothing})
         this.environment = {
             VariableManager, SpecialBlockStorageManager, TypeChecker, Cast,
-            CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
-            gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
+            CustomType, FunctionType, FunctionTypeOld, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
+            gceFunctionOld, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
         
         runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
@@ -984,6 +1032,10 @@ class GCEClassBlocks {
         const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
         const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
         return func
+    }
+    
+    newCreateFunctionNamed(args, util) { // is a compiled block
+        throw new Error("Please turn on the compiler. ")
     }
 
     allFunctionArgs(blockArgs, util) {
@@ -1240,17 +1292,17 @@ class GCEClassBlocks {
     /**
      * @param {BlockUtility} util
      * @param {string} name
-     * @returns {FunctionType}
+     * @returns {FunctionTypeOld}
      */
     _createFunctionFromBranch(util, name, argNames, argDefaults) {
         const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
-        return new FunctionType(name, branch, util.target, argNames, argDefaults)
+        return new FunctionTypeOld(name, branch, util.target, argNames, argDefaults)
     }
 
     /**
      * WARNING: makes the block caling this run MULITPLE times on one activation
      * @param {BlockUtility} util
-     * @param {FunctionType} func
+     * @param {FunctionTypeOld} func
      * @param {?ClassType} cls
      * @param {?ClassInstanceType} self
      * @param {?Object} args
@@ -1299,7 +1351,7 @@ class GCEClassBlocks {
     }
     
     /**
-     * @param {FunctionType} func
+     * @param {FunctionTypeOld|FunctionType} func
      * @param {Array} posargs
      * @returns {Object}
      */
