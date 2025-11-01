@@ -251,7 +251,7 @@ class Cast extends Scratch.Cast {
     }
 
     static toFunction(value) {
-        if (value instanceof FunctionType) return value
+        if ((value instanceof FunctionType) || (value instanceof FunctionTypeOld)) return value
         else if ((typeof value) === "string") return extensionClassInstance.funcVars.get(value)
         else throw new Error("Expected a function or function variable name.")
     }
@@ -855,7 +855,7 @@ class GCEClassBlocks {
     getCompileInfo() {
         return {
             ir: {
-                createFunctionAt: (generator, block) => ({
+                /*createFunctionAt: (generator, block) => ({
                     kind: "stack",
                     name: generator.descendInputOfBlock(block, "NAME"),
                     funcStack: generator.descendSubstack(block, "SUBSTACK"),
@@ -864,20 +864,20 @@ class GCEClassBlocks {
                     kind: "input",
                     name: generator.descendInputOfBlock(block, "NAME"),
                     funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
+                }),*/
                 return: (generator, block) => ({
                     kind: "stack",
                     value: generator.descendInputOfBlock(block, "VALUE"),
                 }),
-                callFunction: (generator, block) => (generator.script.yields = true, {
+                /*callFunction: (generator, block) => (generator.script.yields = true, {
                     kind: "input",
                     func: generator.descendInputOfBlock(block, "FUNC"),
                     posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
+                }),*/
                 transferFunctionArgsToTempVars: (generator, block) => ({kind: "stack"}),
             },
             js: {
-                createFunctionAt: (node, compiler, imports) => {
+                /*createFunctionAt: (node, compiler, imports) => {
                     const name = compiler.descendInput(node.name)
                     const nameLocal = compiler.localVariables.next()
                     
@@ -892,8 +892,8 @@ class GCEClassBlocks {
                         `${nameLocal}, (function*(){${stackSrc}; return runtime.ext_gceClasses.environment.Nothing;}), `+
                         "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argNames : [], "+
                         "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argDefaults : []));"
+                    console.log("create func at code", generatedCode)
                     compiler.source += generatedCode
-                    console.log(compiler)
                 },
                 createFunctionNamed: (node, compiler, imports) => {
                     const name = compiler.descendInput(node.name)
@@ -908,12 +908,13 @@ class GCEClassBlocks {
                         `${name.asString()}, (function*(){${stackSrc}; return runtime.ext_gceClasses.environment.Nothing;}), `+
                         "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argNames : [], "+
                         "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argDefaults : [])"
+                    console.log("create func named code", generatedCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
+                },*/
                 return: (node, compiler, imports) => {
                     compiler.source += `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
-                callFunction: (node, compiler, imports) => {
+                /*callFunction: (node, compiler, imports) => {
                     const func = compiler.descendInput(node.func)
                     const posArgs = compiler.descendInput(node.posArgs)
                     const funcLocal = compiler.localVariables.next()
@@ -924,8 +925,9 @@ class GCEClassBlocks {
                         `runtime.ext_gceClasses.Cast.toArray(${posArgs.asUnknown()}).array);`+
                         `return yield* ${funcLocal}.jsFunc();`+
                         "})())"
+                    console.log("call code", generatedCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
+                },*/
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
                     compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Function arguments can only be used within a function or method.");\n'
@@ -1049,12 +1051,25 @@ class GCEClassBlocks {
         util.thread.GCEnextFuncConfig = {argNames, argDefaults}
     }
     
-    createFunctionAt(args, util) { // is a compiled block
+    /*createFunctionAt(args, util) { // is a compiled block
         throw new Error("Please turn on the compiler. ")
     }
     
     createFunctionNamed(args, util) { // is a compiled block
         throw new Error("Please turn on the compiler. ")
+    }*/
+    createFunctionAt(args, util) {
+        const name = Cast.toString(args.NAME)
+        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
+        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
+        this.funcVars.set(name, func)
+    }
+
+    createFunctionNamed(args, util) {
+        const name = Cast.toString(args.NAME)
+        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
+        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
+        return func
     }
 
     allFunctionArgs(blockArgs, util) {
@@ -1077,8 +1092,16 @@ class GCEClassBlocks {
         throw new Error("Please turn on the compiler. ")
     }
     
-    callFunction(args, util) { // is a compiled block
+    /*callFunction(args, util) { // is a compiled block
         throw new Error("Please turn on the compiler. ")
+    }*/
+    callFunction(args, util) { // WARNING: reran (contains function execution)
+        const func = Cast.toFunction(args.FUNC)
+        const posArgs = Cast.toArray(args.POSARGS).array
+        
+        const evaluatedArgs = this._evaluateArgs(func, posArgs)
+        const {hasReturnValue, returnValue} = this._runFunction(util, func, {args: evaluatedArgs})
+        return hasReturnValue ? returnValue : Nothing
     }
 
     addTempVars() { // BUTTON
@@ -1323,6 +1346,7 @@ class GCEClassBlocks {
      * @returns {{ hasReturnValue: boolean, isDone: boolean, returnValue: ?any}}
      */
     _runFunction(util, func, {cls = null, self = null, args = null}) {
+        console.log("_runFunction", func)
         // Prepare stack frame and get thread
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
