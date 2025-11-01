@@ -7,6 +7,7 @@
 // Credit: Inspired by & Based on
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwArray/index.js
+//  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwLambda/index.js
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/DogeisCut/dogeiscutObject.js
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
 
@@ -86,7 +87,7 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
 function quote(s) {
     if (!s.includes('"')) return `'${s}'`
     if (!s.includes("'")) return `"${s}"`
-    return `'${s.replace("'", "\\'")}'`
+    return `'${s.replaceAll("'", "\\'")}'`
 }
 function safeSpan(text) {
     text = text
@@ -98,7 +99,7 @@ function safeSpan(text) {
     let element = document.createElement("span")
     element.innerHTML = text
     element.style.display = "hidden"
-    element.style.whiteSpace = "nowrap"
+    //element.style.whiteSpace = "nowrap"
     element.style.width = "100%"
     element.style.textAlign = "center"
     return element
@@ -148,9 +149,9 @@ class SpecialBlockStorageManager {
     getBlockData(blockId, thread) {
         if (!this.threads.has(thread)) return
         const threadBlockDatas = this.threads.get(thread)
-        return threadBlockDatas[blockId]        
+        return threadBlockDatas[blockId]
     }
-    onThreadFinished(thread) {
+    deleteThreadStorage(thread) {
         this.threads.delete(thread) // does not ever throw
     }
 }
@@ -161,6 +162,11 @@ const runtime = Scratch.vm.runtime
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
     HIDE_ARGUMENT_DEFAULTS: false, // TODO: change to false on release
+}
+const FUNCTION_ENVIRONMENTS = {
+    FUNCTION: "FUNCTION",
+    METHOD: "METHOD",
+    INITIALIZATION: "INITIALIZATION",
 }
 
 class TypeChecker {
@@ -244,14 +250,22 @@ class Cast extends Scratch.Cast {
     }
     
     // Own
+    /** @returns {ClassType} */
     static toClass(value) {
         if (value instanceof ClassType) return value
         else if ((typeof value) === "string") return extensionClassInstance.classVars.get(value)
         else throw new Error("Expected a class or class variable name.")
     }
 
+    /** @returns {ClassInstanceType} */
+    static toClassInstance(value) {
+        if (value instanceof ClassInstanceType) return value
+        else throw new Error("Expected a class instance.")
+    }
+
+    /** @returns {FunctionType} */
     static toFunction(value) {
-        if ((value instanceof FunctionType) || (value instanceof FunctionTypeOld)) return value
+        if (value instanceof FunctionType) return value
         else if ((typeof value) === "string") return extensionClassInstance.funcVars.get(value)
         else throw new Error("Expected a function or function variable name.")
     }
@@ -326,38 +340,45 @@ class FunctionType extends CustomType {
     toJSON() {
         return "Functions can not be serialized."
     }
-}
 
-class FunctionTypeOld extends CustomType {
     /**
-     * @param {string} name 
-     * @param {string} branch
-     * @param {Target} target
-     * @param {Array<string>} argNames
-     * @param {Array<string>} argDefaults
+     * @param {Thread} thread 
+     * @param {array} posArgs
+     * @returns {any} the return value of the function
      */
-    constructor(name, branch, target, argNames, argDefaults) {
-        super()
-        this.name = name
-        this.branch = branch
-        this.target = target
-        this.argNames = argNames
-        this.argDefaults = argDefaults
-    }
-    toString() {
-        return `<FunctionOld ${quote(this.name)}>`
-    }
-    toJSON() {
-        return "Functions can not be serialized."
+    *execute(thread, posArgs, environment = FUNCTION_ENVIRONMENTS.FUNCTION) {
+        thread.gceArgStack ??= []
+        thread.gceArgStack.push(extensionClassInstance._evaluateArgs(this, posArgs))
+        thread.gceEnvStack ??= []
+        thread.gceEnvStack.push(environment)
+
+        const output = (yield* this.jsFunc(thread))
+        thread.gceArgStack.pop()
+        thread.gceEnvStack.pop()
+        return output
     }
 }
 
-class MethodType extends FunctionTypeOld {
+class MethodType extends FunctionType {
     toString() {
         return `<Method ${quote(this.name)}>`
     }
     toJSON() {
         return "Methods can not be serialized."
+    }
+
+    /**
+     * @param {Thread} thread 
+     * @param {ClassInstanceType} instance
+     * @param {array} posArgs
+     * @returns {any} the return value of the method
+     */
+    *execute(thread, instance, posArgs, environment = FUNCTION_ENVIRONMENTS.METHOD) {
+        thread.gceSelfStack ??= []
+        thread.gceSelfStack.push(instance)
+        const output = yield* super.execute(thread, posArgs, environment)
+        thread.gceSelfStack.pop()
+        return output
     }
 }
 
@@ -373,6 +394,10 @@ class ClassType extends CustomType {
         this.name = name
         this.methods = {}
         this.superCls = superCls
+        if (!superCls) {
+            const func = function* () {return Nothing}
+            this.methods[CONFIG.INIT_METHOD_NAME] = new MethodType(CONFIG.INIT_METHOD_NAME, func, [], [])
+        }
     }
     toString() {
         const suffix = this.superCls ? `(super ${quote(this.superCls.name)})` : ""
@@ -380,6 +405,44 @@ class ClassType extends CustomType {
     }
     toJSON() {
         return "Classes can not be serialized."
+    }
+
+    /**
+     * @param {string} name
+     * @param {boolean} strict
+     * @returns {?MethodType}
+     */
+    getMethod(name, strict) {
+        let currentCls = this
+        while (currentCls) {
+            if (name in currentCls.methods) return currentCls.methods[name]
+            currentCls = currentCls.superCls
+        }
+        if (strict) throw new Error(`Undefined method ${quote(name)}.`)
+        else return null
+    }
+    /**
+     * @param {Thread} thread 
+     * @param {array} posArgs
+     * @returns {ClassInstanceType} the instance
+     */
+    *createInstance(thread, posArgs) {
+        const instance = new ClassInstanceType(this) 
+        yield* instance.executeMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs, FUNCTION_ENVIRONMENTS.INITIALIZATION) // an init method always exists
+        return instance
+    }
+    /**
+     * @param {ClassType} superCls
+     * @returns {boolean}
+     */
+    isSubclassOf(superCls) {
+        if (this === superCls) return true
+        let currentCls = this
+        while (currentCls.superCls) {
+            if (currentCls.superCls === superCls) return true
+            currentCls = currentCls.superCls
+        }
+        return false
     }
 }
 
@@ -402,6 +465,17 @@ class ClassInstanceType extends CustomType {
         return "Class Instances can not be serialized."
     }
     // TODO: possibly define toReporterContent for better visualization
+
+    /**
+     * @param {Thread} thread
+     * @param {string} name
+     * @param {array} posArgs
+     * @returns {any} the return value of the method
+     */
+    *executeMethod(thread, name, posArgs, environment = FUNCTION_ENVIRONMENTS.METHOD) {
+        const method = this.cls.getMethod(name, true)
+        return yield* method.execute(thread, posArgs, this, environment)
+    }
 }
 
 class NothingType extends CustomType {
@@ -415,27 +489,6 @@ class NothingType extends CustomType {
     }
 }
 const Nothing = new NothingType()
-
-
-const gceFunctionOld = {
-    Type: FunctionTypeOld,
-    Block: {
-        blockType: BlockType.REPORTER,
-        blockShape: BlockShape.ARROW,
-        forceOutputType: "gceFunctionOld",
-        disableMonitor: true,
-    },
-    Argument: {
-        shape: BlockShape.ARROW,
-        exemptFromNormalization: true,
-        check: ["gceFunctionOld"],
-    },
-    ArgumentFunctionOrVarName: {
-        type: ArgumentType.STRING,
-        defaultValue: "Function1",
-        exemptFromNormalization: true,
-    },
-}
 const gceFunction = {
     Type: FunctionType,
     Block: {
@@ -855,7 +908,7 @@ class GCEClassBlocks {
     getCompileInfo() {
         return {
             ir: {
-                /*createFunctionAt: (generator, block) => ({
+                createFunctionAt: (generator, block) => ({
                     kind: "stack",
                     name: generator.descendInputOfBlock(block, "NAME"),
                     funcStack: generator.descendSubstack(block, "SUBSTACK"),
@@ -864,74 +917,119 @@ class GCEClassBlocks {
                     kind: "input",
                     name: generator.descendInputOfBlock(block, "NAME"),
                     funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),*/
+                }),
                 return: (generator, block) => ({
                     kind: "stack",
                     value: generator.descendInputOfBlock(block, "VALUE"),
                 }),
-                /*callFunction: (generator, block) => (generator.script.yields = true, {
+                callFunction: (generator, block) => (generator.script.yields = true, {
                     kind: "input",
                     func: generator.descendInputOfBlock(block, "FUNC"),
                     posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),*/
+                }),
                 transferFunctionArgsToTempVars: (generator, block) => ({kind: "stack"}),
+                defineMethod: (generator, block) => ({
+                    kind: "stack",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                defineInitMethod: (generator, block) => ({
+                    kind: "stack",
+                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                createInstance: (generator, block) => ({
+                    kind: "input",
+                    cls: generator.descendInputOfBlock(block, "CLASS"),
+                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
+                }),
+                callMethod: (generator, block) => ({
+                    kind: "input",
+                    instance: generator.descendInputOfBlock(block, "INSTANCE"),
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
+                }),
             },
             js: {
-                /*createFunctionAt: (node, compiler, imports) => {
-                    const name = compiler.descendInput(node.name)
+                // Blocks: Functions & Methods
+                createFunctionAt: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
                     
-                    // from more types
-                    const oldSrc = compiler.source
-                    compiler.descendStack(node.funcStack, new (imports.Frame)(false))
-                    const stackSrc = compiler.source.substring(oldSrc.length)
-                    compiler.source = oldSrc;
-                    
-                    const generatedCode = `const ${nameLocal} = runtime.ext_gceClasses.Cast.toString(${name.asUnknown()});`+
-                        `runtime.ext_gceClasses.funcVars.set(${nameLocal}, new runtime.ext_gceClasses.environment.FunctionType(`+
-                        `${nameLocal}, (function*(){${stackSrc}; return runtime.ext_gceClasses.environment.Nothing;}), `+
-                        "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argNames : [], "+
-                        "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argDefaults : []));"
-                    console.log("create func at code", generatedCode)
-                    compiler.source += generatedCode
+                    compiler.source += `const ${nameLocal} = ${nameCode};`+
+                        `runtime.ext_gceClasses.funcVars.set(${nameLocal}, new runtime.ext_gceClasses.environment.FunctionType(${nameLocal}, function* (thread) {`
+                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
+                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []));\n"
                 },
                 createFunctionNamed: (node, compiler, imports) => {
-                    const name = compiler.descendInput(node.name)
+                    const nameCode = compiler.descendInput(node.name).asString()
                     
-                    // from more types
-                    const oldSrc = compiler.source
-                    compiler.descendStack(node.funcStack, new (imports.Frame)(false))
-                    const stackSrc = compiler.source.substring(oldSrc.length)
-                    compiler.source = oldSrc;
+                    const oldSource = compiler.source
+                    compiler.source = `(new runtime.ext_gceClasses.environment.FunctionType(${nameCode}, function* (thread) {`
+                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
+                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []))"
                     
-                    const generatedCode = "new runtime.ext_gceClasses.environment.FunctionType("+
-                        `${name.asString()}, (function*(){${stackSrc}; return runtime.ext_gceClasses.environment.Nothing;}), `+
-                        "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argNames : [], "+
-                        "globalState.thread.GCEnextFuncConfig ? globalState.thread.GCEnextFuncConfig.argDefaults : [])"
-                    console.log("create func named code", generatedCode)
+                    const generatedCode = compiler.source
+                    compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },*/
-                return: (node, compiler, imports) => {
-                    compiler.source += `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
-                /*callFunction: (node, compiler, imports) => {
-                    const func = compiler.descendInput(node.func)
-                    const posArgs = compiler.descendInput(node.posArgs)
-                    const funcLocal = compiler.localVariables.next()
-
-                    const generatedCode = "(yield* (function*() {"+
-                        `const ${funcLocal} = runtime.ext_gceClasses.Cast.toFunction(${func.asUnknown()});`+
-                        `globalState.thread.GCEargs = runtime.ext_gceClasses._evaluateArgs(${funcLocal}, `+
-                        `runtime.ext_gceClasses.Cast.toArray(${posArgs.asUnknown()}).array);`+
-                        `return yield* ${funcLocal}.jsFunc();`+
-                        "})())"
-                    console.log("call code", generatedCode)
+                return: (node, compiler, imports) => {
+                    compiler.source += `if (!thread.gceEnvStack?.length) throw new Error("'return' can only be used within a function or method.");`+
+                        `return ${compiler.descendInput(node.value).asUnknown()};\n`
+                },
+                callFunction: (node, compiler, imports) => {
+                    const funcCode = compiler.descendInput(node.func).asUnknown()
+                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
+                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toFunction(${funcCode})`+
+                        `.execute(thread, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },*/
+                },
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
-                    compiler.source += 'if (!globalState.thread.GCEargs) throw new Error("Function arguments can only be used within a function or method.");\n'
-                    compiler.source += 'try {Object.assign(tempVars, globalState.thread.GCEargs)} catch {throw new Error("Failed to transfer to temporary variables.")};\n'
+                    compiler.source += 'if (!thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.");'+
+                        'try {Object.assign(tempVars, thread.gceArgStack[thread.gceArgStack.length-1])} '+
+                        'catch {throw new Error("Failed to transfer to temporary variables.")};\n'
+                },
+                defineMethod: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const nameLocal = compiler.localVariables.next()
+                    
+                    compiler.source += `if (!thread.gceClass) throw new Error("\'define method\' can only be used within a class.");`+
+                        `const ${nameLocal} = ${nameCode};`+
+                        `thread.gceClass.methods[${nameLocal}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
+                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
+                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []);\n"
+                },
+                defineInitMethod: (node, compiler, imports) => {
+                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
+
+                    compiler.source += `if (!thread.gceClass) throw new Error("\'define init method\' can only be used within a class.");`+
+                        `thread.gceClass.methods[${nameCode}] = new runtime.ext_gceClasses.environment.MethodType(${nameCode}, function* (thread) {\n`
+                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
+                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []);\n"
+                },
+                // Blocks: Functions & Methods
+                createInstance: (node, compiler, imports) => {
+                    const classCode = compiler.descendInput(node.cls).asUnknown()
+                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
+                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClass(${classCode})`+
+                        `.createInstance(thread, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                callMethod: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asUnknown()
+                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
+                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClassInstance(${instanceCode})`+
+                        `.executeMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
             },
         }
@@ -939,12 +1037,12 @@ class GCEClassBlocks {
     
     constructor() {
         // to allow other extensions access from the extension class
-        Object.assign(Scratch.vm, {gceFunctionOld, gceMethod, gceClass, gceClassInstance, gceNothing})
+        Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
         this.Cast = Cast
         this.environment = {
             VariableManager, SpecialBlockStorageManager, TypeChecker, Cast,
-            CustomType, FunctionType, FunctionTypeOld, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
-            gceFunctionOld, gceMethod, gceClass, gceClassInstance, gceNothing,
+            CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
+            gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
         
         runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
@@ -968,7 +1066,7 @@ class GCEClassBlocks {
         this.funcVars = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
         
-        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.onThreadFinished(thread)})
+        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.deleteThreadStorage(thread)})
     }    
     
     /************************************************************************************
@@ -1037,7 +1135,7 @@ class GCEClassBlocks {
     isSubclass(args, util) {
         const subCls = Cast.toClass(args.SUBCLASS)
         const superCls = Cast.toClass(args.SUPERCLASS)
-        return Cast.toBoolean(this._isSubclass(subCls, superCls))
+        return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
 
     // Blocks: Functions & Methods
@@ -1048,61 +1146,28 @@ class GCEClassBlocks {
         if (argDefaults.length > argNames.length) {
             throw new Error("There can only be as many default values as argument names.")
         }
-        util.thread.GCEnextFuncConfig = {argNames, argDefaults}
-    }
-    
-    /*createFunctionAt(args, util) { // is a compiled block
-        throw new Error("Please turn on the compiler. ")
-    }
-    
-    createFunctionNamed(args, util) { // is a compiled block
-        throw new Error("Please turn on the compiler. ")
-    }*/
-    createFunctionAt(args, util) {
-        const name = Cast.toString(args.NAME)
-        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
-        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
-        this.funcVars.set(name, func)
+        util.thread.gceNextFuncConfig = {argNames, argDefaults}
     }
 
-    createFunctionNamed(args, util) {
-        const name = Cast.toString(args.NAME)
-        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
-        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
-        return func
-    }
+    createFunctionAt = this._isACompiledBlock
+    createClassNamed = this._isACompiledBlock
 
     allFunctionArgs(blockArgs, util) {
-        const args = util.thread.GCEargs
-        if (!args) throw new Error("Function arguments can only be used within a method.")
+        if (util.thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.")
+        const args = util.thread.gceArgStack[util.thread.gceArgStack.length - 1]
         return Cast.toObject(args)
     }
 
     functionArg(blockArgs, util) {
+        if (util.thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.")
+        const args = util.thread.gceArgStack[util.thread.gceArgStack.length - 1]
         const name = Cast.toString(blockArgs.NAME)
-        const args = util.thread.GCEargs
-        if (!args) throw new Error("Function arguments can only be used within a method.")
-        const value = args[name]
-        if (!value) throw new Error(`Undefined function argument ${quote(name)}.`)
-        return value
+        if (!(name in args)) throw new Error(`Undefined function argument ${quote(name)}.`)
+        return args[name]
     }
 
-    return (args, util) { // is a compiled block
-        //util.thread.report = args.VALUE
-        throw new Error("Please turn on the compiler. ")
-    }
-    
-    /*callFunction(args, util) { // is a compiled block
-        throw new Error("Please turn on the compiler. ")
-    }*/
-    callFunction(args, util) { // WARNING: reran (contains function execution)
-        const func = Cast.toFunction(args.FUNC)
-        const posArgs = Cast.toArray(args.POSARGS).array
-        
-        const evaluatedArgs = this._evaluateArgs(func, posArgs)
-        const {hasReturnValue, returnValue} = this._runFunction(util, func, {args: evaluatedArgs})
-        return hasReturnValue ? returnValue : Nothing
-    }
+    return = this._isACompiledBlock
+    callFunction = this._isACompiledBlock
 
     addTempVars() { // BUTTON
         if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
@@ -1110,55 +1175,19 @@ class GCEClassBlocks {
         }
     }
 
-    transferFunctionArgsToTempVars (args, util) { // is a compiled block
-        throw new Error("Please turn on the compiler. ")
-    }
-
-    defineMethod(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = util.thread.GCEclass
-        if (!cls) throw new Error("'define method' can only be used within a class.")
-        
-        const funcConfig = util.thread.GCEnextFuncConfig ? util.thread.GCEnextFuncConfig : {argNames: [], argDefaults: []}
-        const func = this._createFunctionFromBranch(util, name, funcConfig.argNames, funcConfig.argDefaults)
-        cls.methods[name] = new MethodType(func.name, func.branch, func.target, func.argNames, func.argDefaults)
-    }
-
-    defineInitMethod(args, util) {
-        this.defineMethod({NAME: CONFIG.INIT_METHOD_NAME}, util)
-    }
+    transferFunctionArgsToTempVars = this._isACompiledBlock
+    defineMethod = this._isACompiledBlock
+    defineInitMethod = this._isACompiledBlock
     
-    self(args, util) {
-        const self = util.thread.GCEself
-        if (!self) throw new Error("'self' can only be used within a method.")
+    self(args, util) { // left off here: finish
+        if (util.thread.gceEnvStack?.length) throw new Error("'self' can only be used within a method.")
+        const self = util.thread.gceSelfStack[util.thread.gceSelfStack.length - 1]
         return self
     }
 
     // Block: Instances
-        
-    createInstance(args, util) { // WARNING: reran (contains function execution)
-        const cls = Cast.toClass(args.CLASS)
-        let method = this._getMethod(cls, CONFIG.INIT_METHOD_NAME, false)
 
-        const ownThread = util.thread
-        const ownBlockId = ownThread.peekStack()
-        let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
-        if (!blockStorage) {
-            blockStorage = {instance: new ClassInstanceType(cls)}
-            this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
-        }
-
-        const posArgs = Cast.toArray(args.POSARGS).array
-        if (method) {
-            const evaluatedArgs = this._evaluateArgs(method, posArgs)
-            const context = {self: blockStorage.instance, args: evaluatedArgs}
-            this._runFunction(util, method, context)
-        } else {
-            method = new MethodType(CONFIG.INIT_METHOD_NAME, null, null, [], [])
-            this._evaluateArgs(method, posArgs)
-        }
-        return blockStorage.instance
-    }
+    createInstance = this._isACompiledBlock
     
     setAttribute(args, util) {
         const instance = args.INSTANCE
@@ -1182,20 +1211,7 @@ class GCEClassBlocks {
         return instance.attributes[name]
     }
 
-    callMethod(args, util) { // WARNING: reran (contains function execution)
-        const instance = args.INSTANCE
-        if (!(instance instanceof ClassInstanceType)) {
-            throw new Error("Instance argument of 'call method' must be a class instance.")
-        }
-        const name = Cast.toString(args.NAME)
-        const posArgs = Cast.toArray(args.POSARGS).array
-        
-        const method = this._getMethod(instance.cls, name, true)
-        const evaluatedArgs = this._evaluateArgs(method, posArgs)
-        const context = {self: instance, args: evaluatedArgs}
-        const {hasReturnValue, returnValue} = this._runFunction(util, method, context)
-        return hasReturnValue ? returnValue : Nothing
-    }
+    callMethod = this._isACompiledBlock
 
     isInstance(args, util) {
         const instance = args.INSTANCE
@@ -1203,7 +1219,7 @@ class GCEClassBlocks {
             throw new Error("Instance argument of 'is instance' must be a class instance.")
         }
         const cls = Cast.toClass(args.CLASS)
-        return Cast.toBoolean(this._isSubclass(instance.cls, cls))
+        return Cast.toBoolean(instance.cls.isSubclassOf(cls))
     }
     
     // Blocks: Miscellaneous
@@ -1216,7 +1232,7 @@ class GCEClassBlocks {
         if (value instanceof ClassInstanceType) return "Class Instance"
         if (value instanceof NothingType) return "Nothing"
         
-        // Safe JS data types
+        // Common/Safe JS data types
         if (value === undefined) return "JavaScript Undefined"
         if (value === null) return "JavaScript Null"
         if (typeof value === "boolean") return "Boolean"
@@ -1267,12 +1283,16 @@ class GCEClassBlocks {
     }
 
     logThread(args, util) {
-        console.log(util.thread)
+        console.log("logging thread", util.thread)
     }
 
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
+
+    _isACompiledBlock() {
+        throw new Error("Please activate the compiler.")
+    }
 
     /**
      * @param {BlockUtility} util
@@ -1280,7 +1300,7 @@ class GCEClassBlocks {
      * @param {ClassType} superCls
      * @returns {{isDone: boolean, cls: ClassType}}
      */
-    _createClass(util, name, superCls) {
+    _createClass(util, name, superCls) { // WARNING: reran (contains function execution)
         const ownThread = util.thread
         const ownBlockId = ownThread.peekStack()
         let blockStorage = this.specialBlockStorage.getBlockData(ownBlockId, ownThread) 
@@ -1290,82 +1310,31 @@ class GCEClassBlocks {
             this.specialBlockStorage.storeBlockData(ownBlockId, ownThread, blockStorage)
         }
         
-        const tempFunction = this._createFunctionFromBranch(util, "<class body>", [], [])
-        const {isDone} = this._runFunction(util, tempFunction, {cls: blockStorage.cls})
+        const isDone = this._runBranchInClassContext(util, 1, blockStorage.cls)
         return {isDone, cls: blockStorage.cls}
-    }
-    
-    /**
-     * @param {ClassType} cls
-     * @param {string} name
-     * @param {boolean} strict
-     * @returns {?MethodType}
-     */
-    _getMethod(cls, name, strict) {
-        let currentCls = cls
-        while (currentCls) {
-            if (name in currentCls.methods) return currentCls.methods[name]
-            currentCls = currentCls.superCls
-        }
-        if (strict) throw new Error(`Undefined method ${quote(name)}.`)
-        else return null
-    }
-    
-    /**
-     * @param {ClassType} subCls
-     * @param {ClassType} superCls
-     * @returns {boolean}
-     */
-    _isSubclass(subCls, superCls) {
-        if (subCls === superCls) return true
-        let currentCls = subCls
-        while (currentCls.superCls) {
-            if (currentCls.superCls === superCls) return true
-            currentCls = currentCls.superCls
-        }
-        return false
-    }
-
-    /**
-     * @param {BlockUtility} util
-     * @param {string} name
-     * @returns {FunctionTypeOld}
-     */
-    _createFunctionFromBranch(util, name, argNames, argDefaults) {
-        const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), 1)
-        return new FunctionTypeOld(name, branch, util.target, argNames, argDefaults)
     }
 
     /**
      * WARNING: makes the block caling this run MULITPLE times on one activation
      * @param {BlockUtility} util
-     * @param {FunctionTypeOld} func
+     * @param {number} branchNumber
      * @param {?ClassType} cls
-     * @param {?ClassInstanceType} self
-     * @param {?Object} args
-     * @returns {{ hasReturnValue: boolean, isDone: boolean, returnValue: ?any}}
+     * @returns {boolean} if the branch is done
      */
-    _runFunction(util, func, {cls = null, self = null, args = null}) {
-        console.log("_runFunction", func)
+    _runBranchInClassContext(util, branchNumber, cls) {
         // Prepare stack frame and get thread
+        const branch = util.thread.blockContainer.getBranch(util.thread.peekStack(), branchNumber)
         const frame = util.stackFrame
         if (frame.JGindex === undefined) frame.JGindex = 0
         let thread = frame.JGthread
-        let result = {hasReturnValue: false, isDone: false, returnValue: null}
         
         // Make a thread if there is none
-        if (func.target.blocks.getBlock(func.branch) === undefined) {
-            result.isDone = true
-            return result
-        }
+        if (util.target.blocks.getBlock(branch) === undefined) return true
         if (!thread && (frame.JGindex < 1)) {
-            thread = runtime._pushThread(func.branch, func.target, {stackClick: false})
+            thread = runtime._pushThread(branch, util.target, {stackClick: false})
 
-            thread.GCEclass = cls
-            thread.GCEself = self
-            thread.GCEargs = args
-
-            thread.target = func.target
+            thread.gceClass = cls
+            thread.target = util.target
             thread.tryCompile() // update thread
             
             frame.JGthread = thread
@@ -1374,18 +1343,14 @@ class GCEClassBlocks {
 
         // Yeah thanks to JG, this section is really confusing, but it works  ¯\_(ツ)_/¯
         // Run the thread if it is active, otherwise set return value and clean up
+        let isDone = false
         if (frame.JGthread && runtime.isActiveThread(frame.JGthread)) util.yield()
         else {
-            if (frame.JGthread.report !== undefined) {
-                result.hasReturnValue = true
-                result.returnValue = frame.JGthread.report
-                frame.JGindex = 2
-            }
-            result.isDone = true;
+            isDone = true
             frame.JGthread = ""
         }
         if ((frame.JGindex < 1)) util.yield()
-        return result
+        return isDone
     }
     
     /**
@@ -1398,7 +1363,7 @@ class GCEClassBlocks {
         let name
         let prefix
 
-        if (func instanceof MethodType && (func.name === CONFIG.INIT_METHOD_NAME)) prefix = "initalizing object"
+        if (func instanceof MethodType && (func.name === CONFIG.INIT_METHOD_NAME)) prefix = "initializing object"
         else if (func instanceof MethodType) prefix = `calling method ${quote(func.name)}`
         else prefix = `calling function ${quote(func.name)}`
 
@@ -1437,8 +1402,9 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 /**
  * TODOS:
- * - fix "return" not acutally ending a function or method
+ * - make function, method arguments, self use a stack like jw's extension
  * - make "on class X" block
  * - more features for instances, classes and methods
+ * - inline todos
  */
 
