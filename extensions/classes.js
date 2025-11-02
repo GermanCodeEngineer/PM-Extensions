@@ -156,17 +156,107 @@ class SpecialBlockStorageManager {
     }
 }
 
+// System for storing environment data on a thread
+class ThreadEnvManager {
+    static FUNCTION = "FUNCTION"
+    static METHOD = "METHOD"
+    static CLASS_DEF = "CLASS_DEF"
+    
+    constructor() {
+        this.environments = []
+        this.setNextFuncConfig()
+    }
+    
+    enterFunction(args) {
+        this.environments.splice(0, 0, {type: ThreadEnvManager.FUNCTION, args})
+        console.log("enterFunction", JSON.stringify(this.environments))
+        return this
+    }
+    enterMethod(self, args) {
+        this.environments.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args})
+        console.log("enterMethod", JSON.stringify(this.environments))
+        return this
+    }
+    enterClassDef(cls) {
+        this.environments.splice(0, 0, {type: ThreadEnvManager.CLASS_DEF, cls})
+        console.log("enterClassDef", JSON.stringify(this.environments))
+        return this
+    }
+    
+    _getEnv(allowedTypes) {
+        for (let i = 0; i < this.environments.length; i++) {
+            if (this.environments[i].type in allowedTypes) return this.environments[i]
+        }
+        return null
+    }
+    
+    getArgsOrThrow() {
+        console.log("getArgs", JSON.stringify(this.environments))
+        const env = this._getEnv([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD])
+        if (!env) {
+            throw new Error("Function arguments can only be used within a function or method.")
+        }
+        return env.args
+    }
+    getSelfOrThrow() {
+        console.log("getSelf", JSON.stringify(this.environments))
+        const env = this._getEnv([ThreadEnvManager.METHOD])
+        if (!env) {
+            throw new Error("'self' can only be used within a method.")
+        }
+        return env.self
+    }
+    getClsOrThrow() {
+        console.log("getCls", JSON.stringify(ThreadEnvManager.environments))
+        const topEnv = this.environments[0]
+        if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_DEF)) {
+            throw new Error("'define method' can only be used within a class definition or 'on class' block.")
+        }
+        return topEnv.cls
+    }
+    
+    prepareReturn() {
+        const topEnv = this.environments[0]
+        if (!topEnv || !(topEnv.type in [ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD])) {
+            throw new Error("'return' can only be used within a function or method.")
+        }
+        this.environments.shift()
+        console.log("perpareReturn", JSON.stringify(this.environments))
+    }
+    exitClassDef() {
+        const topEnv = this.environments[0]
+        if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_DEF)) {
+            throw new Error("An internal error occured in the classes extension. Please report it.")
+        }
+        this.environments.shift()
+        console.log("exitClassDef", JSON.stringify(this.environments))
+    }
+    
+    getSize() {
+        return this.environments.length
+    }
+    setSize(size) {
+        this.environments = this.environments.slice(-size)
+    }
+    
+    setNextFuncConfig(config = {argNames: [], argDefaults: []}) {
+        this.nextFuncConfig = config
+        console.log("setNextFuncConfig", JSON.stringify(this.environments))
+    }
+    getAndResetNextFuncConfig() {
+        const config = this.nextFuncConfig
+        this.setNextFuncConfig()
+        console.log("getAndResetNextFuncConfig", JSON.stringify(this.environments), config)
+        return config
+    }
+}
+
 const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
     HIDE_ARGUMENT_DEFAULTS: false, // TODO: change to false on release
-}
-const FUNCTION_ENVIRONMENTS = {
-    FUNCTION: "FUNCTION",
-    METHOD: "METHOD",
-    INITIALIZATION: "INITIALIZATION",
 }
 
 class TypeChecker {
@@ -327,7 +417,7 @@ class FunctionType extends CustomType {
      * @param {Array<string>} argNames
      * @param {Array<string>} argDefaults
      */
-    constructor(name, jsFunc, argNames, argDefaults) {
+    constructor(name, jsFunc, {argNames, argDefaults}) {
         super()
         this.name = name
         this.jsFunc = jsFunc
@@ -346,15 +436,13 @@ class FunctionType extends CustomType {
      * @param {array} posArgs
      * @returns {any} the return value of the function
      */
-    *execute(thread, posArgs, environment = FUNCTION_ENVIRONMENTS.FUNCTION) {
-        thread.gceArgStack ??= []
-        thread.gceArgStack.push(extensionClassInstance._evaluateArgs(this, posArgs))
-        thread.gceEnvStack ??= []
-        thread.gceEnvStack.push(environment)
-
+    *execute(thread, posArgs) {
+        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        thread.gceEnv ??= new ThreadEnvManager()
+        //const size = thread.gceEnv.getSize()
+        thread.gceEnv.enterFunction(args)
         const output = (yield* this.jsFunc(thread))
-        thread.gceArgStack.pop()
-        thread.gceEnvStack.pop()
+        //thread.gceEnv.setSize(size)
         return output
     }
 }
@@ -373,11 +461,13 @@ class MethodType extends FunctionType {
      * @param {array} posArgs
      * @returns {any} the return value of the method
      */
-    *execute(thread, instance, posArgs, environment = FUNCTION_ENVIRONMENTS.METHOD) {
-        thread.gceSelfStack ??= []
-        thread.gceSelfStack.push(instance)
-        const output = yield* super.execute(thread, posArgs, environment)
-        thread.gceSelfStack.pop()
+    *execute(thread, instance, posArgs) {
+        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        thread.gceEnv ??= new ThreadEnvManager()
+        //const size = thread.gceEnv.getSize()
+        thread.gceEnv.enterMethod(instance, args)
+        const output = (yield* this.jsFunc(thread))
+        //thread.gceEnv.setSize(size)
         return output
     }
 }
@@ -428,7 +518,7 @@ class ClassType extends CustomType {
      */
     *createInstance(thread, posArgs) {
         const instance = new ClassInstanceType(this) 
-        yield* instance.executeMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs, FUNCTION_ENVIRONMENTS.INITIALIZATION) // an init method always exists
+        yield* instance.executeMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs) // an init method always exists
         return instance
     }
     /**
@@ -472,9 +562,9 @@ class ClassInstanceType extends CustomType {
      * @param {array} posArgs
      * @returns {any} the return value of the method
      */
-    *executeMethod(thread, name, posArgs, environment = FUNCTION_ENVIRONMENTS.METHOD) {
+     *executeMethod(thread, name, posArgs) {
         const method = this.cls.getMethod(name, true)
-        return yield* method.execute(thread, posArgs, this, environment)
+        return yield* method.execute(thread, this, posArgs)
     }
 }
 
@@ -955,29 +1045,32 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
                     
-                    compiler.source += `const ${nameLocal} = ${nameCode};`+
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `const ${nameLocal} = ${nameCode};`+
                         `runtime.ext_gceClasses.funcVars.set(${nameLocal}, new runtime.ext_gceClasses.environment.FunctionType(${nameLocal}, function* (thread) {`
                     compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
-                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []));\n"
+                    compiler.source += "thread.gceEnv.prepareReturn();"+
+                        "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                 },
                 createFunctionNamed: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     
                     const oldSource = compiler.source
-                    compiler.source = `(new runtime.ext_gceClasses.environment.FunctionType(${nameCode}, function* (thread) {`
+                    compiler.source = "(thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager(), "+
+                        `new runtime.ext_gceClasses.environment.FunctionType(${nameCode}, function* (thread) {`
                     compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
-                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []))"
+                    compiler.source += "thread.gceEnv.prepareReturn();"+
+                        "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                     
                     const generatedCode = compiler.source
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 return: (node, compiler, imports) => {
-                    compiler.source += `if (!thread.gceEnvStack?.length) throw new Error("'return' can only be used within a function or method.");`+
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        "thread.gceEnv.prepareReturn();"+
                         `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
                 callFunction: (node, compiler, imports) => {
@@ -989,31 +1082,33 @@ class GCEClassBlocks {
                 },
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
-                    compiler.source += 'if (!thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.");'+
-                        'try {Object.assign(tempVars, thread.gceArgStack[thread.gceArgStack.length-1])} '+
-                        'catch {throw new Error("Failed to transfer to temporary variables.")};\n'
+                    compiler.source += "try {tempVars} catch {throw new Error("+
+                        '"Failed to transfer to temporary variables.")};'+
+                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        "Object.assign(tempVars, thread.gceEnv.getArgsOrThrow());\n"
+                        
                 },
                 defineMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
                     
-                    compiler.source += `if (!thread.gceClass) throw new Error("\'define method\' can only be used within a class.");`+
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
                         `const ${nameLocal} = ${nameCode};`+
-                        `thread.gceClass.methods[${nameLocal}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
+                        `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
                     compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
-                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []);\n"
+                    compiler.source += "thread.gceEnv.prepareReturn();"+
+                         "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                 },
                 defineInitMethod: (node, compiler, imports) => {
                     const nameCode = quote(CONFIG.INIT_METHOD_NAME)
 
-                    compiler.source += `if (!thread.gceClass) throw new Error("\'define init method\' can only be used within a class.");`+
-                        `thread.gceClass.methods[${nameCode}] = new runtime.ext_gceClasses.environment.MethodType(${nameCode}, function* (thread) {\n`
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `thread.gceEnv.getClsOrThrow().methods[${nameCodel}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
                     compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argNames : [], "+
-                        "thread.gceNextFuncConfig ? thread.gceNextFuncConfig.argDefaults : []);\n"
+                    compiler.source += "thread.gceEnv.prepareReturn();"+
+                         "return runtime.ext_gceClasses.environment.Nothing;"+
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                 },
                 // Blocks: Functions & Methods
                 createInstance: (node, compiler, imports) => {
@@ -1040,7 +1135,7 @@ class GCEClassBlocks {
         Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
         this.Cast = Cast
         this.environment = {
-            VariableManager, SpecialBlockStorageManager, TypeChecker, Cast,
+            VariableManager, SpecialBlockStorageManager, ThreadEnvManager, TypeChecker, Cast,
             CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
@@ -1146,21 +1241,21 @@ class GCEClassBlocks {
         if (argDefaults.length > argNames.length) {
             throw new Error("There can only be as many default values as argument names.")
         }
-        util.thread.gceNextFuncConfig = {argNames, argDefaults}
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        util.thread.gceEnv.setNextFuncConfig({argNames, argDefaults})
     }
 
     createFunctionAt = this._isACompiledBlock
     createClassNamed = this._isACompiledBlock
 
     allFunctionArgs(blockArgs, util) {
-        if (util.thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.")
-        const args = util.thread.gceArgStack[util.thread.gceArgStack.length - 1]
-        return Cast.toObject(args)
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return Cast.toObject(util.thread.gceEnv.getArgsOrThrow())
     }
 
     functionArg(blockArgs, util) {
-        if (util.thread.gceEnvStack?.length) throw new Error("Function arguments can only be used within a function or method.")
-        const args = util.thread.gceArgStack[util.thread.gceArgStack.length - 1]
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        const args = util.thread.gceEnv.getArgsOrThrow()
         const name = Cast.toString(blockArgs.NAME)
         if (!(name in args)) throw new Error(`Undefined function argument ${quote(name)}.`)
         return args[name]
@@ -1179,10 +1274,9 @@ class GCEClassBlocks {
     defineMethod = this._isACompiledBlock
     defineInitMethod = this._isACompiledBlock
     
-    self(args, util) { // left off here: finish
-        if (util.thread.gceEnvStack?.length) throw new Error("'self' can only be used within a method.")
-        const self = util.thread.gceSelfStack[util.thread.gceSelfStack.length - 1]
-        return self
+    self(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getSelfOrThrow()
     }
 
     // Block: Instances
@@ -1332,8 +1426,9 @@ class GCEClassBlocks {
         if (util.target.blocks.getBlock(branch) === undefined) return true
         if (!thread && (frame.JGindex < 1)) {
             thread = runtime._pushThread(branch, util.target, {stackClick: false})
-
-            thread.gceClass = cls
+            
+            thread.gceEnv ??= new ThreadEnvManager()
+            thread.gceEnv.enterClassDef(cls)
             thread.target = util.target
             thread.tryCompile() // update thread
             
@@ -1354,7 +1449,7 @@ class GCEClassBlocks {
     }
     
     /**
-     * @param {FunctionTypeOld|FunctionType} func
+     * @param {FunctionType} func
      * @param {Array} posargs
      * @returns {Object}
      */
@@ -1406,5 +1501,6 @@ Scratch.extensions.register(extensionClassInstance)
  * - make "on class X" block
  * - more features for instances, classes and methods
  * - inline todos
+ * - remove static qoutes in errors
  */
 
