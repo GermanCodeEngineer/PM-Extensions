@@ -316,11 +316,13 @@ class TypeChecker {
 
 class Cast extends Scratch.Cast {
     // Foreign
+    /** @returns {Scratch.vm.jwArray.Type} */
     static toArray(value) {
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
     
+    /** @returns {Scratch.vm.dogeiscutObject.Type} */
     static toObject(value, copy = false) {
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
@@ -490,13 +492,27 @@ class ClassType extends CustomType {
      * @param {boolean} strict
      * @returns {?MethodType}
      */
-    getMethod(name, strict) {
+    getInstanceMethod(name, strict) {
         let currentCls = this
         while (currentCls) {
             if (name in currentCls.instanceMethods) return currentCls.instanceMethods[name]
             currentCls = currentCls.superCls
         }
-        if (strict) throw new Error(`Undefined method ${quote(name)}.`)
+        if (strict) throw new Error(`Undefined instance method ${quote(name)}.`)
+        else return null
+    }
+    /**
+     * @param {string} name
+     * @param {boolean} strict
+     * @returns {?FunctionType}
+     */
+    getStaticMethod(name, strict) {
+        let currentCls = this
+        while (currentCls) {
+            if (name in currentCls.staticMethods) return currentCls.staticMethods[name]
+            currentCls = currentCls.superCls
+        }
+        if (strict) throw new Error(`Undefined static method ${quote(name)}.`)
         else return null
     }
     /**
@@ -512,21 +528,24 @@ class ClassType extends CustomType {
         throw new Error(`Undefined class variable ${quote(name)}.`)
     }
     /**
-     * @returns {Array<string>}
+     * @returns {Array<Object, Object, Object>}
      */
-    findAllClassVariables() {
+    findAllPropertyNames() {
         let currentCls = this
         const classChain = []
         while (currentCls) {
             classChain.splice(0, 0, currentCls)
             currentCls = currentCls.superCls
         }
+        const instanceMethods = {}
+        const staticMethods = {}
         const variables = {}
-        console.log(classChain)
         classChain.forEach((cls) => {
+            Object.assign(instanceMethods, cls.instanceMethods)
+            Object.assign(staticMethods, cls.staticMethods)
             Object.assign(variables, cls.variables)
         })
-        return variables
+        return [instanceMethods, staticMethods, variables]
     }
     /**
      * @param {Thread} thread 
@@ -539,8 +558,9 @@ class ClassType extends CustomType {
         if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
         return instance
     }
-    *executeStaticMethod(thread, posArgs) {
-        
+    *executeStaticMethod(thread, name, posArgs) {
+        const methodFunc = this.getStaticMethod(name, true)
+        return yield* methodFunc.execute(thread, posArgs)
     }
     /**
      * @param {ClassType} superCls
@@ -594,7 +614,7 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the return value of the method
      */
      *executeMethod(thread, name, posArgs) {
-        const method = this.cls.getMethod(name, true)
+        const method = this.cls.getInstanceMethod(name, true)
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -605,8 +625,8 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the return value of the method
      */
      *executeSuperMethod(thread, name, posArgs) {
-        if (!this.cls.superCls) throw new Error(`Undefined method ${quote(name)}.`)
-        const method = this.cls.superCls.getMethod(name, true)
+        if (!this.cls.superCls) throw new Error(`Undefined instance method ${quote(name)}.`)
+        const method = this.cls.superCls.getInstanceMethod(name, true)
         return yield* method.execute(thread, this, posArgs)
     }
 }
@@ -906,9 +926,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsAnything,
                     opcode: "callFunction",
                     text: "call function [FUNC] with positional args [POSARGS]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         FUNC: gceFunction.ArgumentFunctionOrVarName,
                         POSARGS: jwArrayStub.Argument,
@@ -946,9 +966,9 @@ class GCEClassBlocks {
                     text: "self",
                 },
                 {
+                    ...commonBlocks.returnsAnything,
                     opcode: "callSuperMethod",
                     text: "call super method [NAME] with positional args [POSARGS]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
@@ -978,7 +998,7 @@ class GCEClassBlocks {
                 {
                     ...dogeiscutObjectStub.Block,
                     opcode: "getAllAttributes",
-                    text: "attributes of [INSTANCE]",
+                    text: "all attributes of [INSTANCE]",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                     },
@@ -993,9 +1013,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsAnything,
                     opcode: "callMethod",
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: commonArguments.methodName,
@@ -1056,19 +1076,20 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    opcode: "deleteClassVariable",
+                    text: "on [CLASS] delete class variable [NAME]",
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.classVariableName,
+                    },
+                },
+                {
                     ...commonBlocks.returnsAnything,
                     opcode: "getClassVariable",
                     text: "get class variable [NAME] of [CLASS]",
                     arguments: {
                         NAME: commonArguments.classVariableName,
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                    },
-                },
-                {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "getAllClassVariables",
-                    text: "get all class variables of [CLASS]",
-                    arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
@@ -1083,13 +1104,22 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsAnything,
                     opcode: "callStaticMethod",
                     text: "on [CLASS] call static method [NAME] with positional args [POSARGS]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                {
+                    ...jwArrayStub.Block,
+                    opcode: "propertyNamesOfClass",
+                    text: "[PROPERTY] names of class [CLASS]",
+                    arguments: {
+                        PROPERTY: {type: Scratch.ArgumentType.STRING, menu: "classProperty"},
+                        CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
                 "---",
@@ -1113,6 +1143,16 @@ class GCEClassBlocks {
                     blockType: BlockType.COMMAND,
                 },
             ],
+            menus: {
+                classProperty: {
+                    acceptReporters: false,
+                    items: [
+                        "instance method",
+                        "static method",
+                        "class variable",
+                    ],
+                },
+            },
         }
         if (CONFIG.HIDE_ARGUMENT_DEFAULTS) {
             info.blocks.forEach((blockInfo) => {
@@ -1288,7 +1328,7 @@ class GCEClassBlocks {
                     
                     compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
                         `const ${nameLocal} = ${nameCode};`+
-                        `thread.gceEnv.getClsOrThrow().staticMethods[${nameLocal}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
+                        `thread.gceEnv.getClsOrThrow().staticMethods[${nameLocal}] = new runtime.ext_gceClasses.environment.FunctionType(${nameLocal}, function* (thread) {\n`
                     compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();"+
                          "return runtime.ext_gceClasses.environment.Nothing;"+
@@ -1298,7 +1338,7 @@ class GCEClassBlocks {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
                     const nameCode = compiler.descendInput(node.name).asUnknown()
                     const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClass(${instanceCode})`+
+                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClass(${classCode})`+
                         `.executeStaticMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
@@ -1577,16 +1617,30 @@ class GCEClassBlocks {
         cls.variables[name] = value
     }
 
+    deleteClassVariable(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        delete cls.variables[name]
+    }
+
     getClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS)
         const name = Cast.toString(args.NAME)
         return cls.getClassVariable(name)
     }
 
-    getAllClassVariables(args, util) {
+    defineStaticMethod = this._isACompiledBlock
+    callStaticMethod = this._isACompiledBlock
+
+    propertyNamesOfClass(args, util) {
+        const property = args.PROPERTY
         const cls = Cast.toClass(args.CLASS)
-        console.log("cls", cls)
-        return Cast.toObject(cls.findAllClassVariables(name))
+        const [instanceMethods, staticMethods, classVariables] = cls.findAllPropertyNames()
+        let values = []
+        if (property === "instance method") values = instanceMethods
+        else if (property === "static method") values = staticMethods
+        else if (property === "class variable") values = classVariables
+        return Cast.toArray(Object.keys(values))
     }
 
     // Blocks: Temporary
@@ -1666,8 +1720,8 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
- *     - static methods
- *     - get all methods/get signature
+ *     - fix round class block
+ *     - finish get all methods/get signature
  *     - get super class
  *     - ...what copilot said
  * - update and reconsider .environment
