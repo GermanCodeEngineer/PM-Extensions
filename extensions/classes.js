@@ -624,10 +624,22 @@ class ClassInstanceType extends CustomType {
      * @param {array} posArgs
      * @returns {any} the return value of the method
      */
-     *executeSuperMethod(thread, name, posArgs) {
-        if (!this.cls.superCls) throw new Error(`Undefined instance method ${quote(name)}.`)
+    *executeSuperMethod(thread, name, posArgs) {
+        if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
         const method = this.cls.superCls.getInstanceMethod(name, true)
         return yield* method.execute(thread, this, posArgs)
+    }
+
+    /**
+     * @param {Thread} thread
+     * @param {string} name
+     * @param {array} posArgs
+     * @returns {any} the return value of the method
+     */
+    *executeSuperInitMethod(thread, name, posArgs) {
+        const output = yield* this.executeSuperMethod(thread, name, posArgs)
+        if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
+        return output
     }
 }
 
@@ -974,6 +986,14 @@ class GCEClassBlocks {
                         POSARGS: jwArrayStub.Argument,
                     },
                 },
+                {
+                    opcode: "callSuperInitMethod",
+                    text: "call super init method with positional args [POSARGS]",
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
                 "---",
                 makeLabel("Instances"),
                 {
@@ -1125,14 +1145,6 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Debugging & Temporary"),
                 {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "jsTypeof",
-                    text: "debugging: JS typeof [VALUE]",
-                    arguments: {
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
                     opcode: "throw",
                     text: "debugging: throw",
                     blockType: BlockType.COMMAND,
@@ -1167,270 +1179,234 @@ class GCEClassBlocks {
     }
     
     getCompileInfo() {
+        // Universal mapping from input names to node keys
+        const INPUT_TO_KEY_MAPPING = {
+            "NAME": "name",
+            "SUBSTACK": "substack", // default, but can be overridden
+            "SUPERCLASS": "superCls", 
+            "CLASS": "cls",
+            "FUNC": "func",
+            "POSARGS": "posArgs",
+            "VALUE": "value",
+            "INSTANCE": "instance"
+        }
+        
+        const createIRGenerator = (kind, inputs, yieldRequired = false) => (generator, block) => {
+            if (yieldRequired) generator.script.yields = true
+            const result = { kind }
+            
+            inputs.forEach(inputName => {
+                let key = INPUT_TO_KEY_MAPPING[inputName]
+                
+                if (!key) {
+                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
+                }
+                
+                result[key] = inputName === "SUBSTACK" 
+                    ? generator.descendSubstack(block, inputName)
+                    : generator.descendInputOfBlock(block, inputName)
+            })
+            return result
+        }
+
+        const EXTENSION_PREFIX = "runtime.ext_gceClasses"
+        const ENV_MANAGER = `${EXTENSION_PREFIX}.environment.ThreadEnvManager()`
+        const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
+        const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
+
+        const createClassCore = (node, compiler, imports, superClsCode = null) => {
+            const nameCode = compiler.descendInput(node.name).asString()
+            const clsLocal = compiler.localVariables.next()
+            const superClass = superClsCode ? `${ENV_PREFIX}.Cast.toClass(${superClsCode})`: `${ENV_PREFIX}.commonSuperClass`
+            
+            return {
+                setup: `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                    `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
+                    `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` +
+                    `thread.gceEnv.enterClassContext(${clsLocal});`,
+                cleanup: "thread.gceEnv.exitClassContext();\n",
+                clsLocal
+            }
+        }
+
+        const createWrappedGenerator = (setupCode, stackCode, cleanup, returnVar = null) => {
+            return `yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})()`
+        }
+
+        const createMethodDefinition = (node, compiler, imports, target, methodType = "MethodType") => {
+            const nameCode = compiler.descendInput(node.name).asString()
+            const nameLocal = compiler.localVariables.next()
+            
+            compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                `const ${nameLocal} = ${nameCode};` +
+                `${target}[${nameLocal}] = new ${ENV_PREFIX}.${methodType}(${nameLocal}, function* (thread) {`
+            compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+            compiler.source += "thread.gceEnv.prepareReturn();" +
+                `return ${ENV_PREFIX}.Nothing;` +
+                "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
+        }
+
+        const createCallCode = (castMethod, target, executeMethod, ...argCodes) => {
+            const processedArgs = argCodes.join(", ")
+            return `(yield* ${CAST_PREFIX}.${castMethod}(${target}).${executeMethod}(thread, ${processedArgs}))`
+        }
+
         return {
             ir: {
-                // Blocks: Classes
-                createClassAt: (generator, block) => (generator.script.yields = true, {
-                    kind: "stack",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                createClassNamed: (generator, block) => (generator.script.yields = true, {
-                    kind: "input",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                createSubclassAt: (generator, block) => (generator.script.yields = true, {
-                    kind: "stack",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    superCls: generator.descendInputOfBlock(block, "SUPERCLASS"),
-                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                createSubclassNamed: (generator, block) => (generator.script.yields = true, {
-                    kind: "input",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    superCls: generator.descendInputOfBlock(block, "SUPERCLASS"),
-                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                // Blocks: Functions & Methods
-                createFunctionAt: (generator, block) => ({
-                    kind: "stack",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                createFunctionNamed: (generator, block) => ({
-                    kind: "input",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                return: (generator, block) => ({
-                    kind: "stack",
-                    value: generator.descendInputOfBlock(block, "VALUE"),
-                }),
-                callFunction: (generator, block) => (generator.script.yields = true, {
-                    kind: "input",
-                    func: generator.descendInputOfBlock(block, "FUNC"),
-                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
-                transferFunctionArgsToTempVars: (generator, block) => ({kind: "stack"}),
-                defineMethod: (generator, block) => ({
-                    kind: "stack",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                defineInitMethod: (generator, block) => ({
-                    kind: "stack",
-                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                callSuperMethod: (generator, block) => ({
-                    kind: "input",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
-                // Blocks: Instances
-                createInstance: (generator, block) => ({
-                    kind: "input",
-                    cls: generator.descendInputOfBlock(block, "CLASS"),
-                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
-                callMethod: (generator, block) => ({
-                    kind: "input",
-                    instance: generator.descendInputOfBlock(block, "INSTANCE"),
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
-                // Blocks: Class Variables & Static Methods
-                defineStaticMethod: (generator, block) => ({
-                    kind: "stack",
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    funcStack: generator.descendSubstack(block, "SUBSTACK"),
-                }),
-                callStaticMethod: (generator, block) => ({
-                    kind: "input",
-                    cls: generator.descendInputOfBlock(block, "CLASS"),
-                    name: generator.descendInputOfBlock(block, "NAME"),
-                    posArgs: generator.descendInputOfBlock(block, "POSARGS"),
-                }),
+                // Classes
+                createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], true),
+                createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], true),
+                createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
+                createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
+
+                // Functions & Methods
+                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"]),
+                return: createIRGenerator("stack", ["VALUE"]),
+                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], true),
+                transferFunctionArgsToTempVars: createIRGenerator("stack", []),
+                defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                defineInitMethod: createIRGenerator("stack", ["SUBSTACK"]),
+                callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], true),
+                callSuperInitMethod: createIRGenerator("input", ["POSARGS"], true),
+
+                // Instances
+                createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], true),
+                callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], true),
+
+                // Static Methods
+                defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], true),
             },
             js: {
-                // Blocks: Classes
+                // Classes
                 createClassAt: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const clsLocal = compiler.localVariables.next()
-                    
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
-                        `runtime.ext_gceClasses.environment.Cast.toClass(runtime.ext_gceClasses.environment.commonSuperClass));`+
-                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
-                        `thread.gceEnv.enterClassContext(${clsLocal});`
-                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.exitClassContext();"
+                    const { setup, cleanup } = createClassCore(node, compiler, imports)
+                    compiler.source += setup
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += cleanup
                 },
                 createClassNamed: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const clsLocal = compiler.localVariables.next()
-                    
+                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports)
                     const oldSource = compiler.source
-                    compiler.source = "yield* (function*() {"+
-                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
-                        `runtime.ext_gceClasses.environment.Cast.toClass(runtime.ext_gceClasses.environment.commonSuperClass));`+
-                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
-                        `thread.gceEnv.enterClassContext(${clsLocal});`
-                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.exitClassContext();"+
-                        `return ${clsLocal};`+"})()"
-
+                    compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     const generatedCode = compiler.source
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 createSubclassAt: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
                     const superClsCode = compiler.descendInput(node.superCls).asUnknown()
-                    const clsLocal = compiler.localVariables.next()
-                    
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
-                        `runtime.ext_gceClasses.environment.Cast.toClass(${superClsCode}));`+
-                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
-                        `thread.gceEnv.enterClassContext(${clsLocal});`
-                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.exitClassContext();"
+                    const { setup, cleanup } = createClassCore(node, compiler, imports, superClsCode)
+                    compiler.source += setup
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += cleanup
                 },
                 createSubclassNamed: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
                     const superClsCode = compiler.descendInput(node.superCls).asUnknown()
-                    const clsLocal = compiler.localVariables.next()
-                    
+                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports, superClsCode)
                     const oldSource = compiler.source
-                    compiler.source = "yield* (function*() {"+
-                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
-                        `runtime.ext_gceClasses.environment.Cast.toClass(${superClsCode}));`+
-                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
-                        `thread.gceEnv.enterClassContext(${clsLocal});`
-                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.exitClassContext();"+
-                        `return ${clsLocal};`+"})()"
-
+                    compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     const generatedCode = compiler.source
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-                // Blocks: Functions & Methods
+
+                // Functions & Methods
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
                     
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${nameLocal} = ${nameCode};`+
-                        `runtime.ext_gceClasses.funcVars.set(${nameLocal}, new runtime.ext_gceClasses.environment.FunctionType(${nameLocal}, function* (thread) {`
-                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();"+
-                        "return runtime.ext_gceClasses.environment.Nothing;"+
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `const ${nameLocal} = ${nameCode};` +
+                        `${EXTENSION_PREFIX}.funcVars.set(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                        `return ${ENV_PREFIX}.Nothing;` +
                         "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                 },
                 createFunctionNamed: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    
                     const oldSource = compiler.source
-                    compiler.source = "(thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager(), "+
-                        `new runtime.ext_gceClasses.environment.FunctionType(${nameCode}, function* (thread) {`
-                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();"+
-                        "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
-                    
+                    compiler.source = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
+                                     `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                                      `return ${ENV_PREFIX}.Nothing;` +
+                                      "}, thread.gceEnv.getAndResetNextFuncConfig()))\n"
                     const generatedCode = compiler.source
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 return: (node, compiler, imports) => {
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        "thread.gceEnv.prepareReturn();"+
-                        `return ${compiler.descendInput(node.value).asUnknown()};\n`
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                                      "thread.gceEnv.prepareReturn();" +
+                                      `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
                 callFunction: (node, compiler, imports) => {
                     const funcCode = compiler.descendInput(node.func).asUnknown()
-                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toFunction(${funcCode})`+
-                        `.execute(thread, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = createCallCode("toFunction", funcCode, "execute", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
-                    compiler.source += "try {tempVars} catch {throw new Error("+
-                        '"Failed to transfer to temporary variables.")};'+
-                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                    compiler.source += 'try {tempVars} catch {throw new Error("Failed to transfer to temporary variables.")};' +
+                        `thread.gceEnv ??= new ${ENV_MANAGER};` +
                         "Object.assign(tempVars, thread.gceEnv.getArgsOrThrow());\n"
-                        
                 },
                 defineMethod: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const nameLocal = compiler.localVariables.next()
-                    
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${nameLocal} = ${nameCode};`+
-                        `thread.gceEnv.getClsOrThrow().instanceMethods[${nameLocal}] = new runtime.ext_gceClasses.environment.MethodType(${nameLocal}, function* (thread) {\n`
-                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();"+
-                         "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
+                    createMethodDefinition(node, compiler, imports, "thread.gceEnv.getClsOrThrow().instanceMethods")
                 },
                 defineInitMethod: (node, compiler, imports) => {
                     const nameCode = quote(CONFIG.INIT_METHOD_NAME)
-
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `thread.gceEnv.getClsOrThrow().instanceMethods[${nameCode}] = new runtime.ext_gceClasses.environment.MethodType(${nameCode}, function* (thread) {\n`
-                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();"+
-                         "return runtime.ext_gceClasses.environment.Nothing;"+
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `thread.gceEnv.getClsOrThrow().instanceMethods[${nameCode}] = new ${ENV_PREFIX}.MethodType(${nameCode}, function* (thread) {\n`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                        `return ${ENV_PREFIX}.Nothing;` +
                         "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
                 },
                 callSuperMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asUnknown()
-                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = "(thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager(), "+
-                        "(yield* thread.gceEnv.getSelfOrThrow()"+
-                        `.executeSuperMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array)))`
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
+                        `(yield* thread.gceEnv.getSelfOrThrow().executeSuperMethod(thread, ${nameCode}, ${posArgsCode})))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-                // Blocks: Instances
+                callSuperInitMethod: (node, compiler, imports) => {
+                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `yield* thread.gceEnv.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode}));\n`
+                },
+
+                // Instances
                 createInstance: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
-                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClass(${classCode})`+
-                        `.createInstance(thread, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    console.log("node", node)
+                    const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 callMethod: (node, compiler, imports) => {
                     const instanceCode = compiler.descendInput(node.instance).asUnknown()
                     const nameCode = compiler.descendInput(node.name).asUnknown()
-                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClassInstance(${instanceCode})`+
-                        `.executeMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = createCallCode("toClassInstance", instanceCode, "executeMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-                // Blocks: Class Variables & Static Methods
+
+                // Static Methods
                 defineStaticMethod: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const nameLocal = compiler.localVariables.next()
-                    
-                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
-                        `const ${nameLocal} = ${nameCode};`+
-                        `thread.gceEnv.getClsOrThrow().staticMethods[${nameLocal}] = new runtime.ext_gceClasses.environment.FunctionType(${nameLocal}, function* (thread) {\n`
-                    compiler.descendStack(node.funcStack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();"+
-                         "return runtime.ext_gceClasses.environment.Nothing;"+
-                        "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
+                    createMethodDefinition(node, compiler, imports, "thread.gceEnv.getClsOrThrow().staticMethods", "FunctionType")
                 },
                 callStaticMethod: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
                     const nameCode = compiler.descendInput(node.name).asUnknown()
                     const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
-                    const generatedCode = `(yield* runtime.ext_gceClasses.Cast.toClass(${classCode})`+
-                        `.executeStaticMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array))`
+                    const generatedCode = createCallCode("toClass", classCode, "executeStaticMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
             },
@@ -1572,6 +1548,7 @@ class GCEClassBlocks {
     }
 
     callSuperMethod = this._isACompiledBlock
+    callSuperInitMethod = this._isACompiledBlock
 
     // Block: Instances
 
@@ -1691,15 +1668,6 @@ class GCEClassBlocks {
 
     // Blocks: Temporary
 
-    jsTypeof(args, util) {
-        console.log("value", args.VALUE)
-        console.log("typeof value", typeof args.VALUE)
-        return Cast.toObject({
-            typeof: typeof args.VALUE, 
-            proto: Object.getPrototypeOf(args.VALUE),
-        })
-    }
-
     throw () {
         throw new Error("BREAK")
     }
@@ -1766,7 +1734,7 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
- *     - fix round class block
+ *     - fix call super init method block
  *     - finish get all methods/get signature
  *     - get super class
  *     - ...what copilot said
