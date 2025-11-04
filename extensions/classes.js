@@ -804,6 +804,15 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    opcode: 'wait',
+                    text: ["wait: create class named [NAME]"],
+                    blockType: Scratch.BlockType.COMMAND,
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.classVarName,
+                    },
+                },
+                {
                     ...gceClass.Block,
                     opcode: "createSubclassNamed",
                     text: ["create subclass named [NAME] with superclass [SUPERCLASS]"],
@@ -1412,14 +1421,29 @@ class GCEClassBlocks {
     createClassNamed(args, util) {
         const name = Cast.toString(args.NAME)
         const cls = new ClassType(name, commonSuperClass)
+    
         util.thread.gceEnv ??= new ThreadEnvManager()
         util.thread.gceEnv.enterClassContext(cls)
-        let isDone = false
-        util.startBranch(1, false, () => {
-            util.thread.gceEnv.exitClassContext(cls)
-            isDone = true
+    
+        return new Promise(resolve => {
+            util.startBranch(1, false, () => {
+                util.thread.gceEnv.exitClassContext(cls)
+                resolve(cls)
+            })
         })
-        if (isDone) return cls
+    }
+    //setTimeout(() => {
+          //  resolve();
+          //}, 1000);
+          
+    wait (args, util) {
+        return new Promise((resolve, reject) => {
+          console.log("in promise")
+          util.startBranch(1, false, () => {
+              console.log("yay ended")
+              resolve("yay ended")
+          })
+        })
     }
 
     createSubclassNamed(args, util) {
