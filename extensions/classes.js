@@ -804,15 +804,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    opcode: 'wait',
-                    text: ["wait: create class named [NAME]"],
-                    blockType: Scratch.BlockType.COMMAND,
-                    branchCount: 1,
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                    },
-                },
-                {
                     ...gceClass.Block,
                     opcode: "createSubclassNamed",
                     text: ["create subclass named [NAME] with superclass [SUPERCLASS]"],
@@ -1178,6 +1169,30 @@ class GCEClassBlocks {
     getCompileInfo() {
         return {
             ir: {
+                // Blocks: Classes
+                createClassAt: (generator, block) => (generator.script.yields = true, {
+                    kind: "stack",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                createClassNamed: (generator, block) => (generator.script.yields = true, {
+                    kind: "input",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                createSubclassAt: (generator, block) => (generator.script.yields = true, {
+                    kind: "stack",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    superCls: generator.descendInputOfBlock(block, "SUPERCLASS"),
+                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                createSubclassNamed: (generator, block) => (generator.script.yields = true, {
+                    kind: "input",
+                    name: generator.descendInputOfBlock(block, "NAME"),
+                    superCls: generator.descendInputOfBlock(block, "SUPERCLASS"),
+                    clsStack: generator.descendSubstack(block, "SUBSTACK"),
+                }),
+                // Blocks: Functions & Methods
                 createFunctionAt: (generator, block) => ({
                     kind: "stack",
                     name: generator.descendInputOfBlock(block, "NAME"),
@@ -1212,6 +1227,7 @@ class GCEClassBlocks {
                     name: generator.descendInputOfBlock(block, "NAME"),
                     posArgs: generator.descendInputOfBlock(block, "POSARGS"),
                 }),
+                // Blocks: Instances
                 createInstance: (generator, block) => ({
                     kind: "input",
                     cls: generator.descendInputOfBlock(block, "CLASS"),
@@ -1223,6 +1239,7 @@ class GCEClassBlocks {
                     name: generator.descendInputOfBlock(block, "NAME"),
                     posArgs: generator.descendInputOfBlock(block, "POSARGS"),
                 }),
+                // Blocks: Class Variables & Static Methods
                 defineStaticMethod: (generator, block) => ({
                     kind: "stack",
                     name: generator.descendInputOfBlock(block, "NAME"),
@@ -1236,6 +1253,71 @@ class GCEClassBlocks {
                 }),
             },
             js: {
+                // Blocks: Classes
+                createClassAt: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const clsLocal = compiler.localVariables.next()
+                    
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
+                        `runtime.ext_gceClasses.environment.Cast.toClass(runtime.ext_gceClasses.environment.commonSuperClass));`+
+                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
+                        `thread.gceEnv.enterClassContext(${clsLocal});`
+                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.exitClassContext();"
+                },
+                createClassNamed: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const clsLocal = compiler.localVariables.next()
+                    
+                    const oldSource = compiler.source
+                    compiler.source = "yield* (function*() {"+
+                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
+                        `runtime.ext_gceClasses.environment.Cast.toClass(runtime.ext_gceClasses.environment.commonSuperClass));`+
+                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
+                        `thread.gceEnv.enterClassContext(${clsLocal});`
+                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.exitClassContext();"+
+                        `return ${clsLocal};`+"})()"
+
+                    const generatedCode = compiler.source
+                    compiler.source = oldSource
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                createSubclassAt: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const superClsCode = compiler.descendInput(node.superCls).asUnknown()
+                    const clsLocal = compiler.localVariables.next()
+                    
+                    compiler.source += "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
+                        `runtime.ext_gceClasses.environment.Cast.toClass(${superClsCode}));`+
+                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
+                        `thread.gceEnv.enterClassContext(${clsLocal});`
+                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.exitClassContext();"
+                },
+                createSubclassNamed: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const superClsCode = compiler.descendInput(node.superCls).asUnknown()
+                    const clsLocal = compiler.localVariables.next()
+                    
+                    const oldSource = compiler.source
+                    compiler.source = "yield* (function*() {"+
+                        "thread.gceEnv ??= new runtime.ext_gceClasses.environment.ThreadEnvManager();"+
+                        `const ${clsLocal} = new runtime.ext_gceClasses.environment.ClassType(${nameCode}, `+
+                        `runtime.ext_gceClasses.environment.Cast.toClass(${superClsCode}));`+
+                        `runtime.ext_gceClasses.classVars.set(${clsLocal}.name, ${clsLocal});`+
+                        `thread.gceEnv.enterClassContext(${clsLocal});`
+                    compiler.descendStack(node.clsStack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.exitClassContext();"+
+                        `return ${clsLocal};`+"})()"
+
+                    const generatedCode = compiler.source
+                    compiler.source = oldSource
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
                 // Blocks: Functions & Methods
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
@@ -1314,7 +1396,7 @@ class GCEClassBlocks {
                         `.executeSuperMethod(thread, ${nameCode}, runtime.ext_gceClasses.Cast.toArray(${posArgsCode}).array)))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-                // Blocks: Functions & Methods
+                // Blocks: Instances
                 createInstance: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
                     const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
@@ -1361,10 +1443,10 @@ class GCEClassBlocks {
         this.Cast = Cast
         this.environment = {
             VariableManager, SpecialBlockStorageManager, ThreadEnvManager, TypeChecker, Cast,
-            CustomType, FunctionType, MethodType, ClassType, ClassInstanceType, NothingType, Nothing,
+            CustomType, FunctionType, MethodType, ClassType, commonSuperClass, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
-        
+
         runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
         runtime.registerSerializer(
             "gceNothing",
@@ -1395,77 +1477,17 @@ class GCEClassBlocks {
 
     // Blocks: Classes
 
-    createClassAt(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = new ClassType(name, commonSuperClass)
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        util.thread.gceEnv.enterClassContext(cls)
-        util.startBranch(1, false, () => {
-            util.thread.gceEnv.exitClassContext(cls)
-            this.classVars.set(name, cls)
-        })
-    }
-
-    createSubclassAt(args, util) {
-        const name = Cast.toString(args.NAME)
-        const superCls = Cast.toClass(args.SUPERCLASS)
-        const cls = new ClassType(name, superCls)
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        util.thread.gceEnv.enterClassContext(cls)
-        util.startBranch(1, false, () => {
-            util.thread.gceEnv.exitClassContext(cls)
-            this.classVars.set(name, cls)
-        })
-    }
-    
-    createClassNamed(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = new ClassType(name, commonSuperClass)
-    
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        util.thread.gceEnv.enterClassContext(cls)
-    
-        return new Promise(resolve => {
-            util.startBranch(1, false, () => {
-                util.thread.gceEnv.exitClassContext(cls)
-                resolve(cls)
-            })
-        })
-    }
-    //setTimeout(() => {
-          //  resolve();
-          //}, 1000);
-          
-    wait (args, util) {
-        return new Promise((resolve, reject) => {
-          console.log("in promise")
-          util.startBranch(1, false, () => {
-              console.log("yay ended")
-              resolve("yay ended")
-          })
-        })
-    }
-
-    createSubclassNamed(args, util) {
-        const name = Cast.toString(args.NAME)
-        const superCls = Cast.toClass(args.SUPERCLASS)
-        const cls = new ClassType(name, superCls)
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        util.thread.gceEnv.enterClassContext(cls)
-        let isDone = false
-        util.startBranch(1, false, () => {
-            util.thread.gceEnv.exitClassContext(cls)
-            isDone = true
-        })
-        if (isDone) return cls
-    }
+    createClassAt = this._isACompiledBlock
+    createSubclassAt = this._isACompiledBlock
+    createClassNamed = this._isACompiledBlock
+    createSubclassNamed = this._isACompiledBlock
     
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS)
         util.thread.gceEnv ??= new ThreadEnvManager()
         util.thread.gceEnv.enterClassContext(cls)
         util.startBranch(1, false, () => {
-            util.thread.gceEnv.exitClassContext(cls)
+            util.thread.gceEnv.exitClassContext()
         })
     }
     
@@ -1748,7 +1770,7 @@ Scratch.extensions.register(extensionClassInstance)
  *     - finish get all methods/get signature
  *     - get super class
  *     - ...what copilot said
- * - update and reconsider .environment
+ * - reconsider .environment
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
