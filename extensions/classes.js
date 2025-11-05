@@ -197,7 +197,7 @@ class ThreadEnvManager {
     getSelfOrThrow() {
         const env = this._getEnv([ThreadEnvManager.METHOD])
         if (!env) {
-            throw new Error("self can only be used within a method.")
+            throw new Error("self can only be used within an instance method.")
         }
         return env.self
     }
@@ -1084,7 +1084,7 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                makeLabel("Static Variables and Methods"),
+                makeLabel("Class Variables and Static Methods"),
                 {
                     opcode: "setClassVariable",
                     text: "on [CLASS] set class variable [NAME] to [VALUE]",
@@ -1214,7 +1214,7 @@ class GCEClassBlocks {
         const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
 
-        const createClassCore = (node, compiler, imports, superClsCode = null) => {
+        const createClassCore = (node, compiler, imports, setVariable, superClsCode = null) => {
             const nameCode = compiler.descendInput(node.name).asString()
             const clsLocal = compiler.localVariables.next()
             const superClass = superClsCode ? `${ENV_PREFIX}.Cast.toClass(${superClsCode})`: `${ENV_PREFIX}.commonSuperClass`
@@ -1222,7 +1222,7 @@ class GCEClassBlocks {
             return {
                 setup: `thread.gceEnv ??= new ${ENV_MANAGER};` +
                     `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
-                    `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` +
+                    (setVarible ? `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` : "") +
                     `thread.gceEnv.enterClassContext(${clsLocal});`,
                 cleanup: "thread.gceEnv.exitClassContext();\n",
                 clsLocal
@@ -1255,8 +1255,8 @@ class GCEClassBlocks {
             ir: {
                 // Classes
                 createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], true),
-                createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], true),
                 createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
+                createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], true),
                 createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
 
                 // Functions & Methods
@@ -1274,20 +1274,27 @@ class GCEClassBlocks {
                 createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], true),
                 callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], true),
 
-                // Static Methods
+                // Class Variables and Static Methods
                 defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
                 callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], true),
             },
             js: {
                 // Classes
                 createClassAt: (node, compiler, imports) => {
-                    const { setup, cleanup } = createClassCore(node, compiler, imports)
+                    const { setup, cleanup } = createClassCore(node, compiler, imports, true)
+                    compiler.source += setup
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += cleanup
+                },
+                createSubclassAt: (node, compiler, imports) => {
+                    const superClsCode = compiler.descendInput(node.superCls).asUnknown()
+                    const { setup, cleanup } = createClassCore(node, compiler, imports, true, superClsCode)
                     compiler.source += setup
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += cleanup
                 },
                 createClassNamed: (node, compiler, imports) => {
-                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports)
+                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports, false)
                     const oldSource = compiler.source
                     compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
@@ -1295,16 +1302,9 @@ class GCEClassBlocks {
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-                createSubclassAt: (node, compiler, imports) => {
-                    const superClsCode = compiler.descendInput(node.superCls).asUnknown()
-                    const { setup, cleanup } = createClassCore(node, compiler, imports, superClsCode)
-                    compiler.source += setup
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    compiler.source += cleanup
-                },
                 createSubclassNamed: (node, compiler, imports) => {
                     const superClsCode = compiler.descendInput(node.superCls).asUnknown()
-                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports, superClsCode)
+                    const { setup, cleanup, clsLocal } = createClassCore(node, compiler, imports, false, superClsCode)
                     const oldSource = compiler.source
                     compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
@@ -1398,7 +1398,7 @@ class GCEClassBlocks {
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
-                // Static Methods
+                // Class Variables and Static Methods
                 defineStaticMethod: (node, compiler, imports) => {
                     createMethodDefinition(node, compiler, imports, "thread.gceEnv.getClsOrThrow().staticMethods", "FunctionType")
                 },
@@ -1632,7 +1632,7 @@ class GCEClassBlocks {
         // do nothing
     }
 
-    // Blocks: Static Variables and Methods
+    // Blocks: Class Variables and Static Methods
     setClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS)
         const name = Cast.toString(args.NAME)
@@ -1739,6 +1739,7 @@ Scratch.extensions.register(extensionClassInstance)
  *     - get super class
  *     - ...what copilot said
  * - reconsider .environment
+ * - prevent instance and static method existing with the same name(probably combine them into one)
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
