@@ -398,7 +398,7 @@ class CustomType {
     }
 }
 
-class FunctionType extends CustomType {
+class BaseCallableType extends CustomType {
     /**
      * @param {string} name 
      * @param {Function} jsFunc
@@ -412,6 +412,9 @@ class FunctionType extends CustomType {
         this.argNames = argNames
         this.argDefaults = argDefaults
     }
+}
+
+class FunctionType extends BaseCallableType {
     toString() {
         return `<Function ${quote(this.name)}>`
     }
@@ -437,7 +440,7 @@ class FunctionType extends CustomType {
     }
 }
 
-class MethodType extends FunctionType {
+class MethodType extends BaseCallableType {
     toString() {
         return `<Method ${quote(this.name)}>`
     }
@@ -464,6 +467,61 @@ class MethodType extends FunctionType {
     }
 }
 
+class GetterMethodType extends BaseCallableType {
+    toString() {
+        return `<Getter Method ${quote(this.name)}>`
+    }
+    toJSON() {
+        return "Getter Methods can not be serialized."
+    }
+
+    /**
+     * @param {Thread} thread 
+     * @param {ClassInstanceType} instance
+     * @param {array} posArgs
+     * @returns {any} the return value of the getter method
+     */
+    *execute(thread, instance, posArgs) {
+        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        thread.gceEnv ??= new ThreadEnvManager()
+        const sizeBefore = thread.gceEnv.getSize()
+        thread.gceEnv.enterMethod(instance, args)
+        const output = (yield* this.jsFunc(thread))
+        if (sizeBefore !== thread.gceEnv.getSize()) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
+        }
+        return output
+    }
+}
+
+class SetterMethodType extends BaseCallableType {
+    toString() {
+        return `<Setter Method ${quote(this.name)}>`
+    }
+    toJSON() {
+        return "Setter Methods can not be serialized."
+    }
+
+    /**
+     * @param {Thread} thread 
+     * @param {ClassInstanceType} instance
+     * @param {array} posArgs
+     * @returns {any} the return value of the setter method
+     */
+    *execute(thread, instance, posArgs) {
+        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        thread.gceEnv ??= new ThreadEnvManager()
+        const sizeBefore = thread.gceEnv.getSize()
+        thread.gceEnv.enterMethod(instance, args)
+        const output = (yield* this.jsFunc(thread))
+        if (sizeBefore !== thread.gceEnv.getSize()) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
+        }
+        if (output !== Nothing) throw new Error(`Setter methods must return ${Nothing}.`)
+        return output
+    }
+}
+
 class ClassType extends CustomType {
     customId = "gceClass"
 
@@ -475,8 +533,9 @@ class ClassType extends CustomType {
         super()
         this.name = name
         this.superCls = superCls
-        this.instanceMethods = {}
-        this.staticMethods = {}
+        this.methods = {}
+        // Instance methods are instances of {MethodType}, Static methods are instances of {FunctionType}
+        // Getter methods are instances of {GetterMethodType}, Setter methods are instances of {SetterMethodType},
         this.variables = {}
     }
     toString() {
@@ -489,31 +548,38 @@ class ClassType extends CustomType {
 
     /**
      * @param {string} name
-     * @param {boolean} strict
-     * @returns {?MethodType}
+     * @returns {?FunctionType | MethodType}
      */
-    getInstanceMethod(name, strict) {
+    getMethod(name) {
         let currentCls = this
         while (currentCls) {
-            if (name in currentCls.instanceMethods) return currentCls.instanceMethods[name]
+            if (name in currentCls.methods) return currentCls.methods[name]
             currentCls = currentCls.superCls
         }
-        if (strict) throw new Error(`Undefined instance method ${quote(name)}.`)
-        else return null
+        return null
+    }
+
+    /**
+     * @param {string} name
+     * @param {boolean} strict
+     * @returns {MethodType}
+     */
+    getInstanceMethod(name) {
+        const method = this.getMethod(name)
+        if (!method) throw new Error(`Undefined instance method ${quote(name)}.`)
+        if (!(method instanceof MethodType)) throw new Error(`Method ${quote(name)} is not an instance method.`)
+        return method
     }
     /**
      * @param {string} name
      * @param {boolean} strict
-     * @returns {?FunctionType}
+     * @returns {FunctionType}
      */
-    getStaticMethod(name, strict) {
-        let currentCls = this
-        while (currentCls) {
-            if (name in currentCls.staticMethods) return currentCls.staticMethods[name]
-            currentCls = currentCls.superCls
-        }
-        if (strict) throw new Error(`Undefined static method ${quote(name)}.`)
-        else return null
+    getStaticMethod(name) {
+        const method = this.getMethod(name)
+        if (!method) throw new Error(`Undefined static method ${quote(name)}.`)
+        if (!(method instanceof FunctionType)) throw new Error(`Method ${quote(name)} is not a static method.`)
+        return method
     }
     /**
      * @param {string} name
@@ -528,24 +594,30 @@ class ClassType extends CustomType {
         throw new Error(`Undefined class variable ${quote(name)}.`)
     }
     /**
-     * @returns {Array<Object, Object, Object>}
+     * @returns {Array<Object, Object, Object. Object, Object>}
      */
     findAllPropertyNames() {
         let currentCls = this
-        const classChain = []
+        const classChain = [] // From top superclass to subclass
         while (currentCls) {
             classChain.splice(0, 0, currentCls)
             currentCls = currentCls.superCls
         }
         const instanceMethods = {}
         const staticMethods = {}
+        const getterMethods = {}
+        const setterMethods = {}
         const variables = {}
         classChain.forEach((cls) => {
-            Object.assign(instanceMethods, cls.instanceMethods)
-            Object.assign(staticMethods, cls.staticMethods)
+            for (const [methodName, method] of Object.entries(cls.methods)) {
+                if (method instanceof MethodType) instanceMethods[methodName] = method
+                else if (method instanceof FunctionType) staticMethods[methodName] = method
+                else if (method instanceof GetterMethodType) getterMethods[methodName] = method
+                else if (method instanceof SetterMethodType) setterMethods[methodName] = method
+            }
             Object.assign(variables, cls.variables)
         })
-        return [instanceMethods, staticMethods, variables]
+        return [instanceMethods, staticMethods, getterMethods, setterMethods, variables]
     }
     /**
      * @param {Thread} thread 
@@ -559,7 +631,7 @@ class ClassType extends CustomType {
         return instance
     }
     *executeStaticMethod(thread, name, posArgs) {
-        const methodFunc = this.getStaticMethod(name, true)
+        const methodFunc = this.getStaticMethod(name)
         return yield* methodFunc.execute(thread, posArgs)
     }
     /**
@@ -577,7 +649,7 @@ class ClassType extends CustomType {
     }
 }
 const commonSuperClass = new ClassType("Superclass", null)
-commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
+commonSuperClass.methods[CONFIG.INIT_METHOD_NAME] = new MethodType(
     CONFIG.INIT_METHOD_NAME, 
     function* (thread) {
         thread.gceEnv ??= new ThreadEnvManager()
@@ -614,7 +686,7 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the return value of the method
      */
      *executeMethod(thread, name, posArgs) {
-        const method = this.cls.getInstanceMethod(name, true)
+        const method = this.cls.getInstanceMethod(name)
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -626,7 +698,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeSuperMethod(thread, name, posArgs) {
         if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
-        const method = this.cls.superCls.getInstanceMethod(name, true)
+        const method = this.cls.superCls.getInstanceMethod(name)
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -758,6 +830,10 @@ const commonArguments = {
         type: ArgumentType.STRING,
         defaultValue: "Function1",
     },
+    attributeName: {
+        type: ArgumentType.STRING,
+        defaultValue: "myAttr",
+    },
     allowAnything: {
         type: ArgumentType.STRING,
         exemptFromNormalization: true,
@@ -886,6 +962,14 @@ class GCEClassBlocks {
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "getSuperclass",
+                    text: "get superclass of [CLASS]",
+                    arguments: {
+                        CLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySubclass"},
+                    },
+                },
                 "---",
                 makeLabel("Functions & Methods"),
                 {
@@ -1011,7 +1095,7 @@ class GCEClassBlocks {
                     blockType: BlockType.COMMAND,
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
-                        NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
+                        NAME: commonArguments.argumentName,
                         VALUE: commonArguments.allowAnything,
                     },
                 },
@@ -1028,7 +1112,7 @@ class GCEClassBlocks {
                     opcode: "getAttribute",
                     text: "attribute [NAME] of [INSTANCE]",
                     arguments: {
-                        NAME: {type: ArgumentType.STRING, defaultValue: "myAttr"},
+                        NAME: commonArguments.attributeName,
                         INSTANCE: gceClassInstance.Argument,
                     },
                 },
@@ -1049,6 +1133,14 @@ class GCEClassBlocks {
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                {
+                    ...gceClass.Block,
+                    opcode: "getClassOfInstance",
+                    text: "get class of [INSTANCE]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
                     },
                 },
                 "---",
@@ -1134,6 +1226,15 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...gceFunction.Block,
+                    opcode: "getStaticMethodFunc",
+                    text: "get static method [NAME] of [CLASS] as function",
+                    arguments: {
+                        NAME: commonArguments.methodName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                {
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
@@ -1141,6 +1242,34 @@ class GCEClassBlocks {
                         PROPERTY: {type: Scratch.ArgumentType.STRING, menu: "classProperty"},
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
+                },
+                "---",
+                makeLabel("Getters and Setters"),
+                {
+                    opcode: "defineGetter",
+                    text: ["define getter [NAME]"],
+                    blockType: BlockType.CONDITIONAL,
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                    },
+                },
+                {
+                    opcode: "defineSetter",
+                    text: ["define setter [NAME] [SHADOW]"],
+                    blockType: BlockType.CONDITIONAL,
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        SHADOW: {fillIn: "defineSetterValue"},
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "defineSetterValue",
+                    text: "value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
                 },
                 "---",
                 makeLabel("Debugging & Temporary"),
@@ -1161,6 +1290,8 @@ class GCEClassBlocks {
                     items: [
                         "instance method",
                         "static method",
+                        "getter method",
+                        "setter method",
                         "class variable",
                     ],
                 },
@@ -1182,7 +1313,7 @@ class GCEClassBlocks {
         // Universal mapping from input names to node keys
         const INPUT_TO_KEY_MAPPING = {
             "NAME": "name",
-            "SUBSTACK": "substack", // default, but can be overridden
+            "SUBSTACK": "substack",
             "SUPERCLASS": "superCls", 
             "CLASS": "cls",
             "FUNC": "func",
@@ -1196,12 +1327,10 @@ class GCEClassBlocks {
             const result = { kind }
             
             inputs.forEach(inputName => {
-                let key = INPUT_TO_KEY_MAPPING[inputName]
-                
+                const key = INPUT_TO_KEY_MAPPING[inputName]
                 if (!key) {
                     throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
                 }
-                
                 result[key] = inputName === "SUBSTACK" 
                     ? generator.descendSubstack(block, inputName)
                     : generator.descendInputOfBlock(block, inputName)
@@ -1222,7 +1351,7 @@ class GCEClassBlocks {
             return {
                 setup: `thread.gceEnv ??= new ${ENV_MANAGER};` +
                     `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
-                    (setVarible ? `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` : "") +
+                    (setVariable ? `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` : "") +
                     `thread.gceEnv.enterClassContext(${clsLocal});`,
                 cleanup: "thread.gceEnv.exitClassContext();\n",
                 clsLocal
@@ -1233,13 +1362,13 @@ class GCEClassBlocks {
             return `yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})()`
         }
 
-        const createMethodDefinition = (node, compiler, imports, target, methodType = "MethodType") => {
+        const createMethodDefinition = (node, compiler, imports, methodType) => {
             const nameCode = compiler.descendInput(node.name).asString()
             const nameLocal = compiler.localVariables.next()
             
             compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
                 `const ${nameLocal} = ${nameCode};` +
-                `${target}[${nameLocal}] = new ${ENV_PREFIX}.${methodType}(${nameLocal}, function* (thread) {`
+                `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new ${ENV_PREFIX}.${methodType}(${nameLocal}, function* (thread) {`
             compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
             compiler.source += "thread.gceEnv.prepareReturn();" +
                 `return ${ENV_PREFIX}.Nothing;` +
@@ -1268,7 +1397,7 @@ class GCEClassBlocks {
                 defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
                 defineInitMethod: createIRGenerator("stack", ["SUBSTACK"]),
                 callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], true),
-                callSuperInitMethod: createIRGenerator("input", ["POSARGS"], true),
+                callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], true),
 
                 // Instances
                 createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], true),
@@ -1277,6 +1406,10 @@ class GCEClassBlocks {
                 // Class Variables and Static Methods
                 defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
                 callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], true),
+
+                // Getters and Setters
+                defineGetter: createIRGenerator("stack", ["NAME"]),
+                defineSetter: createIRGenerator("stack", ["NAME"]),
             },
             js: {
                 // Classes
@@ -1330,19 +1463,19 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const oldSource = compiler.source
                     compiler.source = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
-                                     `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`
+                        `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();" +
-                                      `return ${ENV_PREFIX}.Nothing;` +
-                                      "}, thread.gceEnv.getAndResetNextFuncConfig()))\n"
+                        `return ${ENV_PREFIX}.Nothing;` +
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()))\n"
                     const generatedCode = compiler.source
                     compiler.source = oldSource
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 return: (node, compiler, imports) => {
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                                      "thread.gceEnv.prepareReturn();" +
-                                      `return ${compiler.descendInput(node.value).asUnknown()};\n`
+                        "thread.gceEnv.prepareReturn();" +
+                        `return ${compiler.descendInput(node.value).asUnknown()};\n`
                 },
                 callFunction: (node, compiler, imports) => {
                     const funcCode = compiler.descendInput(node.func).asUnknown()
@@ -1357,12 +1490,12 @@ class GCEClassBlocks {
                         "Object.assign(tempVars, thread.gceEnv.getArgsOrThrow());\n"
                 },
                 defineMethod: (node, compiler, imports) => {
-                    createMethodDefinition(node, compiler, imports, "thread.gceEnv.getClsOrThrow().instanceMethods")
+                    createMethodDefinition(node, compiler, imports, "MethodType")
                 },
                 defineInitMethod: (node, compiler, imports) => {
                     const nameCode = quote(CONFIG.INIT_METHOD_NAME)
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                        `thread.gceEnv.getClsOrThrow().instanceMethods[${nameCode}] = new ${ENV_PREFIX}.MethodType(${nameCode}, function* (thread) {\n`
+                        `thread.gceEnv.getClsOrThrow().methods[${nameCode}] = new ${ENV_PREFIX}.MethodType(${nameCode}, function* (thread) {\n`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();" +
                         `return ${ENV_PREFIX}.Nothing;` +
@@ -1379,14 +1512,13 @@ class GCEClassBlocks {
                     const nameCode = quote(CONFIG.INIT_METHOD_NAME)
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                        `yield* thread.gceEnv.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode}));\n`
+                        `yield* thread.gceEnv.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode});\n`
                 },
 
                 // Instances
                 createInstance: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    console.log("node", node)
                     const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
@@ -1400,14 +1532,31 @@ class GCEClassBlocks {
 
                 // Class Variables and Static Methods
                 defineStaticMethod: (node, compiler, imports) => {
-                    createMethodDefinition(node, compiler, imports, "thread.gceEnv.getClsOrThrow().staticMethods", "FunctionType")
+                    createMethodDefinition(node, compiler, imports, "FunctionType")
                 },
                 callStaticMethod: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.cls).asUnknown()
                     const nameCode = compiler.descendInput(node.name).asUnknown()
-                    const posArgsCode = compiler.descendInput(node.posArgs).asUnknown()
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
                     const generatedCode = createCallCode("toClass", classCode, "executeStaticMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+
+                // Getters and Setters
+                defineGetter: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const nameLocal = compiler.localVariables.next()
+                    
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `const ${nameLocal} = ${nameCode};` +
+                        `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new ${ENV_PREFIX}.?(${nameLocal}, function* (thread) {`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                        `return ${ENV_PREFIX}.Nothing;` +
+                        "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
+                },
+                defineSetter: (node, compiler, imports) => {
+                    throw new Error("not yet implemented")
                 },
             },
         }
@@ -1501,6 +1650,11 @@ class GCEClassBlocks {
         return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
 
+    getSuperclass(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        return cls.superCls ?? Nothing
+    }
+
     // Blocks: Functions & Methods
 
     configureNextFunctionArgs(args, util) {
@@ -1582,8 +1736,14 @@ class GCEClassBlocks {
         const cls = Cast.toClass(args.CLASS)
         return Cast.toBoolean(instance.cls.isSubclassOf(cls))
     }
+
+    getClassOfInstance(args, util) {
+        const instance = Cast.toClassInstance(args.INSTANCE)
+        return instance.cls
+    }
     
     // Blocks: Miscellaneous
+
     typeof(args, util) {
         const value = args.VALUE
         // My Types
@@ -1633,6 +1793,7 @@ class GCEClassBlocks {
     }
 
     // Blocks: Class Variables and Static Methods
+
     setClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS)
         const name = Cast.toString(args.NAME)
@@ -1655,15 +1816,32 @@ class GCEClassBlocks {
     defineStaticMethod = this._isACompiledBlock
     callStaticMethod = this._isACompiledBlock
 
+    getStaticMethodFunc(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        return cls.getStaticMethod(name)
+    }
+
     propertyNamesOfClass(args, util) {
         const property = args.PROPERTY
         const cls = Cast.toClass(args.CLASS)
-        const [instanceMethods, staticMethods, classVariables] = cls.findAllPropertyNames()
+        const [instanceMethods, staticMethods, getterMethods, setterMethods, classVariables] = cls.findAllPropertyNames()
         let values = []
         if (property === "instance method") values = instanceMethods
         else if (property === "static method") values = staticMethods
+        else if (property === "getter method") values = getterMethods
+        else if (property === "setter method") values = setterMethods
         else if (property === "class variable") values = classVariables
         return Cast.toArray(Object.keys(values))
+    }
+
+    // Blocks: Getters and Setters
+    
+    defineGetter = this._isACompiledBlock
+    defineSetter = this._isACompiledBlock
+
+    defineSetterValue(args, util) {
+        throw new Error("not yet implemented")
     }
 
     // Blocks: Temporary
@@ -1681,7 +1859,7 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     _isACompiledBlock() {
-        throw new Error("Please activate the compiler.")
+        throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
     }
     
     /**
@@ -1734,12 +1912,9 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
- *     - fix call super init method block
- *     - finish get all methods/get signature
- *     - get super class
+ *     - define getters, setters
  *     - ...what copilot said
  * - reconsider .environment
- * - prevent instance and static method existing with the same name(probably combine them into one)
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
