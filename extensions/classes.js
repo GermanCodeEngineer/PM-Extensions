@@ -85,6 +85,7 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
 ************************************************************************************/
 
 function quote(s) {
+    if (typeof s !== "string") s = s.toString()
     if (!s.includes('"')) return `'${s}'`
     if (!s.includes("'")) return `"${s}"`
     return `'${s.replaceAll("'", "\\'")}'`
@@ -685,7 +686,7 @@ class ClassInstanceType extends CustomType {
      * @param {array} posArgs
      * @returns {any} the return value of the method
      */
-     *executeMethod(thread, name, posArgs) {
+    *executeMethod(thread, name, posArgs) {
         const method = this.cls.getInstanceMethod(name)
         return yield* method.execute(thread, this, posArgs)
     }
@@ -713,6 +714,22 @@ class ClassInstanceType extends CustomType {
         if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
         return output
     }
+    
+    /**
+     * @param {Thread} thread
+     * @param {string} name
+     * @returns {any} the attribute value or return value of getter method
+     */
+    *getAttribute(thread, name) {
+        if (name in this.attributes) {
+            return this.attributes[name]
+        } else {
+            const method = this.cls.methods[name]
+            if (method instanceof GetterMethodType) return yield* method.execute(thread, this, [])
+            else throw new Error(`${this} has no attribute or getter method for ${quote(name)}.`)
+        }
+    }
+
 }
 
 class NothingType extends CustomType {
@@ -1375,9 +1392,9 @@ class GCEClassBlocks {
                 "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
         }
 
-        const createCallCode = (castMethod, target, executeMethod, ...argCodes) => {
-            const processedArgs = argCodes.join(", ")
-            return `(yield* ${CAST_PREFIX}.${castMethod}(${target}).${executeMethod}(thread, ${processedArgs}))`
+        const createCallCode = (castMethod, target, executeMethod, ...args) => {
+            const argsCode = args.join(", ")
+            return `(yield* ${CAST_PREFIX}.${castMethod}(${target}).${executeMethod}(thread, ${argsCode}))`
         }
 
         return {
@@ -1401,6 +1418,7 @@ class GCEClassBlocks {
 
                 // Instances
                 createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], true),
+                getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], true),
                 callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], true),
 
                 // Class Variables and Static Methods
@@ -1408,8 +1426,8 @@ class GCEClassBlocks {
                 callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], true),
 
                 // Getters and Setters
-                defineGetter: createIRGenerator("stack", ["NAME"]),
-                defineSetter: createIRGenerator("stack", ["NAME"]),
+                defineGetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
             },
             js: {
                 // Classes
@@ -1522,6 +1540,19 @@ class GCEClassBlocks {
                     const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
+                setAttribute: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asUnknown()
+                    const valueCode = compiler.descendInput(node.name).asUnknown()
+                    const generatedCode = createCallCode("toClassInstance", instanceCode, "setAttribute", nameCode, valueCode) 
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                getAttribute: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asUnknown()
+                    const generatedCode = createCallCode("toClassInstance", instanceCode, "getAttribute", nameCode) 
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
                 callMethod: (node, compiler, imports) => {
                     const instanceCode = compiler.descendInput(node.instance).asUnknown()
                     const nameCode = compiler.descendInput(node.name).asUnknown()
@@ -1543,20 +1574,29 @@ class GCEClassBlocks {
                 },
 
                 // Getters and Setters
-                defineGetter: (node, compiler, imports) => {
+                defineGetter: (node, compiler, imports) => { // TODO: optimize
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
                     
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
                         `const ${nameLocal} = ${nameCode};` +
-                        `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new ${ENV_PREFIX}.?(${nameLocal}, function* (thread) {`
+                        `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new ${ENV_PREFIX}.GetterMethodType(${nameLocal}, function* (thread) {`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();" +
                         `return ${ENV_PREFIX}.Nothing;` +
-                        "}, thread.gceEnv.getAndResetNextFuncConfig());\n"
+                        "}, {argNames: [], argDefaults: []});\n"
                 },
-                defineSetter: (node, compiler, imports) => {
-                    throw new Error("not yet implemented")
+                defineSetter: (node, compiler, imports) => { // TODO: optimize
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const nameLocal = compiler.localVariables.next()
+                    
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `const ${nameLocal} = ${nameCode};` +
+                        `thread.gceEnv.getClsOrThrow().methods[${nameLocal}] = new ${ENV_PREFIX}.SetterMethodType(${nameLocal}, function* (thread) {`
+                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                        `return ${ENV_PREFIX}.Nothing;` +
+                        "}, {argNames: [], argDefaults: []});\n"
                 },
             },
         }
@@ -1568,7 +1608,8 @@ class GCEClassBlocks {
         this.Cast = Cast
         this.environment = {
             VariableManager, SpecialBlockStorageManager, ThreadEnvManager, TypeChecker, Cast,
-            CustomType, FunctionType, MethodType, ClassType, commonSuperClass, ClassInstanceType, NothingType, Nothing,
+            CustomType, FunctionType, MethodType, GetterMethodType, SetterMethodType,
+            ClassType, commonSuperClass, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
 
@@ -1707,28 +1748,14 @@ class GCEClassBlocks {
     // Block: Instances
 
     createInstance = this._isACompiledBlock
-    
-    setAttribute(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        const name = Cast.toString(args.NAME)
-        const value = args.VALUE
-        instance.attributes[name] = value
-    }
+    setAttribute this._isACompiledBlock
     
     getAllAttributes(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE)
         return Cast.toObject(instance.attributes)
     }
     
-    getAttribute(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        const name = Cast.toString(args.NAME)
-        if (!(name in instance.attributes)) {
-            throw new Error(`${instance} has no attribute ${quote(name)}.`)
-        }
-        return instance.attributes[name]
-    }
-
+    getAttribute = this._isACompiledBlock
     callMethod = this._isACompiledBlock
 
     isInstance(args, util) {
