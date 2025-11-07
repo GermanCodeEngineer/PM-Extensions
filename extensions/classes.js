@@ -80,6 +80,36 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
     },
 }
 
+
+/************************************************************************************
+*                             Wrapping Some PM Internals                            *
+************************************************************************************/
+
+function applyHack(Scratch) {
+    // wrap Scratch.Cast.toBoolean to return false for Nothing
+    const oldToBoolean = Scratch.Cast.toBoolean
+    Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
+        if (value instanceof NothingType) return false
+        return oldToBoolean(value)
+    }
+
+    // Wrap ScriptTreeGenerator.descendInput for some operator blocks to allow classes to define custom handling
+    const oldDescendInput = Scratch.vm.exports.IRGenerator.exports.ScriptTreeGenerator.prototype.descendInput
+    Scratch.vm.exports.IRGenerator.exports.ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput(block) {
+        switch (block.opcode) {
+            case "operator_add":
+                return {
+                    kind: "op.add",
+                    left: this.descendInputOfBlock(block, 'NUM1'),
+                    right: this.descendInputOfBlock(block, 'NUM1'),
+                    //right: this.descendInputOfBlock(block, 'NUM2')
+                };
+        }
+        return oldDescendInput.call(this, block)
+    }
+
+}
+
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
@@ -1489,6 +1519,7 @@ class GCEClassBlocks {
             js: {
                 // Classes
                 createClassAt: (node, compiler, imports) => {
+                    console.log("comp", compiler)
                     const { setup, cleanup } = createClassCore(node, compiler, true)
                     compiler.source += setup
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
@@ -1664,13 +1695,8 @@ class GCEClassBlocks {
         Scratch.gui.getBlockly().then(ScratchBlocks => {
             ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
         })
-
-        // wrap Scratch.Cast.toBoolean to return false for Nothing
-        const oldToBoolean = Scratch.Cast.toBoolean
-        Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
-            if (value instanceof NothingType) return false
-            return oldToBoolean(value)
-        }
+        
+        applyHacks(Scratch)
 
         this.classVars = new VariableManager()
         this.funcVars = new VariableManager()
