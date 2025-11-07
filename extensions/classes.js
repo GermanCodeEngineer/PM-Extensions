@@ -118,7 +118,7 @@ class VariableManager {
     }
     delete(name) {
         if (this.has(name)) {
-            this.variables[name]
+            delete this.variables[name]
         }
     }
     has(name) {
@@ -499,11 +499,10 @@ class GetterMethodType extends BaseCallableType {
      * @param {array} posArgs
      * @returns {any} the return value of the getter method
      */
-    *execute(thread, instance, posArgs) {
-        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+    *execute(thread, instance) {
         thread.gceEnv ??= new ThreadEnvManager()
         const sizeBefore = thread.gceEnv.getSize()
-        thread.gceEnv.enterMethod(instance, args)
+        thread.gceEnv.enterMethod(instance, {})
 
         const output = (yield* this.jsFunc(thread))
         if (sizeBefore !== thread.gceEnv.getSize()) {
@@ -524,14 +523,13 @@ class SetterMethodType extends BaseCallableType {
     /**
      * @param {Thread} thread 
      * @param {ClassInstanceType} instance
-     * @param {string} name
      * @param {any} value
      * @returns {Nothing}
      */
-    *execute(thread, instance, name, value) {
+    *execute(thread, instance, value) {
         thread.gceEnv ??= new ThreadEnvManager()
         const sizeBefore = thread.gceEnv.getSize()
-        thread.gceEnv.enterSetterMethod(instance, name, value)
+        thread.gceEnv.enterSetterMethod(instance, value)
 
         const output = (yield* this.jsFunc(thread))
         if (sizeBefore !== thread.gceEnv.getSize()) {
@@ -570,19 +568,25 @@ class ClassType extends CustomType {
     /**
      * @param {string} name
      * @param {boolean} recursive
-     * @returns {{type: string, value: any}}
+     * @param {boolean} preferSetter
+     * @returns {?{type: string, value: any}}
      */
-    getMember(name, recursive) {
+    getMember(name, recursive, preferSetter) {
+        console.log("getting member", name, "of", this, new Error())
         if (name in this.instanceMethods) return {type: "instance method", value: this.instanceMethods[name]}
-        else if (name in this.instanceMethods) return {type: "static method", value: this.staticMethods[name]}
+        else if (name in this.staticMethods) return {type: "static method", value: this.staticMethods[name]}
+        else if ((name in this.getters) && (name in this.setters)) {
+            if (preferSetter) return {type: "setter method", value: this.setters[name]}
+            else return {type: "getter method", value: this.getters[name]}
+        }
         else if (name in this.getters) return {type: "getter method", value: this.getters[name]}
         else if (name in this.setters) return {type: "setter method", value: this.setters[name]}
         else if (name in this.variables) return {type: "class variable", value: this.variables[name]}
         if (recursive) {
-            if (!this.superCls) return null
-            return this.superCls.getMember(name, recursive)
+            if (!this.superCls) return {type: null}
+            return this.superCls.getMember(name, recursive, preferSetter)
         } else {
-            return null
+            return {type: null}
         }
     }
 
@@ -592,9 +596,10 @@ class ClassType extends CustomType {
      * @returns {any}
      */
     getMemberOfType(name, expectedMemberType) {
-        const {type, value} = this.getMember(name, true)
+        const {type, value} = this.getMember(name, true, expectedMemberType === "setter method")
+        console.log("getMemberOfType", expectedMemberType, ":", {type, value}, new Error())
         if (!type) throw new Error(`Undefined ${expectedMemberType} ${quote(name)}.`)
-        if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a ${expectedMemberType} but a ${type}.`)
+        if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a/n ${expectedMemberType} but a/n ${type}.`)
         return value
     }
 
@@ -629,8 +634,11 @@ class ClassType extends CustomType {
      * @param {any} method
      */
     setMember(name, newMemberType, value) {
-        const currentMemberType = this.getMember(name, false).type
-        if (currentMemberType && (currentMemberType !== newMemberType)) {
+        const currentMemberType = this.getMember(name, false, false).type // preference does not matter
+        if (currentMemberType && (currentMemberType !== newMemberType) && !(
+            ((currentMemberType === "getter method") && (newMemberType === "setter method")) || 
+            ((currentMemberType === "setter method") && (newMemberType === "getter method"))
+        )) {
             throw new Error(`Can not assign ${newMemberType}: ${currentMemberType} alredy exists with the same name ${quote(name)}.`)
         }
         if (newMemberType === "instance method") this.instanceMethods[name] = value
@@ -638,7 +646,6 @@ class ClassType extends CustomType {
         else if (newMemberType === "getter method") this.getters[name] = value
         else if (newMemberType === "setter method") this.setters[name] = value
         else if (newMemberType === "class variable") this.variables[name] = value
-        else throw new Error() // TODO: remove after tests
     }
     
     /**
@@ -653,8 +660,20 @@ class ClassType extends CustomType {
         return instance
     }
     *executeStaticMethod(thread, name, posArgs) {
-        const methodFunc = this.getStaticMethod(name)
+        const methodFunc = this.getMemberOfType(name, "static method")
         return yield* methodFunc.execute(thread, posArgs)
+    }
+    
+    getClassVariable(name) {
+        const member = this.getMember(name, true, false) // preference does not matter
+        if (!member || member.type !== "class variable") {
+            throw new Error(`Undefined class variable ${quote(name)}.`)
+        }
+        return member.value
+    }
+    
+    getStaticMethod(name) {
+        return this.getMemberOfType(name, "static method")
     }
     /**
      * @param {ClassType} superCls
@@ -676,6 +695,7 @@ commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
     function* (thread) {
         thread.gceEnv ??= new ThreadEnvManager()
         thread.gceEnv.prepareReturn()
+        // Nothing is indepedent of function context, so we can exit context before
         return Nothing
     }, 
     {argNames: [], argDefaults: []}
@@ -742,9 +762,9 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the attribute value or return value of getter method
      */
     *getAttribute(thread, name) {
-        const method = this.cls.getMember(name)
-        if (method instanceof GetterMethodType) {
-            return (yield* method.execute(thread, this, []))
+        const methodMember = this.cls.getMember(name, true, false)
+        if (methodMember && methodMember.type === "getter method") {
+            return (yield* methodMember.value.execute(thread, this, []))
         }
         if (name in this.attributes) {
             return this.attributes[name]
@@ -758,9 +778,11 @@ class ClassInstanceType extends CustomType {
      * @param {string} value
      */
     *setAttribute(thread, name, value) {
-        const method = this.cls.getMember(name)
-        if (method instanceof SetterMethodType) {
-            yield* method.execute(thread, this, name, value)
+        const methodMember = this.cls.getMember(name, true, true)
+        if (methodMember && methodMember.type === "setter method") {
+            yield* methodMember.value.execute(thread, this, value)
+        } else if (methodMember && methodMember.type === "getter method") {
+            throw new Error(`Can not set attribute ${quote(name)} of ${this}: attribute only has a getter method.`)
         } else {
             this.attributes[name] = value
         }
@@ -1298,7 +1320,7 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Getters and Setters"),
                 {
-                    opcode: "defineGetterAndSetter",
+                    opcode: "defineGetter",
                     text: ["define getter [NAME]"],
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
@@ -1421,7 +1443,8 @@ class GCEClassBlocks {
                 `const ${nameLocal} = ${nameCode};` +
                 `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-            compiler.source += "thread.gceEnv.prepareReturn();" +
+            compiler.source += "thread.gceEnv.prepareReturn();" + 
+                // Nothing is indepedent of function context, so we can exit context before
                 `return ${ENV_PREFIX}.Nothing;` +
                 "}, thread.gceEnv." + (disableFuncConfig ? "getDefaultFuncConfig()" : "getAndResetNextFuncConfig()") + "));\n"
         }
@@ -1508,6 +1531,7 @@ class GCEClassBlocks {
                         `${EXTENSION_PREFIX}.funcVars.set(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();" +
+                        // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
                         "}, thread.gceEnv.getAndResetNextFuncConfig()));\n"
                 },
@@ -1518,6 +1542,7 @@ class GCEClassBlocks {
                         `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
                     compiler.source += "thread.gceEnv.prepareReturn();" +
+                        // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
                         "}, thread.gceEnv.getAndResetNextFuncConfig()))\n"
                     const generatedCode = compiler.source
@@ -1525,9 +1550,12 @@ class GCEClassBlocks {
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 return: (node, compiler, imports) => {
+                    const returnValueLocal = compiler.localVariables.next()
+                    // We need to cache the return value before exiting context, as it might depend on it
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `const ${returnValueLocal} = ${compiler.descendInput(node.value).asUnknown()};` +
                         "thread.gceEnv.prepareReturn();" +
-                        `return ${compiler.descendInput(node.value).asUnknown()};\n`
+                        `return ${returnValueLocal};\n`
                 },
                 callFunction: (node, compiler, imports) => {
                     const funcCode = compiler.descendInput(node.func).asUnknown()
@@ -1606,11 +1634,11 @@ class GCEClassBlocks {
                 // Getters and Setters
                 defineGetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "getter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", "getter method", true)
                 },
                 defineSetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "setter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
                 },
             },
         }
@@ -1958,9 +1986,9 @@ Scratch.extensions.register(extensionClassInstance)
  *     - define jwArrayHandler on custom types (if sth like that exists for objects then that too)
  *     - ...what copilot said
  * - reconsider .environment
+ * - possibly put "self" into instance slots by default
  * - inline todos
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
  */
-
