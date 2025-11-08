@@ -104,7 +104,7 @@ function applyHacks(Scratch) {
             case "op.add":
                 const left = this.descendInput(node.left).asUnknown()
                 const right = this.descendInput(node.right).asUnknown()
-                return new TypedInput(`(yield* runtime.ext_gceClasses.operatorAdd(left, right))`, TYPE_UNKNOWN)
+                return new TypedInput(`(yield* runtime.ext_gceClasses.operatorAdd(thread, ${left}, ${right}))`, TYPE_UNKNOWN)
         }
         return oldDescendInput.call(this, node, visualReport)
     }
@@ -117,19 +117,20 @@ function applyHacks(Scratch) {
 
 function quote(s) {
     if (typeof s !== "string") s = s.toString()
-    if (!s.includes('"')) return `'${s}'`
-    if (!s.includes("'")) return `"${s}"`
-    return `'${s.replaceAll("'", "\\'")}'`
+    s = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
+    return `'${s}'`
 }
-function safeSpan(text) {
-    text = text
+function escapeHTML(text) {
+    return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;")
+}
+function span(text) {
     let element = document.createElement("span")
-    element.innerHTML = text
+    element.innerHTML = escapeHTML(text)
     element.style.display = "hidden"
     //element.style.whiteSpace = "nowrap"
     element.style.width = "100%"
@@ -297,6 +298,14 @@ const runtime = Scratch.vm.runtime
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
     HIDE_ARGUMENT_DEFAULTS: false,
+    INTERNAL_OP_NAMES: {
+        "left add": "__operator_left_add__",
+        "right add": "__operator_right_add__",
+    },
+    PUBLIC_OP_NAMES: {
+        "__operator_left_add__": "left add",
+        "__operator_right_add__": "right add",
+    },
 }
 
 class TypeChecker {
@@ -447,7 +456,17 @@ const dogeiscutObjectStub = {
 
 class CustomType {
     toMonitorContent() {
-        return safeSpan(this.toString())
+        return span(this.toString())
+    }
+
+    // Prevent dogeiscut rendering my custom types as objects
+    dogeiscutObjectHandler() {
+        return span(this.toString()).outerHTML
+    }
+
+    // Render my custom types fully, instead of "Object"
+    jwArrayHandler() {
+        return span(this.toString()).outerHTML
     }
 }
 
@@ -610,7 +629,6 @@ class ClassType extends CustomType {
      * @returns {?{type: string, value: any}}
      */
     getMember(name, recursive, preferSetter) {
-        console.log("getting member", name, "of", this, new Error())
         if (name in this.instanceMethods) return {type: "instance method", value: this.instanceMethods[name]}
         else if (name in this.staticMethods) return {type: "static method", value: this.staticMethods[name]}
         else if ((name in this.getters) && (name in this.setters)) {
@@ -636,14 +654,13 @@ class ClassType extends CustomType {
      */
     getMemberOfType(name, expectedMemberType) {
         const {type, value} = this.getMember(name, true, expectedMemberType === "setter method")
-        console.log("getMemberOfType", expectedMemberType, ":", {type, value}, new Error())
         if (!type) throw new Error(`Undefined ${expectedMemberType} ${quote(name)}.`)
         if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a/n ${expectedMemberType} but a/n ${type}.`)
         return value
     }
 
     /**
-     * @returns {Array<Object, Object, Object. Object, Object>}
+     * @returns {Array<Object>}
      */
     getAllMembers() {
         let currentCls = this
@@ -656,15 +673,17 @@ class ClassType extends CustomType {
         const staticMethods = {}
         const getterMethods = {}
         const setterMethods = {}
+        const operatorMethods = {}
         const variables = {}
         classChain.forEach((cls) => {
             Object.assign(instanceMethods, cls.instanceMethods)
             Object.assign(staticMethods, cls.staticMethods)
             Object.assign(getterMethods, cls.getters)
             Object.assign(setterMethods, cls.setters)
+            Object.assign(operatorMethods, cls.operatorMethods)
             Object.assign(variables, cls.variables)
         })
-        return [instanceMethods, staticMethods, getterMethods, setterMethods, variables]
+        return [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, variables]
     }
 
     /**
@@ -795,6 +814,17 @@ class ClassInstanceType extends CustomType {
         if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
         return output
     }
+
+    /**
+     * @param {Thread} thread
+     * @param {string} name public operator method name
+     * @param {any} other
+     * @returns {any} the return value of the operator method
+     */
+    *executeOperatorMethod(thread, name, other) {
+        const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
+        return yield* method.execute(thread, this, other)
+    }
     
     /**
      * @param {Thread} thread
@@ -827,6 +857,19 @@ class ClassInstanceType extends CustomType {
             this.attributes[name] = value
         }
     }
+
+    /**
+     * @param {string} name public operator method name
+     * @returns {boolean}
+     */
+    hasOperatorMethod(name) {
+        try {
+            this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
+            return true
+        } catch {
+            return false
+        }
+    }
 }
 
 class NothingType extends CustomType {
@@ -836,7 +879,7 @@ class NothingType extends CustomType {
         return "<Nothing>"
     }
     toJSON() {
-        return {"gceNothing": true} // Just for debugging, not actually used anywhere
+        return this.toString()
     }
 }
 const Nothing = new NothingType()
@@ -1389,11 +1432,11 @@ class GCEClassBlocks {
                 makeLabel("Operator Methods"),
                 {
                     opcode: "defineOperatorMethod",
-                    text: ["define operator method [KIND] [SHADOW]"],
+                    text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
                     arguments: {
-                        KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
+                        OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
                         SHADOW: {fillIn: "operatorOtherValue"},
                     },
                 },
@@ -1431,10 +1474,9 @@ class GCEClassBlocks {
                 },
                 operatorMethod: {
                     acceptReporters: false,
-                    items: [
-                        {text: "left add", value: "__left_add__"},
-                        {text: "right add", value: "__right_add__"},
-                    ],
+                    items: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => {
+                        return {text: publicName, value: internalName}
+                    })
                 }
             },
         }
@@ -1452,9 +1494,9 @@ class GCEClassBlocks {
     
     getCompileInfo() {
         // Universal mapping from input names to node keys
-        const INPUT_TO_KEY_MAPPING = {
+        const UPPER_TO_CAMEL_MAPPING = {
             "NAME": "name",
-            "KIND": "kind",
+            "OPERATOR_KIND": "operatorKind",
             "SUBSTACK": "substack",
             "SUPERCLASS": "superCls", 
             "CLASS": "cls",
@@ -1464,18 +1506,26 @@ class GCEClassBlocks {
             "INSTANCE": "instance"
         }
         
-        const createIRGenerator = (kind, inputs, yieldRequired = false) => (generator, block) => {
+        const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => (generator, block) => {
             if (yieldRequired) generator.script.yields = true
             const result = { kind }
             
             inputs.forEach(inputName => {
-                const key = INPUT_TO_KEY_MAPPING[inputName]
+                const key = UPPER_TO_CAMEL_MAPPING[inputName]
                 if (!key) {
                     throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
                 }
                 result[key] = inputName === "SUBSTACK" 
                     ? generator.descendSubstack(block, inputName)
                     : generator.descendInputOfBlock(block, inputName)
+            })
+            
+            fields.forEach(fieldName => {
+                const key = UPPER_TO_CAMEL_MAPPING[fieldName]
+                if (!key) {
+                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
+                }
+                result[key] = block.fields[fieldName].value
             })
             return result
         }
@@ -1507,13 +1557,14 @@ class GCEClassBlocks {
         const createMethodDefinition = (
             node, compiler, imports, 
             nameCode, classId, memberType, 
-            disableFuncConfig, transformNameFunc = "",
+            disableFuncConfig,
         ) => {
             const nameLocal = compiler.localVariables.next()
             
             compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                `const ${nameLocal} = ${transformNameFunc}(${nameCode});` +
-                `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
+                `const ${nameLocal} = ${nameCode};` +
+                `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, `+
+                `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
             compiler.source += "thread.gceEnv.prepareReturn();" + 
                 // Nothing is indepedent of function context, so we can exit context before
@@ -1528,43 +1579,42 @@ class GCEClassBlocks {
         return {
             ir: {
                 // Classes
-                createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], true),
-                createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
-                createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], true),
-                createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], true),
+                createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], [], true),
+                createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
+                createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], [], true),
+                createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
 
                 // Functions & Methods
-                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
-                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"]),
-                return: createIRGenerator("stack", ["VALUE"]),
-                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], true),
+                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
+                return: createIRGenerator("stack", ["VALUE"], []),
+                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
                 transferFunctionArgsToTempVars: createIRGenerator("stack", []),
-                defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
-                defineInitMethod: createIRGenerator("stack", ["SUBSTACK"]),
-                callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], true),
-                callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], true),
+                defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                defineInitMethod: createIRGenerator("stack", ["SUBSTACK"], []),
+                callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], [], true),
+                callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], [], true),
 
                 // Instances
-                createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], true),
-                setAttribute: createIRGenerator("stack", ["INSTANCE", "NAME", "VALUE"], true),
-                getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], true),
-                callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], true),
+                createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], [], true),
+                setAttribute: createIRGenerator("stack", ["INSTANCE", "NAME", "VALUE"], [], true),
+                getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], [], true),
+                callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], [], true),
 
                 // Class Variables and Static Methods
-                defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
-                callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], true),
+                defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], [], true),
 
                 // Getters and Setters
-                defineGetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
-                defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                defineGetter: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
                 
                 // Operator Methods
-                defineOperatorMethod: createIRGenerator("stack", ["KIND", "SUBSTACK"]),
+                defineOperatorMethod: createIRGenerator("stack", ["SUBSTACK"], ["OPERATOR_KIND"]),
             },
             js: {
                 // Classes
                 createClassAt: (node, compiler, imports) => {
-                    console.log("comp", compiler)
                     const { setup, cleanup } = createClassCore(node, compiler, true)
                     compiler.source += setup
                     compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
@@ -1719,8 +1769,7 @@ class GCEClassBlocks {
                 
                 // Operator Methods
                 defineOperatorMethod: (node, compiler, imports) => {
-                    const kindCode = compiler.descendInput(node.kind).asString()
-                    createMethodDefinition(node, compiler, imports, kindCode, "OperatorMethodType", "operator method", true, "runtime.ext_gceClass._operatorMethodName")
+                    createMethodDefinition(node, compiler, imports, quote(node.operatorKind), "OperatorMethodType", "operator method", true)
                 },
             },
         }
@@ -1971,7 +2020,7 @@ class GCEClassBlocks {
     propertyNamesOfClass(args, util) {
         const property = args.PROPERTY
         const cls = Cast.toClass(args.CLASS)
-        const [instanceMethods, staticMethods, getterMethods, setterMethods, classVariables] = cls.getAllMembers()
+        const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
         if (property === "instance method") values = instanceMethods
         else if (property === "static method") values = staticMethods
@@ -1979,8 +2028,11 @@ class GCEClassBlocks {
         else if (property === "setter method") values = setterMethods
         else if (property === "operator method") values = operatorMethods
         else if (property === "class variable") values = classVariables
-        // TODO: special case for operator methods
-        return Cast.toArray(Object.keys(values))
+        let names = Object.keys(values)
+        if (property === "operator method") {
+            names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
+        }
+        return Cast.toArray(names)
     }
 
     // Blocks: Getters and Setters
@@ -2015,13 +2067,16 @@ class GCEClassBlocks {
     /************************************************************************************
     *                            Implementation of Operators                            *
     ************************************************************************************/
-    *operatorAdd(left, right) {
+    *operatorAdd(thread, left, right) {
         console.log("operatorAdd", left, right)
         if ((left instanceof ClassInstanceType) && left.hasOperatorMethod("left add")) {
-            return yield* left.executeOperatorMethod("left add", right)
+            console.log("success left")
+            return yield* left.executeOperatorMethod(thread, "left add", right)
         } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod("right add")) {
-            return yield* left.executeOperatorMethod("right add", left)
+            console.log("success right")
+            return yield* left.executeOperatorMethod(thread, "right add", left)
         } else {
+            console.log("default")
             return Cast.toNumber(left) + Cast.toNumber(right)
         }
     }
@@ -2032,15 +2087,6 @@ class GCEClassBlocks {
 
     _isACompiledBlock() {
         throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
-    }
-    
-    /**
-     * @param {string} name
-     * @returns {string}
-     */
-    _operatorMethodName(name) {
-        console.log("_operatorMethodName got", name)
-        return name
     }
     
     /**
