@@ -85,7 +85,11 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
 *                             Wrapping Some PM Internals                            *
 ************************************************************************************/
 
-function applyHack(Scratch) {
+function applyHacks(Scratch) {
+    const vm_exports = Scratch.vm.exports
+    const {JSGenerator} = vm_exports
+    const {TypedInput, TYPE_UNKNOWN} = JSGenerator.exports
+    
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
     Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
@@ -94,18 +98,15 @@ function applyHack(Scratch) {
     }
 
     // Wrap ScriptTreeGenerator.descendInput for some operator blocks to allow classes to define custom handling
-    const oldDescendInput = Scratch.vm.exports.IRGenerator.exports.ScriptTreeGenerator.prototype.descendInput
-    Scratch.vm.exports.IRGenerator.exports.ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput(block) {
-        switch (block.opcode) {
-            case "operator_add":
-                return {
-                    kind: "op.add",
-                    left: this.descendInputOfBlock(block, 'NUM1'),
-                    right: this.descendInputOfBlock(block, 'NUM1'),
-                    //right: this.descendInputOfBlock(block, 'NUM2')
-                };
+    const oldDescendInput = JSGenerator.prototype.descendInput
+    JSGenerator.prototype.descendInput = function modifiedDescendInput(node, visualReport = false) {
+        switch (node.kind) {
+            case "op.add":
+                const left = this.descendInput(node.left).asUnknown()
+                const right = this.descendInput(node.right).asUnknown()
+                return new TypedInput(`(yield* runtime.ext_gceClasses.operatorAdd(left, right))`, TYPE_UNKNOWN)
         }
-        return oldDescendInput.call(this, block)
+        return oldDescendInput.call(this, node, visualReport)
     }
 
 }
@@ -201,19 +202,18 @@ class ThreadEnvManager {
     
     enterFunction(args) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.FUNCTION, args})
-        return this
     }
     enterMethod(self, args) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args})
-        return this
     }
     enterSetterMethod(self, setterValue) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue})
-        return this
+    }
+    enterOperatorMethod(self, other) {
+        this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, other})
     }
     enterClassContext(cls) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls})
-        return this
     }
     
     _getEnv(allowedTypes) {
@@ -241,6 +241,13 @@ class ThreadEnvManager {
         const env = this._getEnv([ThreadEnvManager.SETTER_METHOD])
         if (!env) {
             throw new Error("setter value can only be used within a setter method.")
+        }
+        return env.setterValue
+    }
+    getOtherValueOrThrow() {
+        const env = this._getEnv([ThreadEnvManager.SETTER_METHOD])
+        if (!env) {
+            throw new Error("other value can only be used within an operator method.")
         }
         return env.setterValue
     }
@@ -501,38 +508,11 @@ class MethodType extends BaseCallableType {
      * @param {array} posArgs
      * @returns {any} the return value of the method
      */
-    *execute(thread, instance, posArgs) {
+    *execute(thread, instance, posArgs = {}) {
         const args = extensionClassInstance._evaluateArgs(this, posArgs)
         thread.gceEnv ??= new ThreadEnvManager()
         const sizeBefore = thread.gceEnv.getSize()
         thread.gceEnv.enterMethod(instance, args)
-
-        const output = (yield* this.jsFunc(thread))
-        if (sizeBefore !== thread.gceEnv.getSize()) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
-        }
-        return output
-    }
-}
-
-class GetterMethodType extends BaseCallableType {
-    toString() {
-        return `<Getter Method ${quote(this.name)}>`
-    }
-    toJSON() {
-        return "Getter Methods can not be serialized."
-    }
-
-    /**
-     * @param {Thread} thread 
-     * @param {ClassInstanceType} instance
-     * @param {array} posArgs
-     * @returns {any} the return value of the getter method
-     */
-    *execute(thread, instance) {
-        thread.gceEnv ??= new ThreadEnvManager()
-        const sizeBefore = thread.gceEnv.getSize()
-        thread.gceEnv.enterMethod(instance, {})
 
         const output = (yield* this.jsFunc(thread))
         if (sizeBefore !== thread.gceEnv.getSize()) {
@@ -570,6 +550,33 @@ class SetterMethodType extends BaseCallableType {
     }
 }
 
+class OperatorMethodType extends BaseCallableType {
+    toString() {
+        return `<Operator Method ${quote(this.name)}>`
+    }
+    toJSON() {
+        return "Operator Methods can not be serialized."
+    }
+
+    /**
+     * @param {Thread} thread 
+     * @param {ClassInstanceType} instance
+     * @param {any} other
+     * @returns {Nothing}
+     */
+    *execute(thread, instance, other) {
+        thread.gceEnv ??= new ThreadEnvManager()
+        const sizeBefore = thread.gceEnv.getSize()
+        thread.gceEnv.enterOperatorMethod(instance, other)
+
+        const output = (yield* this.jsFunc(thread))
+        if (sizeBefore !== thread.gceEnv.getSize()) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
+        }
+        return output
+    }
+}
+
 class ClassType extends CustomType {
     customId = "gceClass"
 
@@ -585,6 +592,7 @@ class ClassType extends CustomType {
         this.staticMethods = {}
         this.getters = {}
         this.setters = {}
+        this.operatorMethods = {}
         this.variables = {}
     }
     toString() {
@@ -611,6 +619,7 @@ class ClassType extends CustomType {
         }
         else if (name in this.getters) return {type: "getter method", value: this.getters[name]}
         else if (name in this.setters) return {type: "setter method", value: this.setters[name]}
+        else if (name in this.operatorMethods) return {type: "operator method", value: this.operatorMethods[name]}
         else if (name in this.variables) return {type: "class variable", value: this.variables[name]}
         if (recursive) {
             if (!this.superCls) return {type: null}
@@ -675,6 +684,7 @@ class ClassType extends CustomType {
         else if (newMemberType === "static method") this.staticMethods[name] = value
         else if (newMemberType === "getter method") this.getters[name] = value
         else if (newMemberType === "setter method") this.setters[name] = value
+        else if (newMemberType === "operator method") this.operatorMethods[name] = value
         else if (newMemberType === "class variable") this.variables[name] = value
     }
     
@@ -1343,7 +1353,7 @@ class GCEClassBlocks {
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
                     arguments: {
-                        PROPERTY: {type: Scratch.ArgumentType.STRING, menu: "classProperty"},
+                        PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
@@ -1376,6 +1386,25 @@ class GCEClassBlocks {
                     canDragDuplicate: true,
                 },
                 "---",
+                makeLabel("Operator Methods"),
+                {
+                    opcode: "defineOperatorMethod",
+                    text: ["define operator method [KIND] [SHADOW]"],
+                    blockType: BlockType.CONDITIONAL,
+                    branchCount: 1,
+                    arguments: {
+                        KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
+                        SHADOW: {fillIn: "operatorOtherValue"},
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "operatorOtherValue",
+                    text: "other value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                },
+                "---",
                 makeLabel("Debugging & Temporary"),
                 {
                     opcode: "throw",
@@ -1396,9 +1425,17 @@ class GCEClassBlocks {
                         "static method",
                         "getter method",
                         "setter method",
+                        "operator method",
                         "class variable",
                     ],
                 },
+                operatorMethod: {
+                    acceptReporters: false,
+                    items: [
+                        {text: "left add", value: "__left_add__"},
+                        {text: "right add", value: "__right_add__"},
+                    ],
+                }
             },
         }
         if (CONFIG.HIDE_ARGUMENT_DEFAULTS) {
@@ -1417,6 +1454,7 @@ class GCEClassBlocks {
         // Universal mapping from input names to node keys
         const INPUT_TO_KEY_MAPPING = {
             "NAME": "name",
+            "KIND": "kind",
             "SUBSTACK": "substack",
             "SUPERCLASS": "superCls", 
             "CLASS": "cls",
@@ -1466,11 +1504,15 @@ class GCEClassBlocks {
             return `yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})()`
         }
 
-        const createMethodDefinition = (node, compiler, imports, nameCode, classId, memberType, disableFuncConfig) => {
+        const createMethodDefinition = (
+            node, compiler, imports, 
+            nameCode, classId, memberType, 
+            disableFuncConfig, transformNameFunc = "",
+        ) => {
             const nameLocal = compiler.localVariables.next()
             
             compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                `const ${nameLocal} = ${nameCode};` +
+                `const ${nameLocal} = ${transformNameFunc}(${nameCode});` +
                 `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
             compiler.source += "thread.gceEnv.prepareReturn();" + 
@@ -1515,6 +1557,9 @@ class GCEClassBlocks {
                 // Getters and Setters
                 defineGetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
                 defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+                
+                // Operator Methods
+                defineOperatorMethod: createIRGenerator("stack", ["KIND", "SUBSTACK"]),
             },
             js: {
                 // Classes
@@ -1665,11 +1710,17 @@ class GCEClassBlocks {
                 // Getters and Setters
                 defineGetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", "getter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "getter method", true)
                 },
                 defineSetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
+                },
+                
+                // Operator Methods
+                defineOperatorMethod: (node, compiler, imports) => {
+                    const kindCode = compiler.descendInput(node.kind).asString()
+                    createMethodDefinition(node, compiler, imports, kindCode, "OperatorMethodType", "operator method", true, "runtime.ext_gceClass._operatorMethodName")
                 },
             },
         }
@@ -1681,7 +1732,7 @@ class GCEClassBlocks {
         this.Cast = Cast
         this.environment = {
             VariableManager, SpecialBlockStorageManager, ThreadEnvManager, TypeChecker, Cast,
-            CustomType, FunctionType, MethodType, GetterMethodType, SetterMethodType,
+            CustomType, FunctionType, MethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
@@ -1926,7 +1977,9 @@ class GCEClassBlocks {
         else if (property === "static method") values = staticMethods
         else if (property === "getter method") values = getterMethods
         else if (property === "setter method") values = setterMethods
+        else if (property === "operator method") values = operatorMethods
         else if (property === "class variable") values = classVariables
+        // TODO: special case for operator methods
         return Cast.toArray(Object.keys(values))
     }
 
@@ -1940,6 +1993,15 @@ class GCEClassBlocks {
         return util.thread.gceEnv.getSetterValueOrThrow()
     }
 
+    // Blocks: Operator Methods
+    
+    defineOperatorMethod = this._isACompiledBlock
+    
+    operatorOtherValue(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getOtherValueOrThrow()
+    }
+    
     // Blocks: Temporary
 
     throw () {
@@ -1949,13 +2011,36 @@ class GCEClassBlocks {
     logThread(args, util) {
         console.log("logging thread", util.thread)
     }
-
+    
+    /************************************************************************************
+    *                            Implementation of Operators                            *
+    ************************************************************************************/
+    *operatorAdd(left, right) {
+        console.log("operatorAdd", left, right)
+        if ((left instanceof ClassInstanceType) && left.hasOperatorMethod("left add")) {
+            return yield* left.executeOperatorMethod("left add", right)
+        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod("right add")) {
+            return yield* left.executeOperatorMethod("right add", left)
+        } else {
+            return Cast.toNumber(left) + Cast.toNumber(right)
+        }
+    }
+    
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
 
     _isACompiledBlock() {
         throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
+    }
+    
+    /**
+     * @param {string} name
+     * @returns {string}
+     */
+    _operatorMethodName(name) {
+        console.log("_operatorMethodName got", name)
+        return name
     }
     
     /**
@@ -2008,7 +2093,7 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
- *     - test new member, method and variable system
+ *     - finish operator overloading
  *     - define jwArrayHandler on custom types (if sth like that exists for objects then that too)
  *     - ...what copilot said
  * - reconsider .environment
