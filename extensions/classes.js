@@ -1,6 +1,6 @@
 // Name: Classes
-// ID: gceClasses
-// Description: Python-like classes and OOP
+// ID: gceObjectOrientation
+// Description: Python-like classes and many features of Object Orientated Programming
 // By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
 // License: MIT
 // Requires and automatically adds jwArray and dogeiscutObject
@@ -86,9 +86,8 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
 ************************************************************************************/
 
 function applyHacks(Scratch) {
-    const vm_exports = Scratch.vm.exports
-    const {JSGenerator} = vm_exports
-    const {TypedInput, TYPE_UNKNOWN} = JSGenerator.exports
+    const {JSGenerator} = Scratch.vm.exports
+    const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
     
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
@@ -100,17 +99,35 @@ function applyHacks(Scratch) {
     // Wrap ScriptTreeGenerator.descendInput for some operator blocks to allow classes to define custom handling
     const oldDescendInput = JSGenerator.prototype.descendInput
     JSGenerator.prototype.descendInput = function modifiedDescendInput(node, visualReport = false) {
+        let left, right, leftMethod, rightMethod
         switch (node.kind) {
             case "op.add":
             case "op.subtract":
             case "op.multiply":
             case "op.divide":
-                const left = this.descendInput(node.left).asUnknown()
-                const right = this.descendInput(node.right).asUnknown()
+            case "op.mod":
+            case "op.power":
+                left = this.descendInput(node.left).asUnknown()
+                right = this.descendInput(node.right).asUnknown()
                 const leftMethod = quote("left " + node.kind.replace("op.", ""))
                 const rightMethod = quote("right " + node.kind.replace("op.", ""))
-                return new TypedInput(`(yield* runtime.ext_gceClasses.binaryOperator(thread, ${left}, ${right}, `+
+
+                if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
+
+                return new TypedInput(`(yield* runtime.ext_gceObjectOrientation._binaryOperator(thread, ${left}, ${right}, `+
                     `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
+            
+            case "op.equals":
+                left = this.descendInput(node.left)
+                right = this.descendInput(node.right)
+                const method = quote(node.kind.replace("op.", ""))
+                // I can only use this one optimization
+                // When both operands are known to be numbers, we can use ===
+                if (left.isAlwaysNumber() && right.isAlwaysNumber()) {
+                    return new TypedInput(`(${left.asNumber()} === ${right.asNumber()})`, TYPE_BOOLEAN);
+                }
+                return new TypedInput(`(yield* runtime.ext_gceObjectOrientation._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
+                    `${method}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
         }
         return oldDescendInput.call(this, node, visualReport)
     }
@@ -142,6 +159,29 @@ function span(text) {
     element.style.width = "100%"
     element.style.textAlign = "center"
     return element
+}
+
+// see runtimeFunctions in jsexecute.js for originals
+function mod(n, modulus) { 
+    let result = n % modulus
+    if (result / modulus < 0) result += modulus
+    return result
+}
+function isNotActuallyZero (val) {
+    if (typeof val !== "string") return false
+    for (let i = 0; i < val.length; i++) {
+        const code = val.charCodeAt(i)
+        if (code === 48 || code === 9) return false
+    }
+    return true
+};
+function compareEqual (v1, v2) {
+    if (typeof v1 === "number" && typeof v2 === "number" && !isNaN(v1) && !isNaN(v2) || v1 === v2) return v1 === v2
+    const n1 = +v1
+    if (isNaN(n1) || (n1 === 0 && isNotActuallyZero(v1))) return ("" + v1).toLowerCase() === ("" + v2).toLowerCase()
+    const n2 = +v2
+    if (isNaN(n2) || (n2 === 0 && isNotActuallyZero(v2))) return ("" + v1).toLowerCase() === ("" + v2).toLowerCase()
+    return n1 === n2
 }
 
 class VariableManager {
@@ -305,27 +345,26 @@ const runtime = Scratch.vm.runtime
 const CONFIG = {
     INIT_METHOD_NAME: "__init__",
     HIDE_ARGUMENT_DEFAULTS: false,
-    INTERNAL_OP_NAMES: {
-        "left add": "__operator_left_add__",
-        "right add": "__operator_right_add__",
-        "left subtract": "__operator_left_subtract__",
-        "right subtract": "__operator_right_subtract__",
-        "left multiply": "__operator_left_multiply__",
-        "right multiply": "__operator_right_multiply__",
-        "left divide": "__operator_left_divide__",
-        "right divide": "__operator_right_divide__",
-    },
-    PUBLIC_OP_NAMES: {
-        "__operator_left_add__": "left add",
-        "__operator_right_add__": "right add",
-        "__operator_left_subtract__": "left subtract",
-        "__operator_right_subtract__": "right subtract",
-        "__operator_left_multiply__": "left multiply",
-        "__operator_right_multiply__": "right multiply",
-        "__operator_left_divide__": "left divide",
-        "__operator_right_divide__": "right divide",
-    },
-}
+    INTERNAL_OP_NAMES: {}, // see below
+    PUBLIC_OP_NAMES: {}, // see below
+};
+([
+    "left add", "right add",
+    "left subtract", "right subtract",
+    "left multiply", "right multiply",
+    "left divide", "right divide",
+    "left power", "right power",
+    "left mod", "right mod",
+    
+    "greater than", "greater or equal",
+    "less than", "less or equal",
+    "equals", "not equals",
+]).forEach((publicName) => {
+    const internalName = `__operator_${publicName.replaceAll(" ", "_")}__`
+    CONFIG.INTERNAL_OP_NAMES[publicName] = internalName
+    CONFIG.PUBLIC_OP_NAMES[internalName] = publicName
+})
+
 
 class TypeChecker {
     // All custom types one can get from a reporter in PM
@@ -962,12 +1001,12 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: "gceClasses-doublePlus",
+        blockShape: "gceObjectOrientation-doublePlus",
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: "gceClasses-doublePlus",
+        shape: "gceObjectOrientation-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1036,7 +1075,7 @@ class GCEClassBlocks {
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
         const info = {
-            id: "gceClasses",
+            id: "gceObjectOrientation",
             name: "Classes",
             color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5LDQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250LXdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90YXRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
@@ -1552,7 +1591,7 @@ class GCEClassBlocks {
             return result
         }
 
-        const EXTENSION_PREFIX = "runtime.ext_gceClasses"
+        const EXTENSION_PREFIX = "runtime.ext_gceObjectOrientation"
         const ENV_MANAGER = `${EXTENSION_PREFIX}.environment.ThreadEnvManager()`
         const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
@@ -1808,14 +1847,14 @@ class GCEClassBlocks {
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
 
-        runtime.registerCompiledExtensionBlocks("gceClasses", this.getCompileInfo())
+        runtime.registerCompiledExtensionBlocks("gceObjectOrientation", this.getCompileInfo())
         runtime.registerSerializer(
             "gceNothing",
             v => (v instanceof NothingType ? v.toJSON() : null),
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
-            ScratchBlocks.BlockSvg.registerCustomShape("gceClasses-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
+            ScratchBlocks.BlockSvg.registerCustomShape("gceObjectOrientation-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
         })
         
         applyHacks(Scratch)
@@ -2089,23 +2128,43 @@ class GCEClassBlocks {
     /************************************************************************************
     *                            Implementation of Operators                            *
     ************************************************************************************/
-    *binaryOperator(thread, left, right, leftMethod, rightMethod, nodeKind) {
-        console.log("binaryOperator", left, right)
+    *_binaryOperator(thread, left, right, leftMethod, rightMethod, nodeKind) {
         if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(leftMethod)) {
-            console.log("success left")
             return yield* left.executeOperatorMethod(thread, leftMethod, right)
         } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(rightMethod)) {
-            console.log("success right")
             return yield* right.executeOperatorMethod(thread, rightMethod, left)
-        } else {
-            left = Cast.toNumber(left)
-            right = Cast.toNumber(right)
-            switch (nodeKind) {
-                case "op.add": return left + right
-                case "op.subtract": return left - right
-                case "op.multiply": return left * right
-                case "op.divide": return left / right
-            }
+        }
+        left = Cast.toNumber(left)
+        right = Cast.toNumber(right)
+        switch (nodeKind) {
+            case "op.add": return left + right
+            case "op.subtract": return left - right
+            case "op.multiply": return left * right
+            case "op.divide": return left / right
+            case "op.mod":
+                return mod(left, right)
+            case "op.power": return Math.pow(left, right)
+        }
+    }
+    
+    *_comparisonOperator(thread, left, right, method, nodeKind) {
+        console.log("_comparisonOperator", left, right)
+        let foundMethod = false
+        let output = undefined
+        if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(method)) {
+            console.log("success left")
+            foundMethod = true
+            output = yield* left.executeOperatorMethod(thread, method, right)
+        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(method)) {
+            foundMethod = true
+            output = yield* right.executeOperatorMethod(thread, method, left)
+        }
+        if (foundMethod) {
+            if (typeof output !== "boolean") throw new Error(`Comparison Operator methods must always return a boolean.`)
+            return output
+        }
+        switch (nodeKind) {
+            case "op.equals": return compareEqual(left, right)
         }
     }
     
