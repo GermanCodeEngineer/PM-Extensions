@@ -98,7 +98,7 @@ class ArrayType {
                 case "object":
                     if (x === null) return "null"
                     if (typeof x.jwArrayHandler == "function") {
-                        return x.jwArrayHandler()
+                        return x.jwArrayHandler(false, "array")
                     }
                     return "Object"
                 case "undefined":
@@ -114,12 +114,12 @@ class ArrayType {
         return "?"
     }
 
-    jwArrayHandler() {
+    jwArrayHandler(expectsPlainString, context) {
         return `Array<${formatNumber(this.array.length)}>`
     }
 
-    toString() {
-        return JSON.stringify(this.toJSON())
+    toString(pretty = false) {
+        return JSON.stringify(this.toJSON(), null, pretty ? "\t" : null)
     }
     toJSON() {
         return this.array.map(v => {
@@ -593,10 +593,14 @@ class Extension {
                 "---",
                 {
                     opcode: 'toString',
-                    text: 'stringify [ARRAY]',
+                    text: 'stringify [ARRAY] [FORMAT]',
                     blockType: BlockType.REPORTER,
                     arguments: {
-                        ARRAY: jwArray.Argument
+                        ARRAY: jwArray.Argument,
+                        FORMAT: {
+                            menu: "stringifyFormat",
+                            defaultValue: "compact"
+                        }
                     }
                 },
                 {
@@ -673,6 +677,13 @@ class Extension {
                     acceptReporters: false,
                     items: "getLists",
                 },
+                stringifyFormat: {
+                    acceptReporters: false,
+                    items: [
+                        "compact",
+                        "pretty"
+                    ]
+                }
             }
         };
     }
@@ -917,10 +928,10 @@ class Extension {
         return ARRAY.flat(DEPTH)
     }
 
-    toString({ARRAY}) {
+    toString({ARRAY, FORMAT}) {
         ARRAY = jwArray.Type.toArray(ARRAY)
         
-        return ARRAY.toString()
+        return ARRAY.toString(FORMAT === "pretty")
     }
 
     join({ARRAY, DIVIDER}) {

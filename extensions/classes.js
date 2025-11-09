@@ -96,15 +96,21 @@ function applyHacks(Scratch) {
         if (value instanceof NothingType) return false
         return oldToBoolean(value)
     }
-
+    
     // Wrap ScriptTreeGenerator.descendInput for some operator blocks to allow classes to define custom handling
     const oldDescendInput = JSGenerator.prototype.descendInput
     JSGenerator.prototype.descendInput = function modifiedDescendInput(node, visualReport = false) {
         switch (node.kind) {
             case "op.add":
+            case "op.subtract":
+            case "op.multiply":
+            case "op.divide":
                 const left = this.descendInput(node.left).asUnknown()
                 const right = this.descendInput(node.right).asUnknown()
-                return new TypedInput(`(yield* runtime.ext_gceClasses.operatorAdd(thread, ${left}, ${right}))`, TYPE_UNKNOWN)
+                const leftMethod = quote("left " + node.kind.replace("op.", ""))
+                const rightMethod = quote("right " + node.kind.replace("op.", ""))
+                return new TypedInput(`(yield* runtime.ext_gceClasses.binaryOperator(thread, ${left}, ${right}, `+
+                    `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
         }
         return oldDescendInput.call(this, node, visualReport)
     }
@@ -194,6 +200,7 @@ class ThreadEnvManager {
     static FUNCTION = "FUNCTION"
     static METHOD = "METHOD"
     static SETTER_METHOD = "SETTER_METHOD"
+    static OPERATOR_METHOD = "OPERATOR_METHOD"
     static CLASS_CTX = "CLASS_DEF"
     
     constructor() {
@@ -211,7 +218,7 @@ class ThreadEnvManager {
         this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue})
     }
     enterOperatorMethod(self, other) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, other})
+        this.environments.splice(0, 0, {type: ThreadEnvManager.OPERATOR_METHOD, self, other})
     }
     enterClassContext(cls) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls})
@@ -232,7 +239,7 @@ class ThreadEnvManager {
         return env.args
     }
     getSelfOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD])
+        const env = this._getEnv([ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
         if (!env) {
             throw new Error("self can only be used within an instance, getter or setter method.")
         }
@@ -246,11 +253,11 @@ class ThreadEnvManager {
         return env.setterValue
     }
     getOtherValueOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.SETTER_METHOD])
+        const env = this._getEnv([ThreadEnvManager.OPERATOR_METHOD])
         if (!env) {
             throw new Error("other value can only be used within an operator method.")
         }
-        return env.setterValue
+        return env.other
     }
     getClsOrThrow() {
         const topEnv = this.environments[0]
@@ -262,7 +269,7 @@ class ThreadEnvManager {
     
     prepareReturn() {
         const topEnv = this.environments[0]
-        if (!topEnv || !([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD].includes(topEnv.type))) {
+        if (!topEnv || !([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(topEnv.type))) {
             throw new Error("return can only be used within a function or method.")
         }
         this.environments.shift()
@@ -301,10 +308,22 @@ const CONFIG = {
     INTERNAL_OP_NAMES: {
         "left add": "__operator_left_add__",
         "right add": "__operator_right_add__",
+        "left subtract": "__operator_left_subtract__",
+        "right subtract": "__operator_right_subtract__",
+        "left multiply": "__operator_left_multiply__",
+        "right multiply": "__operator_right_multiply__",
+        "left divide": "__operator_left_divide__",
+        "right divide": "__operator_right_divide__",
     },
     PUBLIC_OP_NAMES: {
         "__operator_left_add__": "left add",
         "__operator_right_add__": "right add",
+        "__operator_left_subtract__": "left subtract",
+        "__operator_right_subtract__": "right subtract",
+        "__operator_left_multiply__": "left multiply",
+        "__operator_right_multiply__": "right multiply",
+        "__operator_left_divide__": "left divide",
+        "__operator_right_divide__": "right divide",
     },
 }
 
@@ -460,13 +479,16 @@ class CustomType {
     }
 
     // Prevent dogeiscut rendering my custom types as objects
-    dogeiscutObjectHandler() {
-        return span(this.toString()).outerHTML
+    dogeiscutObjectHandler(expectsPlainString, context) {
+        // About args see https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/pull/412 
+        if (expectsPlainString) return this.toString()
+        else return span(this.toString()).outerHTML
     }
 
     // Render my custom types fully, instead of "Object"
-    jwArrayHandler() {
-        return span(this.toString()).outerHTML
+    jwArrayHandler(expectsPlainString, context) {
+        if (expectsPlainString) return this.toString()
+        else return span(this.toString()).outerHTML
     }
 }
 
@@ -2067,17 +2089,23 @@ class GCEClassBlocks {
     /************************************************************************************
     *                            Implementation of Operators                            *
     ************************************************************************************/
-    *operatorAdd(thread, left, right) {
-        console.log("operatorAdd", left, right)
-        if ((left instanceof ClassInstanceType) && left.hasOperatorMethod("left add")) {
+    *binaryOperator(thread, left, right, leftMethod, rightMethod, nodeKind) {
+        console.log("binaryOperator", left, right)
+        if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(leftMethod)) {
             console.log("success left")
-            return yield* left.executeOperatorMethod(thread, "left add", right)
-        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod("right add")) {
+            return yield* left.executeOperatorMethod(thread, leftMethod, right)
+        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(rightMethod)) {
             console.log("success right")
-            return yield* left.executeOperatorMethod(thread, "right add", left)
+            return yield* right.executeOperatorMethod(thread, rightMethod, left)
         } else {
-            console.log("default")
-            return Cast.toNumber(left) + Cast.toNumber(right)
+            left = Cast.toNumber(left)
+            right = Cast.toNumber(right)
+            switch (nodeKind) {
+                case "op.add": return left + right
+                case "op.subtract": return left - right
+                case "op.multiply": return left * right
+                case "op.divide": return left / right
+            }
         }
     }
     
@@ -2140,11 +2168,11 @@ Scratch.extensions.register(extensionClassInstance)
  * TODOS:
  * - more features for instances, classes and methods
  *     - finish operator overloading
- *     - define jwArrayHandler on custom types (if sth like that exists for objects then that too)
  *     - ...what copilot said
  * - reconsider .environment
  * - possibly put "self" into instance slots by default
  * - inline todos
+ * - redo logo, possibly create banner
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
