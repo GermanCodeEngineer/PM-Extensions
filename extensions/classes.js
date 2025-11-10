@@ -86,8 +86,9 @@ const CUSTOM_SHAPE_DOUBLE_PLUS = {
 ************************************************************************************/
 
 function applyHacks(Scratch) {
-    const {JSGenerator} = Scratch.vm.exports
+    const {IRGenerator, JSGenerator} = Scratch.vm.exports
     const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
+    const ScriptTreeGenerator = IRGenerator.exports.ScriptTreeGenerator
     
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
@@ -96,9 +97,29 @@ function applyHacks(Scratch) {
         return oldToBoolean(value)
     }
     
-    // Wrap ScriptTreeGenerator.descendInput for some operator blocks to allow classes to define custom handling
-    const oldDescendInput = JSGenerator.prototype.descendInput
-    JSGenerator.prototype.descendInput = function modifiedDescendInput(node, visualReport = false) {
+    // Wrap ScriptTreeGenerator.descendInput to make 
+    // notequals, ltorequal and gtorequal compiled blocks (as the other comparison blocks are)
+    const oldDescendTreeGenInput = ScriptTreeGenerator.prototype.descendInput
+    ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
+        switch (block.opcode) {
+            case "operator_notequal":
+            case "operator_gtorequal":
+            case "operator_ltorequal":
+                const input = {
+                    left: this.descendInputOfBlock(block, "OPERAND1"),
+                    right: this.descendInputOfBlock(block, "OPERAND2"),
+                }
+                if      (block.opcode === "operator_notequal") input.kind = "op.notequal"
+                else if (block.opcode === "operator_gtorequal") input.kind = "op.gtorequal"
+                else if (block.opcode === "operator_ltorequal") input.kind = "op.ltorequal"
+                return input
+        }
+        return oldDescendTreeGenInput.call(this, block)
+    }
+
+    // Wrap JSGenerator.descendInput for some operator blocks to allow classes to define custom handling
+    const oldDescendJSGenInput = JSGenerator.prototype.descendInput
+    JSGenerator.prototype.descendInput = function modifiedDescendInput (node, visualReport = false) {
         let left, right, leftMethod, rightMethod
         switch (node.kind) {
             case "op.add":
@@ -109,8 +130,8 @@ function applyHacks(Scratch) {
             case "op.power":
                 left = this.descendInput(node.left).asUnknown()
                 right = this.descendInput(node.right).asUnknown()
-                const leftMethod = quote("left " + node.kind.replace("op.", ""))
-                const rightMethod = quote("right " + node.kind.replace("op.", ""))
+                leftMethod = quote("left " + node.kind.replace("op.", ""))
+                rightMethod = quote("right " + node.kind.replace("op.", ""))
 
                 if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
 
@@ -118,20 +139,35 @@ function applyHacks(Scratch) {
                     `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
             
             case "op.equals":
+            case "op.notequal":
+            case "op.greater":
+            case "op.gtorequal":
+            case "op.less":
+            case "op.ltorequal":
                 left = this.descendInput(node.left)
                 right = this.descendInput(node.right)
-                const method = quote(node.kind.replace("op.", ""))
-                // I can only use this one optimization
-                // When both operands are known to be numbers, we can use ===
-                if (left.isAlwaysNumber() && right.isAlwaysNumber()) {
-                    return new TypedInput(`(${left.asNumber()} === ${right.asNumber()})`, TYPE_BOOLEAN);
-                }
+                if      (node.kind === "op.equals") leftMethod = "equals"
+                else if (node.kind === "op.notequal") leftMethod = "not equals"
+                else if (node.kind === "op.greater") leftMethod = "greater than"
+                else if (node.kind === "op.gtorequal") leftMethod = "greater or equal"
+                else if (node.kind === "op.less") leftMethod = "less than"
+                else if (node.kind === "op.ltorequal") leftMethod = "less or equal"
+                // Python uses reflected operators: a < b tries b > a as fallback
+                rightMethod = {
+                    "equals": "equals",
+                    "not equals": "not equals",
+                    "greater than": "less than",
+                    "greater or equal": "less or equal",
+                    "less than": "greater than",
+                    "less or equal": "greater or equal",
+                }[leftMethod]
+                // I can not really use optimizations here
                 return new TypedInput(`(yield* runtime.ext_gceObjectOrientation._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
-                    `${method}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
+                    `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
         }
-        return oldDescendInput.call(this, node, visualReport)
+        return oldDescendJSGenInput.call(this, node, visualReport)
     }
-
+    
 }
 
 /************************************************************************************
@@ -356,9 +392,9 @@ const CONFIG = {
     "left power", "right power",
     "left mod", "right mod",
     
+    "equals", "not equals",
     "greater than", "greater or equal",
     "less than", "less or equal",
-    "equals", "not equals",
 ]).forEach((publicName) => {
     const internalName = `__operator_${publicName.replaceAll(" ", "_")}__`
     CONFIG.INTERNAL_OP_NAMES[publicName] = internalName
@@ -2134,6 +2170,7 @@ class GCEClassBlocks {
         } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(rightMethod)) {
             return yield* right.executeOperatorMethod(thread, rightMethod, left)
         }
+        // default implementation
         left = Cast.toNumber(left)
         right = Cast.toNumber(right)
         switch (nodeKind) {
@@ -2147,24 +2184,29 @@ class GCEClassBlocks {
         }
     }
     
-    *_comparisonOperator(thread, left, right, method, nodeKind) {
-        console.log("_comparisonOperator", left, right)
+    *_comparisonOperator(thread, left, right, method, oppositeMethod, nodeKind) {
         let foundMethod = false
         let output = undefined
         if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(method)) {
-            console.log("success left")
             foundMethod = true
             output = yield* left.executeOperatorMethod(thread, method, right)
-        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(method)) {
+        } else if ((right instanceof ClassInstanceType) && right.hasOperatorMethod(oppositeMethod)) {
             foundMethod = true
-            output = yield* right.executeOperatorMethod(thread, method, left)
+            output = yield* right.executeOperatorMethod(thread, oppositeMethod, left)
         }
         if (foundMethod) {
             if (typeof output !== "boolean") throw new Error(`Comparison Operator methods must always return a boolean.`)
             return output
         }
+        // default implementation(see scratch3_operators.js)
+        const compareResult = Cast.compare(left, right)
         switch (nodeKind) {
-            case "op.equals": return compareEqual(left, right)
+            case "op.equals": return compareResult === 0 
+            case "op.notequal": return compareResult !== 0
+            case "op.greater": return compareResult > 0
+            case "op.gtorequal": return compareResult >= 0
+            case "op.less": return compareResult < 0
+            case "op.ltorequal": return compareResult <= 0
         }
     }
     
@@ -2226,7 +2268,6 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
- *     - finish operator overloading
  *     - ...what copilot said
  * - reconsider .environment
  * - possibly put "self" into instance slots by default
