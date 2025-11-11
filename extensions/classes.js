@@ -923,7 +923,7 @@ class ClassInstanceType extends CustomType {
         const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
         return yield* method.execute(thread, this, other)
     }
-    
+ 
     /**
      * @param {Thread} thread
      * @param {string} name
@@ -960,7 +960,7 @@ class ClassInstanceType extends CustomType {
      * @param {string} name public operator method name
      * @returns {boolean}
      */
-    hasOperatorMethod(name) {
+    *hasOperatorMethod(name) {
         try {
             this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
             return true
@@ -1099,6 +1099,19 @@ const commonBlocks = {
         blockType: BlockType.REPORTER,
         allowDropAnywhere: true,
     },
+    returnString: {
+        blockType: BlockType.REPORTER,
+    },
+    returnsBoolean: {
+        blockType: BlockType.BOOLEAN,
+    },
+    command: {
+        blockType: BlockType.COMMAND
+    },
+    commandWithBranch: {
+        blockType: BlockType.CONDITIONAL,
+        branchCount: 1,
+    },
 }
 
 /************************************************************************************
@@ -1115,23 +1128,28 @@ class GCEClassBlocks {
             id: "gceObjectOrientation",
             name: "Classes",
             color1: "#428af5ff",
-            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5LDQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0MCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250LXdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90YXRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
+            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6L"+
+            "y93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0Z"+
+            "SgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5L"+
+            "DQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc"+
+            "3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0M"+
+            "CIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250L"+
+            "XdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90Y"+
+            "XRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
             blocks: [
                 makeLabel("Classes"),
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
                     text: ["create class at [NAME]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
                     },
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
                     text: ["create subclass at [NAME] with superclass [SUPERCLASS]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1157,18 +1175,17 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
                     text: ["on class [CLASS]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "setClass",
                     text: "set class [NAME] to [CLASS]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         NAME: commonArguments.classVarName,
                         CLASS: gceClass.Argument,
@@ -1183,9 +1200,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsBoolean,
                     opcode: "classExists",
                     text: "class [NAME] exists?",
-                    blockType: BlockType.BOOLEAN,
                     arguments: {
                         NAME: commonArguments.classVarName,
                     },
@@ -1196,22 +1213,22 @@ class GCEClassBlocks {
                     text: "all classes",
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "deleteClass",
                     text: "delete class [NAME]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         NAME: commonArguments.classVarName,
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "deleteAllClasses",
                     text: "delete all classes",
-                    blockType: BlockType.COMMAND,
                 },
                 {
+                    ...commonBlocks.returnsBoolean,
                     opcode: "isSubclass",
                     text: "is [SUBCLASS] a subclass of [SUPERCLASS] ?",
-                    blockType: BlockType.BOOLEAN,
                     arguments: {
                         SUBCLASS: gceClass.ArgumentClassOrVarName,
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1228,19 +1245,18 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Functions & Methods"),
                 {
+                    ...commonBlocks.command,
                     opcode: "configureNextFunctionArgs",
                     text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         ARGNAMES: jwArrayStub.Argument,
                         ARGDEFAULTS: jwArrayStub.Argument,
                     },
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "createFunctionAt",
                     text: ["create function at [NAME]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.funcName,
                     },
@@ -1268,9 +1284,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "return",
                     text: "return [VALUE]",
-                    blockType: BlockType.COMMAND,
                     isTerminal: true,
                     arguments: {
                         VALUE: commonArguments.allowAnything,
@@ -1291,25 +1307,23 @@ class GCEClassBlocks {
                     blockType: BlockType.BUTTON,
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "transferFunctionArgsToTempVars",
                     text: "transfer arguments to temporary variables",
-                    blockType: BlockType.COMMAND,
                 },
                 "---",
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineMethod",
                     text: ["define method [NAME]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.methodName,
                     },
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
                     text: ["define [SPECIAL_METHOD] method"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
                     },
@@ -1329,9 +1343,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "callSuperInitMethod",
                     text: "call super init method with positional args [POSARGS]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         POSARGS: jwArrayStub.Argument,
                     },
@@ -1348,9 +1362,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "setAttribute",
                     text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: commonArguments.attributeName,
@@ -1385,9 +1399,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsBoolean,
                     opcode: "isInstance",
                     text: "is [INSTANCE] an instance of [CLASS] ?",
-                    blockType: BlockType.BOOLEAN,
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -1401,20 +1415,28 @@ class GCEClassBlocks {
                         INSTANCE: gceClassInstance.Argument,
                     },
                 },
+                {
+                    ...commonBlocks.returnString,
+                    opcode: "objectAsString",
+                    text: "as string [VALUE]",
+                    arguments: {
+                        VALUE: commonArguments.allowAnything,
+                    }
+                },
                 "---",
                 makeLabel("Miscellaneous"),
                 {
+                    ...commonBlocks.returnString,
                     opcode: "typeof",
                     text: "typeof [VALUE]",
-                    blockType: BlockType.REPORTER,
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     },
                 },
                 {
+                    ...commonBlocks.returnsBoolean,
                     opcode: "checkIdentity",
                     text: "[VALUE1] is [VALUE2] ?",
-                    blockType: BlockType.BOOLEAN,
                     arguments: {
                         VALUE1: commonArguments.allowAnything,
                         VALUE2: commonArguments.allowAnything,
@@ -1426,9 +1448,9 @@ class GCEClassBlocks {
                     text: "Nothing",
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "executeExpression",
                     text: "execute expression [EXPR]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         EXPR: commonArguments.allowAnything,
                     },
@@ -1436,9 +1458,9 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Class Variables and Static Methods"),
                 {
+                    ...commonBlocks.command,
                     opcode: "setClassVariable",
                     text: "on [CLASS] set class variable [NAME] to [VALUE]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.classVariableName,
@@ -1446,9 +1468,9 @@ class GCEClassBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "deleteClassVariable",
                     text: "on [CLASS] delete class variable [NAME]",
-                    blockType: BlockType.COMMAND,
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.classVariableName,
@@ -1465,10 +1487,9 @@ class GCEClassBlocks {
                 },
                 "---",
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineStaticMethod",
                     text: ["define static method [NAME]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.methodName,
                     },
@@ -1504,19 +1525,17 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Getters and Setters"),
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineGetter",
                     text: ["define getter [NAME]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.attributeName,
                     },
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineSetter",
                     text: ["define setter [NAME] [SHADOW]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         NAME: commonArguments.attributeName,
                         SHADOW: {fillIn: "defineSetterValue"},
@@ -1532,10 +1551,9 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Operator Methods"),
                 {
+                    ...commonBlocks.commandWithBranch,
                     opcode: "defineOperatorMethod",
                     text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
-                    blockType: BlockType.CONDITIONAL,
-                    branchCount: 1,
                     arguments: {
                         OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
                         SHADOW: {fillIn: "operatorOtherValue"},
@@ -1551,14 +1569,14 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Debugging & Temporary"),
                 {
+                    ...commonBlocks.command,
                     opcode: "throw",
                     text: "debugging: throw",
-                    blockType: BlockType.COMMAND,
                 },
                 {
+                    ...commonBlocks.command,
                     opcode: "logThread",
                     text: "debugging: log thread",
-                    blockType: BlockType.COMMAND,
                 },
             ],
             menus: {
@@ -1700,7 +1718,7 @@ class GCEClassBlocks {
                 callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
                 transferFunctionArgsToTempVars: createIRGenerator("stack", []),
                 defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                defineSpecialMethod: createIRGenerator("stack", ["SPECIAL_METHOD", "SUBSTACK"], []),
+                defineSpecialMethod: createIRGenerator("stack", ["SUBSTACK"], ["SPECIAL_METHOD"]),
                 callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], [], true),
                 callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], [], true),
 
@@ -1709,6 +1727,7 @@ class GCEClassBlocks {
                 setAttribute: createIRGenerator("stack", ["INSTANCE", "NAME", "VALUE"], [], true),
                 getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], [], true),
                 callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], [], true),
+                objectAsString: createIRGenerator("input", ["VALUE"], [], true),
 
                 // Class Variables and Static Methods
                 defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
@@ -1850,6 +1869,11 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
                     const generatedCode = createCallCode("toClassInstance", instanceCode, "executeInstanceMethod", nameCode, posArgsCode)
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                objectAsString: (node, compiler, imports) => {
+                    const objectCode = compiler.descendInput(node.value).asUnknown()
+                    const generatedCode = `(yield* ${EXTENSION_PREFIX}._objectAsString(${objectCode}, thread))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2045,6 +2069,8 @@ class GCEClassBlocks {
         const instance = Cast.toClassInstance(args.INSTANCE)
         return instance.cls
     }
+
+    objectAsString = this._isACompiledBlock
     
     // Blocks: Miscellaneous
 
@@ -2176,6 +2202,23 @@ class GCEClassBlocks {
     /************************************************************************************
     *                            Implementation of Operators                            *
     ************************************************************************************/
+    /**
+     * @param {any} object
+     * @param {Thread} thread
+     * @returns {string} the return value of the as string method
+     */
+    *_objectAsString(object, thread) {
+        if (!(object instanceof ClassInstanceType)) return object.toString()
+        let method
+        try {
+            method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
+        } catch {}
+        if (!method) return object.toString()
+        const output = yield* method.execute(thread, object, [])
+        if (typeof output !== "string") throw new Error(`As String methods must always return a string.`)
+        return output
+    }
+
     *_binaryOperator(thread, left, right, leftMethod, rightMethod, nodeKind) {
         if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(leftMethod)) {
             return yield* left.executeOperatorMethod(thread, leftMethod, right)
