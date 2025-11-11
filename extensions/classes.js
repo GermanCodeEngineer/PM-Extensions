@@ -379,7 +379,8 @@ const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
 const CONFIG = {
-    INIT_METHOD_NAME: "__init__",
+    INIT_METHOD_NAME: "__special_init__",
+    AS_STRING_METHOD_NAME: "__special_as_string__",
     HIDE_ARGUMENT_DEFAULTS: false,
     INTERNAL_OP_NAMES: {}, // see below
     PUBLIC_OP_NAMES: {}, // see below
@@ -1305,10 +1306,13 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    opcode: "defineInitMethod",
-                    text: ["define init method"],
+                    opcode: "defineSpecialMethod",
+                    text: ["define [SPECIAL_METHOD] method"],
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
+                    arguments: {
+                        SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
+                    },
                 },
                 {
                     ...gceClassInstance.Block,
@@ -1574,6 +1578,13 @@ class GCEClassBlocks {
                     items: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => {
                         return {text: publicName, value: internalName}
                     })
+                },
+                specialMethod: {
+                    acceptReporters: false,
+                    items: [
+                        {text: "init", value: CONFIG.INIT_METHOD_NAME},
+                        {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
+                    ],
                 }
             },
         }
@@ -1594,6 +1605,7 @@ class GCEClassBlocks {
         const UPPER_TO_CAMEL_MAPPING = {
             "NAME": "name",
             "OPERATOR_KIND": "operatorKind",
+            "SPECIAL_METHOD": "specialMethod",
             "SUBSTACK": "substack",
             "SUPERCLASS": "superCls", 
             "CLASS": "cls",
@@ -1688,7 +1700,7 @@ class GCEClassBlocks {
                 callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
                 transferFunctionArgsToTempVars: createIRGenerator("stack", []),
                 defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                defineInitMethod: createIRGenerator("stack", ["SUBSTACK"], []),
+                defineSpecialMethod: createIRGenerator("stack", ["SPECIAL_METHOD", "SUBSTACK"], []),
                 callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], [], true),
                 callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], [], true),
 
@@ -1796,8 +1808,8 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.name).asString()
                     createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
                 },
-                defineInitMethod: (node, compiler, imports) => {
-                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
+                defineSpecialMethod: (node, compiler, imports) => {
+                    const nameCode = quote(node.specialMethod)
                     createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
@@ -2000,7 +2012,7 @@ class GCEClassBlocks {
 
     transferFunctionArgsToTempVars = this._isACompiledBlock
     defineMethod = this._isACompiledBlock
-    defineInitMethod = this._isACompiledBlock
+    defineSpecialMethod = this._isACompiledBlock
     
     self(args, util) {
         util.thread.gceEnv ??= new ThreadEnvManager()
@@ -2182,6 +2194,7 @@ class GCEClassBlocks {
                 return mod(left, right)
             case "op.power": return Math.pow(left, right)
         }
+        return null
     }
     
     *_comparisonOperator(thread, left, right, method, oppositeMethod, nodeKind) {
@@ -2208,6 +2221,7 @@ class GCEClassBlocks {
             case "op.less": return compareResult < 0
             case "op.ltorequal": return compareResult <= 0
         }
+        return null
     }
     
     /************************************************************************************
@@ -2268,6 +2282,7 @@ Scratch.extensions.register(extensionClassInstance)
 /**
  * TODOS:
  * - more features for instances, classes and methods
+ *     - add toString (and toNumber/toBoolean method?)
  *     - ...what copilot said
  * - reconsider .environment
  * - possibly put "self" into instance slots by default
