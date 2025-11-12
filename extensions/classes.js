@@ -24,59 +24,72 @@ if (!Scratch.extensions.unsandboxed) {
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
-const CUSTOM_SHAPE_DOUBLE_PLUS = {
-    emptyInputPath: "m 6 3 a 3 3 0 0 1 3 -3 h 7 h 10 h 7 a 3 3 0 0 1 3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 0 3 3 a 3 3 0 0 1 3 3 v 1 a 3 3 0 0 1 -3 3 a 3 3 0 0 0 -3 3 a 3 3 0 0 1 -3 3 h -7 h -10 h -7 a 3 3 0 0 1 -3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3 a 3 3 0 0 0 -3 -3 a 3 3 0 0 1 -3 -3 v -1 a 3 3 0 0 1 3 -3 a 3 3 0 0 0 3 -3",
-    emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+const CUSTOM_SHAPE_ALT = {
+    emptyInputPath: "m 36 0 a 4 4 0 0 1 4 4 a 4 4 0 0 0 4 4 a 4 4 0 0 1 4 4 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 a 4 4 0 0 0 -4 4 a 4 4 0 0 1 -4 4 h -12 h -12 a 4 4 0 0 1 -4 -4 a 4 4 0 0 0 -4 -4 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 a 4 4 0 0 0 4 -4 a 4 4 0 0 1 4 -4 h 12 h 12 z",
+    emptyInputWidth: 16 * ScratchBlocks.BlockSvg.GRID_UNIT,
     leftPath: (block) => {
-        const block_height = block.height
-        const emptyHeight = 32
-        const fifth = (block_height - emptyHeight) / 5
-        const fifthLine = `v -${fifth}`
-        const fifthLineExtended = `v -${fifth + 1}`
-        return [ 
-            "h -7 "+
-            "a 3 3 0 0 1 -3 -3 "+
-            fifthLine+
-            "a 3 3 0 0 0 -3 -3 "+
-            "a 3 3 0 0 1 -3 -3 "+
-            fifthLineExtended+
-            "a 3 3 0 0 1 3 -3 "+
-            "a 3 3 0 0 0 3 -3 "+
-            fifthLine+
-            "a 3 3 0 0 0 -3 -3 "+
-            "a 3 3 0 0 1 -3 -3 "+
-            fifthLineExtended+
-            "a 3 3 0 0 1 3 -3 "+
-            "a 3 3 0 0 0 3 -3 "+
-            fifthLine+
-            "a 3 3 0 0 1 3 -3 "+
-            "h 7 "
+        const edgeWidth = block.height / 2
+        const s = edgeWidth / 16
+        return [
+            `h ${-12*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 0 ${-4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+            `l ${4*s} ${-4*s} `+
+            `l ${-4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 0 ${4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s} `
         ]
     },
     rightPath: (block) => {
-        const block_height = block.edgeShapeWidth_ * 2 // block.height not available
-        const emptyHeight = 32
-        const fifth = (block_height - emptyHeight) / 5
-        const fifthLine = `v ${fifth}`
-        const fifthLineExtended = `v ${fifth + 1}`
-        return [ 
-            "h 7 "+
-            "a 3 3 0 0 1 3 3 "+
-            fifthLine+
-            "a 3 3 0 0 0 3 3 "+
-            "a 3 3 0 0 1 3 3 "+
-            fifthLineExtended+
-            "a 3 3 0 0 1 -3 3 "+
-            "a 3 3 0 0 0 -3 3 "+
-            fifthLine+
-            "a 3 3 0 0 0 3 3 "+
-            "a 3 3 0 0 1 3 3 "+
-            fifthLineExtended+
-            "a 3 3 0 0 1 -3 3 "+
-            "a 3 3 0 0 0 -3 3 "+
-            fifthLine+
-            "a 3 3 0 0 1 -3 3 "+
-            "h -7 "
+        const edgeWidth = block.edgeShapeWidth_
+        const s = edgeWidth / 16
+        return [
+            `h ${12*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 0 ${4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s} `+
+            `l ${-4*s} ${4*s} `+
+            `l ${4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 0 ${-4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s} `+
+            `h ${-12*s}`
+        ]
+    },
+}
+
+const CUSTOM_SHAPE = {
+    emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
+    emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+    leftPath: (block) => {
+        const edgeWidth = block.height / 2
+        const s = edgeWidth / 16
+        return [
+            `h ${-12*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+            `l ${4*s} ${-4*s} `+
+            `l ${-4*s} ${-4*s} `+
+            `l 0 ${-8*s} `+
+            `l ${4*s} ${-4*s} `+
+            `l ${-4*s} ${-4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
+        ]
+    },
+    rightPath: (block) => {
+        const edgeWidth = block.edgeShapeWidth_
+        const s = edgeWidth / 16
+        return [
+            `h ${12*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
+            `l ${-4*s} ${4*s} `+
+            `l ${4*s} ${4*s} `+
+            `l 0 ${8*s} `+
+            `l ${-4*s} ${4*s} `+
+            `l ${4*s} ${4*s} `+
+            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
+            `h ${-12*s}`
         ]
     },
 }
@@ -1041,11 +1054,13 @@ const gceClassInstance = {
     Block: {
         blockType: BlockType.REPORTER,
         blockShape: "gceClassesOOP-doublePlus",
+        //blockShape: BlockShape.PLUS,
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
         shape: "gceClassesOOP-doublePlus",
+        //shape: BlockShape.PLUS,
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1674,13 +1689,13 @@ class GCEClassBlocks {
                     `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
                     (setVariable ? `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` : "") +
                     `thread.gceEnv.enterClassContext(${clsLocal});`,
-                cleanup: "thread.gceEnv.exitClassContext();\n",
+                cleanup: "thread.gceEnv.exitClassContext();",
                 clsLocal
             }
         }
 
         const createWrappedGenerator = (setupCode, stackCode, cleanup, returnVar = null) => {
-            return `yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})()`
+            return `(yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})())`
         }
 
         const createMethodDefinition = (
@@ -1694,7 +1709,7 @@ class GCEClassBlocks {
                 `const ${nameLocal} = ${nameCode};` +
                 `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, `+
                 `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
-            compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+            addSubstackCode(compiler, node.substack, imports)
             compiler.source += "thread.gceEnv.prepareReturn();" + 
                 // Nothing is indepedent of function context, so we can exit context before
                 `return ${ENV_PREFIX}.Nothing;` +
@@ -1703,6 +1718,19 @@ class GCEClassBlocks {
 
         const createCallCode = (castMethod, target, m, ...args) => {
             return `(yield* ${CAST_PREFIX}.${castMethod}(${target}).${m}(thread, ${args.join(", ")}))`
+        }
+
+        const addSubstackCode = (compiler, substack, imports) => {
+            compiler.descendStack(substack, new imports.Frame(false, undefined, true))
+        }
+
+        const getSubstackCode = (compiler, substack, imports) => {
+            const oldSource = compiler.source
+            compiler.source = ""
+            addSubstackCode(compiler, substack, imports)
+            const substackCode = compiler.source
+            compiler.source = oldSource
+            return substackCode
         }
 
         return {
@@ -1747,33 +1775,27 @@ class GCEClassBlocks {
                 createClassAt: (node, compiler, imports) => {
                     const { setup, cleanup } = createClassCore(node, compiler, true)
                     compiler.source += setup
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    compiler.source += cleanup
+                    addSubstackCode(compiler, node.substack, imports)
+                    compiler.source += cleanup + "\n"
                 },
                 createSubclassAt: (node, compiler, imports) => {
                     const superClsCode = compiler.descendInput(node.superCls).asUnknown()
                     const { setup, cleanup } = createClassCore(node, compiler, true, superClsCode)
                     compiler.source += setup
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    compiler.source += cleanup
+                    addSubstackCode(compiler, node.substack, imports)
+                    compiler.source += cleanup + "\n"
                 },
                 createClassNamed: (node, compiler, imports) => {
                     const { setup, cleanup, clsLocal } = createClassCore(node, compiler, false)
-                    const oldSource = compiler.source
-                    compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    const generatedCode = compiler.source
-                    compiler.source = oldSource
+                    const substackCode = getSubstackCode(compiler, node.substack, imports)
+                    const generatedCode = createWrappedGenerator(setup, substackCode, cleanup, clsLocal)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 createSubclassNamed: (node, compiler, imports) => {
                     const superClsCode = compiler.descendInput(node.superCls).asUnknown()
                     const { setup, cleanup, clsLocal } = createClassCore(node, compiler, false, superClsCode)
-                    const oldSource = compiler.source
-                    compiler.source = createWrappedGenerator(setup, "", cleanup, clsLocal)
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    const generatedCode = compiler.source
-                    compiler.source = oldSource
+                    const substackCode = getSubstackCode(compiler, node.substack, imports)
+                    const generatedCode = createWrappedGenerator(setup, substackCode, cleanup, clsLocal)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -1785,7 +1807,7 @@ class GCEClassBlocks {
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
                         `const ${nameLocal} = ${nameCode};` +
                         `${EXTENSION_PREFIX}.funcVars.set(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
+                    addSubstackCode(compiler, node.substack, imports)
                     compiler.source += "thread.gceEnv.prepareReturn();" +
                         // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
@@ -1793,16 +1815,13 @@ class GCEClassBlocks {
                 },
                 createFunctionNamed: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    const oldSource = compiler.source
-                    compiler.source = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
-                        `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`
-                    compiler.descendStack(node.substack, new imports.Frame(false, undefined, true))
-                    compiler.source += "thread.gceEnv.prepareReturn();" +
+                    const generatedCode = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
+                        `new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`+
+                        getSubstackCode(compiler, node.substack, imports)+
+                        "thread.gceEnv.prepareReturn();" +
                         // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
-                        "}, thread.gceEnv.getAndResetNextFuncConfig()))\n"
-                    const generatedCode = compiler.source
-                    compiler.source = oldSource
+                        "}, thread.gceEnv.getAndResetNextFuncConfig()))"
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 return: (node, compiler, imports) => {
@@ -1928,7 +1947,7 @@ class GCEClassBlocks {
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
-            ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
+            ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
         })
         
         applyHacks(Scratch)
