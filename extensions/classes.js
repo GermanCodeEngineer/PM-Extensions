@@ -1,8 +1,9 @@
 // Name: Classes
-// ID: gceObjectOrientation
+// ID: gceClassesOOP
 // Description: Python-like classes and many features of Object Orientated Programming
 // By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
 // License: MIT
+// Made for PenguinMod
 // Requires and automatically adds jwArray and dogeiscutObject
 // Credit: Inspired by & Based on
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jg_scripts/index.js
@@ -135,7 +136,7 @@ function applyHacks(Scratch) {
 
                 if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
 
-                return new TypedInput(`(yield* runtime.ext_gceObjectOrientation._binaryOperator(thread, ${left}, ${right}, `+
+                return new TypedInput(`(yield* runtime.ext_gceClassesOOP._binaryOperator(thread, ${left}, ${right}, `+
                     `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
             
             case "op.equals":
@@ -162,7 +163,7 @@ function applyHacks(Scratch) {
                     "less or equal": "greater or equal",
                 }[leftMethod]
                 // I can not really use optimizations here
-                return new TypedInput(`(yield* runtime.ext_gceObjectOrientation._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
+                return new TypedInput(`(yield* runtime.ext_gceClassesOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
                     `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
         }
         return oldDescendJSGenInput.call(this, node, visualReport)
@@ -196,6 +197,7 @@ function span(text) {
     element.style.textAlign = "center"
     return element
 }
+
 
 // see runtimeFunctions in jsexecute.js for originals
 function mod(n, modulus) { 
@@ -1038,12 +1040,12 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: "gceObjectOrientation-doublePlus",
+        blockShape: "gceClassesOOP-doublePlus",
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: "gceObjectOrientation-doublePlus",
+        shape: "gceClassesOOP-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1125,7 +1127,7 @@ class GCEClassBlocks {
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
         const info = {
-            id: "gceObjectOrientation",
+            id: "gceClassesOOP",
             name: "Classes",
             color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6L"+
@@ -1657,7 +1659,7 @@ class GCEClassBlocks {
             return result
         }
 
-        const EXTENSION_PREFIX = "runtime.ext_gceObjectOrientation"
+        const EXTENSION_PREFIX = "runtime.ext_gceClassesOOP"
         const ENV_MANAGER = `${EXTENSION_PREFIX}.environment.ThreadEnvManager()`
         const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
@@ -1919,14 +1921,14 @@ class GCEClassBlocks {
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
 
-        runtime.registerCompiledExtensionBlocks("gceObjectOrientation", this.getCompileInfo())
+        runtime.registerCompiledExtensionBlocks("gceClassesOOP", this.getCompileInfo())
         runtime.registerSerializer(
             "gceNothing",
             v => (v instanceof NothingType ? v.toJSON() : null),
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
-            ScratchBlocks.BlockSvg.registerCustomShape("gceObjectOrientation-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
+            ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE_DOUBLE_PLUS)
         })
         
         applyHacks(Scratch)
@@ -2324,11 +2326,7 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 /**
  * TODOS:
- * - more features for instances, classes and methods
- *     - add toString (and toNumber/toBoolean method?)
- *     - ...what copilot said
  * - reconsider .environment
- * - possibly put "self" into instance slots by default
  * - inline todos
  * - redo logo, possibly create banner
  * 
