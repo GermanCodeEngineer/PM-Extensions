@@ -205,34 +205,9 @@ function span(text) {
     let element = document.createElement("span")
     element.innerHTML = escapeHTML(text)
     element.style.display = "hidden"
-    //element.style.whiteSpace = "nowrap"
     element.style.width = "100%"
     element.style.textAlign = "center"
     return element
-}
-
-
-// see runtimeFunctions in jsexecute.js for originals
-function mod(n, modulus) { 
-    let result = n % modulus
-    if (result / modulus < 0) result += modulus
-    return result
-}
-function isNotActuallyZero (val) {
-    if (typeof val !== "string") return false
-    for (let i = 0; i < val.length; i++) {
-        const code = val.charCodeAt(i)
-        if (code === 48 || code === 9) return false
-    }
-    return true
-};
-function compareEqual (v1, v2) {
-    if (typeof v1 === "number" && typeof v2 === "number" && !isNaN(v1) && !isNaN(v2) || v1 === v2) return v1 === v2
-    const n1 = +v1
-    if (isNaN(n1) || (n1 === 0 && isNotActuallyZero(v1))) return ("" + v1).toLowerCase() === ("" + v2).toLowerCase()
-    const n2 = +v2
-    if (isNaN(n2) || (n2 === 0 && isNotActuallyZero(v2))) return ("" + v1).toLowerCase() === ("" + v2).toLowerCase()
-    return n1 === n2
 }
 
 class VariableManager {
@@ -1154,7 +1129,7 @@ class GCEClassBlocks {
             "XdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90Y"+
             "XRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
             blocks: [
-                makeLabel("Classes"),
+                makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
@@ -1190,7 +1165,7 @@ class GCEClassBlocks {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
                     },
-                },
+                },                
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
@@ -1208,6 +1183,8 @@ class GCEClassBlocks {
                         CLASS: gceClass.Argument,
                     },
                 },
+                "---",
+                makeLabel("Use Classes"),
                 {
                     ...gceClass.Block,
                     opcode: "getClass",
@@ -1260,95 +1237,35 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                makeLabel("Functions & Methods"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "configureNextFunctionArgs",
-                    text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
-                    arguments: {
-                        ARGNAMES: jwArrayStub.Argument,
-                        ARGDEFAULTS: jwArrayStub.Argument,
-                    },
-                },
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "createFunctionAt",
-                    text: ["create function at [NAME]"],
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...gceFunction.Block,
-                    opcode: "createFunctionNamed",
-                    text: ["create function named [NAME]"],
-                    branchCount: 1,
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "allFunctionArgs",
-                    text: "function arguments",
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "functionArg",
-                    text: "function arg [NAME]",
-                    arguments: {
-                        NAME: commonArguments.argumentName,
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "return",
-                    text: "return [VALUE]",
-                    isTerminal: true,
-                    arguments: {
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "callFunction",
-                    text: "call function [FUNC] with positional args [POSARGS]",
-                    arguments: {
-                        FUNC: gceFunction.ArgumentFunctionOrVarName,
-                        POSARGS: jwArrayStub.Argument,
-                    },
-                },
-                { // BUTTON
-                    opcode: "addTempVars",
-                    text: "add temporary variables extension",
-                    blockType: BlockType.BUTTON,
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "transferFunctionArgsToTempVars",
-                    text: "transfer arguments to temporary variables",
-                },
                 "---",
+                makeLabel("Class Members (use within class)"),
+                "---",
+                makeLabel("Define Instance Methods"),
                 {
                     ...commonBlocks.commandWithBranch,
-                    opcode: "defineMethod",
-                    text: ["define method [NAME]"],
+                    opcode: "defineInstanceMethod",
+                    text: ["define instance method [NAME] [SHADOW1] [SHADOW2]"],
                     arguments: {
                         NAME: commonArguments.methodName,
+                        SHADOW1: {fillIn: "self"},
+                        SHADOW2: {fillIn: "allFunctionArgs"},
                     },
                 },
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
-                    text: ["define [SPECIAL_METHOD] method"],
+                    text: ["define [SPECIAL_METHOD] method [SHADOW1] [SHADOW2]"],
                     arguments: {
                         SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
+                        SHADOW1: {fillIn: "self"},
+                        SHADOW2: {fillIn: "allFunctionArgs"},
                     },
                 },
                 {
                     ...gceClassInstance.Block,
                     opcode: "self",
                     text: "self",
+                    canDragDuplicate: true,
                 },
                 {
                     ...commonBlocks.returnsAnything,
@@ -1368,50 +1285,110 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                makeLabel("Instances"),
+                makeLabel("Define Getters & Setters"),
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineGetter",
+                    text: ["define getter [NAME] [SHADOW]"],
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        SHADOW: {fillIn: "self"},
+                    },
+                },
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineSetter",
+                    text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        SHADOW1: {fillIn: "self"},
+                        SHADOW2: {fillIn: "defineSetterValue"},
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "defineSetterValue",
+                    text: "value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                },
+                "---",
+                makeLabel("Define Operator Methods"),
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineOperatorMethod",
+                    text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
+                    arguments: {
+                        OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
+                        SHADOW: {fillIn: "operatorOtherValue"},
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "operatorOtherValue",
+                    text: "other value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                },
+                "---",
+                makeLabel("Define Static Methods & Class Variables"),
+                {
+                    ...commonBlocks.command,
+                    opcode: "setClassVariable",
+                    text: "on [CLASS] set class variable [NAME] to [VALUE]",
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.classVariableName,
+                        VALUE: commonArguments.allowAnything,
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "getClassVariable",
+                    text: "get class variable [NAME] of [CLASS]",
+                    arguments: {
+                        NAME: commonArguments.classVariableName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "deleteClassVariable",
+                    text: "on [CLASS] delete class variable [NAME]",
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.classVariableName,
+                    },
+                },
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineStaticMethod",
+                    text: ["define static method [NAME] [SHADOW]"],
+                    arguments: {
+                        NAME: commonArguments.methodName,
+                        SHADOW: {fillIn: "allFunctionArgs"},
+                    },
+                },
+                {
+                    ...jwArrayStub.Block,
+                    opcode: "propertyNamesOfClass",
+                    text: "[PROPERTY] names of class [CLASS]",
+                    arguments: {
+                        PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                "---",
+                "---",
+                makeLabel("Working with Instances"),
+                "---",
+                makeLabel("Create & Inspect"),
                 {
                     ...gceClassInstance.Block,
                     opcode: "createInstance",
                     text: "create instance of class [CLASS] with positional args [POSARGS]",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
-                        POSARGS: jwArrayStub.Argument,
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "setAttribute",
-                    text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
-                    arguments: {
-                        INSTANCE: gceClassInstance.Argument,
-                        NAME: commonArguments.attributeName,
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "getAllAttributes",
-                    text: "all attributes of [INSTANCE]",
-                    arguments: {
-                        INSTANCE: gceClassInstance.Argument,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "getAttribute",
-                    text: "attribute [NAME] of [INSTANCE]",
-                    arguments: {
-                        NAME: commonArguments.attributeName,
-                        INSTANCE: gceClassInstance.Argument,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "callMethod",
-                    text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
-                    arguments: {
-                        INSTANCE: gceClassInstance.Argument,
-                        NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
                     },
                 },
@@ -1432,6 +1409,151 @@ class GCEClassBlocks {
                         INSTANCE: gceClassInstance.Argument,
                     },
                 },
+                "---",
+                makeLabel("Attributes"),
+                {
+                    ...commonBlocks.command,
+                    opcode: "setAttribute",
+                    text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                        NAME: commonArguments.attributeName,
+                        VALUE: commonArguments.allowAnything,
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "getAttribute",
+                    text: "attribute [NAME] of [INSTANCE]",
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        INSTANCE: gceClassInstance.Argument,
+                    },
+                },
+                {
+                    ...dogeiscutObjectStub.Block,
+                    opcode: "getAllAttributes",
+                    text: "all attributes of [INSTANCE]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                    },
+                },
+                "---",
+                makeLabel("Call Methods"),
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "callMethod",
+                    text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                        NAME: commonArguments.methodName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "callStaticMethod",
+                    text: "on [CLASS] call static method [NAME] with positional args [POSARGS]",
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.methodName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                {
+                    ...gceFunction.Block,
+                    opcode: "getStaticMethodFunc",
+                    text: "get static method [NAME] of [CLASS] as function",
+                    arguments: {
+                        NAME: commonArguments.methodName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                "---",
+                "---",
+                makeLabel("Functions"),
+                "---",
+                makeLabel("Before Functions & Methods"),
+                {
+                    ...commonBlocks.command,
+                    opcode: "configureNextFunctionArgs",
+                    text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
+                    arguments: {
+                        ARGNAMES: jwArrayStub.Argument,
+                        ARGDEFAULTS: jwArrayStub.Argument,
+                    },
+                },
+                "---",
+                makeLabel("Configure & Define"),
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "createFunctionAt",
+                    text: ["create function at [NAME] [SHADOW]"],
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                        SHADOW: {fillIn: "allFunctionArgs"},
+                    },
+                },
+                {
+                    ...gceFunction.Block,
+                    opcode: "createFunctionNamed",
+                    text: ["create function named [NAME] [SHADOW]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                        SHADOW: {fillIn: "allFunctionArgs"},
+                    },
+                },
+                "---",
+                makeLabel("Inside Functions & Methods"),
+                {
+                    ...dogeiscutObjectStub.Block,
+                    opcode: "allFunctionArgs",
+                    text: "function arguments",
+                    canDragDuplicate: true,
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "functionArg",
+                    text: "function arg [NAME]",
+                    arguments: {
+                        NAME: commonArguments.argumentName,
+                    },
+                    canDragDuplicate: true,
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "return",
+                    text: "return [VALUE]",
+                    isTerminal: true,
+                    arguments: {
+                        VALUE: commonArguments.allowAnything,
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "transferFunctionArgsToTempVars",
+                    text: "transfer arguments to temporary variables",
+                },
+                { // BUTTON
+                    opcode: "addTempVars",
+                    text: "add temporary variables extension",
+                    blockType: BlockType.BUTTON,
+                },
+                "---",
+                makeLabel("Call Functions"),
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "callFunction",
+                    text: "call function [FUNC] with positional args [POSARGS]",
+                    arguments: {
+                        FUNC: gceFunction.ArgumentFunctionOrVarName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                "---",
+                "---",
+                makeLabel("Utilities"),
                 {
                     ...commonBlocks.returnString,
                     opcode: "objectAsString",
@@ -1440,8 +1562,6 @@ class GCEClassBlocks {
                         VALUE: commonArguments.allowAnything,
                     }
                 },
-                "---",
-                makeLabel("Miscellaneous"),
                 {
                     ...commonBlocks.returnString,
                     opcode: "typeof",
@@ -1471,129 +1591,6 @@ class GCEClassBlocks {
                     arguments: {
                         EXPR: commonArguments.allowAnything,
                     },
-                },
-                "---",
-                makeLabel("Class Variables and Static Methods"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "setClassVariable",
-                    text: "on [CLASS] set class variable [NAME] to [VALUE]",
-                    arguments: {
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                        NAME: commonArguments.classVariableName,
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteClassVariable",
-                    text: "on [CLASS] delete class variable [NAME]",
-                    arguments: {
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                        NAME: commonArguments.classVariableName,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "getClassVariable",
-                    text: "get class variable [NAME] of [CLASS]",
-                    arguments: {
-                        NAME: commonArguments.classVariableName,
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                    },
-                },
-                "---",
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "defineStaticMethod",
-                    text: ["define static method [NAME]"],
-                    arguments: {
-                        NAME: commonArguments.methodName,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "callStaticMethod",
-                    text: "on [CLASS] call static method [NAME] with positional args [POSARGS]",
-                    arguments: {
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                        NAME: commonArguments.methodName,
-                        POSARGS: jwArrayStub.Argument,
-                    },
-                },
-                {
-                    ...gceFunction.Block,
-                    opcode: "getStaticMethodFunc",
-                    text: "get static method [NAME] of [CLASS] as function",
-                    arguments: {
-                        NAME: commonArguments.methodName,
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                    },
-                },
-                {
-                    ...jwArrayStub.Block,
-                    opcode: "propertyNamesOfClass",
-                    text: "[PROPERTY] names of class [CLASS]",
-                    arguments: {
-                        PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
-                        CLASS: gceClass.ArgumentClassOrVarName,
-                    },
-                },
-                "---",
-                makeLabel("Getters and Setters"),
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "defineGetter",
-                    text: ["define getter [NAME]"],
-                    arguments: {
-                        NAME: commonArguments.attributeName,
-                    },
-                },
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "defineSetter",
-                    text: ["define setter [NAME] [SHADOW]"],
-                    arguments: {
-                        NAME: commonArguments.attributeName,
-                        SHADOW: {fillIn: "defineSetterValue"},
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "defineSetterValue",
-                    text: "value",
-                    hideFromPalette: true,
-                    canDragDuplicate: true,
-                },
-                "---",
-                makeLabel("Operator Methods"),
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "defineOperatorMethod",
-                    text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
-                    arguments: {
-                        OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
-                        SHADOW: {fillIn: "operatorOtherValue"},
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "operatorOtherValue",
-                    text: "other value",
-                    hideFromPalette: true,
-                    canDragDuplicate: true,
-                },
-                "---",
-                makeLabel("Debugging & Temporary"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "throw",
-                    text: "debugging: throw",
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "logThread",
-                    text: "debugging: log thread",
                 },
             ],
             menus: {
@@ -1735,43 +1732,58 @@ class GCEClassBlocks {
 
         return {
             ir: {
-                // Classes
+                // Define Classes
                 createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], [], true),
                 createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
                 createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], [], true),
                 createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
 
-                // Functions & Methods
-                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
-                return: createIRGenerator("stack", ["VALUE"], []),
-                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
-                transferFunctionArgsToTempVars: createIRGenerator("stack", []),
-                defineMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                // Define Instance Methods
+                defineInstanceMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
                 defineSpecialMethod: createIRGenerator("stack", ["SUBSTACK"], ["SPECIAL_METHOD"]),
                 callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], [], true),
                 callSuperInitMethod: createIRGenerator("stack", ["POSARGS"], [], true),
 
-                // Instances
-                createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], [], true),
-                setAttribute: createIRGenerator("stack", ["INSTANCE", "NAME", "VALUE"], [], true),
-                getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], [], true),
-                callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], [], true),
-                objectAsString: createIRGenerator("input", ["VALUE"], [], true),
-
-                // Class Variables and Static Methods
-                defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], [], true),
-
-                // Getters and Setters
+                // Define Getters & Setters
                 defineGetter: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
                 defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                
-                // Operator Methods
+
+                // Define Operator Methods
                 defineOperatorMethod: createIRGenerator("stack", ["SUBSTACK"], ["OPERATOR_KIND"]),
+
+                // Define Static Methods & Class Variables
+                defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                
+
+                // Create & Inspect
+                createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], [], true),
+
+                // Attributes
+                setAttribute: createIRGenerator("stack", ["INSTANCE", "NAME", "VALUE"], [], true),
+                getAttribute: createIRGenerator("input", ["INSTANCE", "NAME"], [], true),
+
+                // Call Methods
+                callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], [], true),
+                callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], [], true),
+
+
+                // Configure & Define
+                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
+
+                // Inside Functions & Methods
+                return: createIRGenerator("stack", ["VALUE"], []),
+                transferFunctionArgsToTempVars: createIRGenerator("stack", []),
+
+                // Call Functions
+                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
+
+
+                // Utilities
+                objectAsString: createIRGenerator("input", ["VALUE"], [], true),                
             },
             js: {
-                // Classes
+                // Define Classes
                 createClassAt: (node, compiler, imports) => {
                     const { setup, cleanup } = createClassCore(node, compiler, true)
                     compiler.source += setup
@@ -1799,7 +1811,91 @@ class GCEClassBlocks {
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
-                // Functions & Methods
+                // Define Instance Methods
+                defineInstanceMethod: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
+                },
+                defineSpecialMethod: (node, compiler, imports) => {
+                    const nameCode = quote(node.specialMethod)
+                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
+                },
+                callSuperMethod: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
+                        `(yield* thread.gceEnv.getSelfOrThrow().executeSuperMethod(thread, ${nameCode}, ${posArgsCode})))`
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                callSuperInitMethod: (node, compiler, imports) => {
+                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
+                        `yield* thread.gceEnv.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode});\n`
+                },
+
+                // Define Getters & Setters
+                defineGetter: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "getter method", true)
+                },
+                defineSetter: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
+                },
+                
+                // Define Operator Methods
+                defineOperatorMethod: (node, compiler, imports) => {
+                    createMethodDefinition(node, compiler, imports, quote(node.operatorKind), "OperatorMethodType", "operator method", true)
+                },
+
+                // Define Static Methods & Class Variables
+                defineStaticMethod: (node, compiler, imports) => {
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    createMethodDefinition(node, compiler, imports, nameCode, "FunctionType", "static method", false)
+                },
+
+
+                // Create & Inspect
+                createInstance: (node, compiler, imports) => {
+                    const classCode = compiler.descendInput(node.cls).asUnknown()
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+
+                // Attributes
+                setAttribute: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const valueCode = compiler.descendInput(node.value).asUnknown()
+                    compiler.source += createCallCode("toClassInstance", instanceCode, "setAttribute", nameCode, valueCode) + ";\n"
+                },
+                getAttribute: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const generatedCode = createCallCode("toClassInstance", instanceCode, "getAttribute", nameCode) 
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+
+                // Call Methods
+                callMethod: (node, compiler, imports) => {
+                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = createCallCode("toClassInstance", instanceCode, "executeInstanceMethod", nameCode, posArgsCode)
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                callStaticMethod: (node, compiler, imports) => {
+                    const classCode = compiler.descendInput(node.cls).asUnknown()
+                    const nameCode = compiler.descendInput(node.name).asString()
+                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
+                    const generatedCode = createCallCode("toClass", classCode, "executeStaticMethod", nameCode, posArgsCode)
+                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+
+
+                // Configure & Define
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
@@ -1824,6 +1920,8 @@ class GCEClassBlocks {
                         "}, thread.gceEnv.getAndResetNextFuncConfig()))"
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
+
+                // Inside Functions & Methods
                 return: (node, compiler, imports) => {
                     const returnValueLocal = compiler.localVariables.next()
                     // We need to cache the return value before exiting context, as it might depend on it
@@ -1832,98 +1930,27 @@ class GCEClassBlocks {
                         "thread.gceEnv.prepareReturn();" +
                         `return ${returnValueLocal};\n`
                 },
-                callFunction: (node, compiler, imports) => {
-                    const funcCode = compiler.descendInput(node.func).asUnknown()
-                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    const generatedCode = createCallCode("toFunction", funcCode, "execute", posArgsCode)
-                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
                 transferFunctionArgsToTempVars: (node, compiler, imports) => {
                     // tempVars seems to always be defined
                     compiler.source += 'try {tempVars} catch {throw new Error("Failed to transfer to temporary variables.")};' +
                         `thread.gceEnv ??= new ${ENV_MANAGER};` +
                         "Object.assign(tempVars, thread.gceEnv.getArgsOrThrow());\n"
                 },
-                defineMethod: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
-                },
-                defineSpecialMethod: (node, compiler, imports) => {
-                    const nameCode = quote(node.specialMethod)
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
-                },
-                callSuperMethod: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
+
+                // Call Functions
+                callFunction: (node, compiler, imports) => {
+                    const funcCode = compiler.descendInput(node.func).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    const generatedCode = `(thread.gceEnv ??= new ${ENV_MANAGER}, ` +
-                        `(yield* thread.gceEnv.getSelfOrThrow().executeSuperMethod(thread, ${nameCode}, ${posArgsCode})))`
+                    const generatedCode = createCallCode("toFunction", funcCode, "execute", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
-                callSuperInitMethod: (node, compiler, imports) => {
-                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
-                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
-                        `yield* thread.gceEnv.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode});\n`
                 },
 
-                // Instances
-                createInstance: (node, compiler, imports) => {
-                    const classCode = compiler.descendInput(node.cls).asUnknown()
-                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
-                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
-                setAttribute: (node, compiler, imports) => {
-                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const valueCode = compiler.descendInput(node.value).asUnknown()
-                    compiler.source += createCallCode("toClassInstance", instanceCode, "setAttribute", nameCode, valueCode) + ";\n"
-                },
-                getAttribute: (node, compiler, imports) => {
-                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const generatedCode = createCallCode("toClassInstance", instanceCode, "getAttribute", nameCode) 
-                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
-                callMethod: (node, compiler, imports) => {
-                    const instanceCode = compiler.descendInput(node.instance).asUnknown()
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClassInstance", instanceCode, "executeInstanceMethod", nameCode, posArgsCode)
-                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
+
+                // Utilities
                 objectAsString: (node, compiler, imports) => {
                     const objectCode = compiler.descendInput(node.value).asUnknown()
                     const generatedCode = `(yield* ${EXTENSION_PREFIX}._objectAsString(${objectCode}, thread))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
-
-                // Class Variables and Static Methods
-                defineStaticMethod: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "FunctionType", "static method", false)
-                },
-                callStaticMethod: (node, compiler, imports) => {
-                    const classCode = compiler.descendInput(node.cls).asUnknown()
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.posArgs).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", classCode, "executeStaticMethod", nameCode, posArgsCode)
-                    return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
-                },
-
-                // Getters and Setters
-                defineGetter: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "getter method", true)
-                },
-                defineSetter: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
-                },
-                
-                // Operator Methods
-                defineOperatorMethod: (node, compiler, imports) => {
-                    createMethodDefinition(node, compiler, imports, quote(node.operatorKind), "OperatorMethodType", "operator method", true)
                 },
             },
         }
@@ -1963,7 +1990,20 @@ class GCEClassBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
-    // Blocks: Classes
+    /********** Define Classes **********/
+    // Define Classes
+    // Define Instance Methods
+    // Define Getters & Setters
+    // Define Operator Methods
+    // Define Static Methods & Class Variables
+    /********** Working with Instances **********/
+    // left off here
+
+    
+    // Define Instance Methods
+
+    
+    // Define Getters & Setters
 
     createClassAt = this._isACompiledBlock
     createSubclassAt = this._isACompiledBlock
@@ -2056,7 +2096,7 @@ class GCEClassBlocks {
     }
 
     transferFunctionArgsToTempVars = this._isACompiledBlock
-    defineMethod = this._isACompiledBlock
+    defineInstanceMethod = this._isACompiledBlock
     defineSpecialMethod = this._isACompiledBlock
     
     self(args, util) {
@@ -2210,16 +2250,6 @@ class GCEClassBlocks {
         return util.thread.gceEnv.getOtherValueOrThrow()
     }
     
-    // Blocks: Temporary
-
-    throw () {
-        throw new Error("BREAK")
-    }
-
-    logThread(args, util) {
-        console.log("logging thread", util.thread)
-    }
-    
     /************************************************************************************
     *                            Implementation of Operators                            *
     ************************************************************************************/
@@ -2348,6 +2378,8 @@ Scratch.extensions.register(extensionClassInstance)
  * - reconsider .environment
  * - inline todos
  * - redo logo, possibly create banner
+ * - class and function variable stuff
+ * - add this cls block in class def or on class
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
