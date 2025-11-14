@@ -1988,31 +1988,16 @@ class GCEClassBlocks {
     
     /************************************************************************************
     *                                       Blocks                                      *
-    ************************************************************************************/
+    **********************************************************************************************/
 
-    /********** Classes **********/
+    /******************** Classes ********************/
+
     // Define Classes
-    // Use Classes
-    
-    /********** Class Members **********/
-    // Define Instance Methods
-    // Define Getters & Setters
-    // Define Operator Methods
-    // Define Static Methods & Class Variables
-    /********** Working with Instances **********/
-    // left off here
-
-    
-    // Define Instance Methods
-
-    
-    // Define Getters & Setters
-
     createClassAt = this._isACompiledBlock
     createSubclassAt = this._isACompiledBlock
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
-    
+
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS)
         util.thread.gceEnv ??= new ThreadEnvManager()
@@ -2027,42 +2012,132 @@ class GCEClassBlocks {
         const cls = Cast.toClass(args.CLASS)
         this.classVars.set(name, cls)
     }
-    
+
+    // Use Classes
     getClass(args, util) {
         const name = Cast.toString(args.NAME)
         return this.classVars.get(name)
     }
-
     classExists(args, util) {
         const name = Cast.toString(args.NAME)
         return Cast.toBoolean(this.classVars.has(name))
     }
-
     allClasses(args, util) {
         return Cast.toArray(this.classVars.getNames())
     }
-    
     deleteClass(args, util) {
         this.classVars.delete(Cast.toString(args.NAME))
     }
-    
     deleteAllClasses(args, util) {
         this.classVars.reset()
     }
-
     isSubclass(args, util) {
         const subCls = Cast.toClass(args.SUBCLASS)
         const superCls = Cast.toClass(args.SUPERCLASS)
         return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
-
     getSuperclass(args, util) {
         const cls = Cast.toClass(args.CLASS)
         return cls.superCls ?? Nothing
     }
+    
+    /******************** Class Members ********************/
 
-    // Blocks: Functions & Methods
+    // Define Instance Methods
+    defineInstanceMethod = this._isACompiledBlock
+    defineSpecialMethod = this._isACompiledBlock
+    self(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getSelfOrThrow()
+    }
+    callSuperMethod = this._isACompiledBlock
+    callSuperInitMethod = this._isACompiledBlock
 
+    // Define Getters & Setters
+    defineGetter = this._isACompiledBlock
+    defineSetter = this._isACompiledBlock
+    defineSetterValue(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getSetterValueOrThrow()
+    }
+
+    // Define Operator Methods
+    defineOperatorMethod = this._isACompiledBlock
+    operatorOtherValue(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getOtherValueOrThrow()
+    }
+
+    // Define Static Methods & Class Variables
+    setClassVariable(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        const value = args.VALUE
+        cls.variables[name] = value
+    }
+    getClassVariable(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        return cls.getClassVariable(name)
+    }
+    deleteClassVariable(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        delete cls.variables[name]
+    }
+    defineStaticMethod = this._isACompiledBlock
+    propertyNamesOfClass(args, util) {
+        const property = args.PROPERTY
+        const cls = Cast.toClass(args.CLASS)
+        const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
+        let values = []
+        if (property === "instance method") values = instanceMethods
+        else if (property === "static method") values = staticMethods
+        else if (property === "getter method") values = getterMethods
+        else if (property === "setter method") values = setterMethods
+        else if (property === "operator method") values = operatorMethods
+        else if (property === "class variable") values = classVariables
+        let names = Object.keys(values)
+        if (property === "operator method") {
+            names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
+        }
+        return Cast.toArray(names)
+    }
+
+    /******************** Working with Instances ********************/
+
+    // Create & Inspect
+    createInstance = this._isACompiledBlock
+    isInstance(args, util) {
+        const instance = Cast.toClassInstance(args.INSTANCE)
+        const cls = Cast.toClass(args.CLASS)
+        return Cast.toBoolean(instance.cls.isSubclassOf(cls))
+    }
+    getClassOfInstance(args, util) {
+        const instance = Cast.toClassInstance(args.INSTANCE)
+        return instance.cls
+    }
+
+    // Attributes
+    setAttribute = this._isACompiledBlock
+    getAttribute = this._isACompiledBlock
+    getAllAttributes(args, util) {
+        const instance = Cast.toClassInstance(args.INSTANCE)
+        return Cast.toObject(instance.attributes)
+    }
+
+    // Call Methods
+    callMethod = this._isACompiledBlock
+    callStaticMethod = this._isACompiledBlock
+    getStaticMethodFunc(args, util) {
+        const cls = Cast.toClass(args.CLASS)
+        const name = Cast.toString(args.NAME)
+        return cls.getStaticMethod(name)
+    }
+
+    /******************** Functions ********************/
+
+    // Before Functions & Methods
     configureNextFunctionArgs(args, util) {
         const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
         const argDefaults = Cast.toArray(args.ARGDEFAULTS).array.map(val => Cast.toString(val))
@@ -2073,14 +2148,15 @@ class GCEClassBlocks {
         util.thread.gceEnv.setNextFuncConfig({argNames, argDefaults})
     }
 
+    // Configure & Define
     createFunctionAt = this._isACompiledBlock
     createFunctionNamed = this._isACompiledBlock
 
+    // Inside Functions & Methods
     allFunctionArgs(blockArgs, util) {
         util.thread.gceEnv ??= new ThreadEnvManager()
         return Cast.toObject(util.thread.gceEnv.getArgsOrThrow())
     }
-
     functionArg(blockArgs, util) {
         util.thread.gceEnv ??= new ThreadEnvManager()
         const args = util.thread.gceEnv.getArgsOrThrow()
@@ -2088,56 +2164,19 @@ class GCEClassBlocks {
         if (!(name in args)) throw new Error(`Undefined function argument ${quote(name)}.`)
         return args[name]
     }
-
     return = this._isACompiledBlock
-    callFunction = this._isACompiledBlock
-
+    transferFunctionArgsToTempVars = this._isACompiledBlock
     addTempVars() { // BUTTON
         if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
             Scratch.vm.extensionManager.loadExtensionIdSync("tempVars")
         }
     }
 
-    transferFunctionArgsToTempVars = this._isACompiledBlock
-    defineInstanceMethod = this._isACompiledBlock
-    defineSpecialMethod = this._isACompiledBlock
-    
-    self(args, util) {
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        return util.thread.gceEnv.getSelfOrThrow()
-    }
+    // Use Functions
+    callFunction = this._isACompiledBlock
 
-    callSuperMethod = this._isACompiledBlock
-    callSuperInitMethod = this._isACompiledBlock
-
-    // Block: Instances
-
-    createInstance = this._isACompiledBlock
-    setAttribute = this._isACompiledBlock
-    
-    getAllAttributes(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        return Cast.toObject(instance.attributes)
-    }
-    
-    getAttribute = this._isACompiledBlock
-    callMethod = this._isACompiledBlock
-
-    isInstance(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        const cls = Cast.toClass(args.CLASS)
-        return Cast.toBoolean(instance.cls.isSubclassOf(cls))
-    }
-
-    getClassOfInstance(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        return instance.cls
-    }
-
+    /******************** Utilities ********************/
     objectAsString = this._isACompiledBlock
-    
-    // Blocks: Miscellaneous
-
     typeof(args, util) {
         const value = args.VALUE
         // My Types
@@ -2173,89 +2212,19 @@ class GCEClassBlocks {
 
         return "Unknown"
     }
-    
-    nothing(args, util) {
-        return Nothing
-    }
-
     checkIdentity(args, util) {
         return Cast.toBoolean(Object.is(args.VALUE1, args.VALUE2))
     }
-
+    nothing(args, util) {
+        return Nothing
+    }
     executeExpression(args, util) {
         // do nothing
-    }
-
-    // Blocks: Class Variables and Static Methods
-
-    setClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
-        const name = Cast.toString(args.NAME)
-        const value = args.VALUE
-        cls.variables[name] = value
-    }
-
-    deleteClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
-        const name = Cast.toString(args.NAME)
-        delete cls.variables[name]
-    }
-
-    getClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
-        const name = Cast.toString(args.NAME)
-        return cls.getClassVariable(name)
-    }
-
-    defineStaticMethod = this._isACompiledBlock
-    callStaticMethod = this._isACompiledBlock
-
-    getStaticMethodFunc(args, util) {
-        const cls = Cast.toClass(args.CLASS)
-        const name = Cast.toString(args.NAME)
-        return cls.getStaticMethod(name)
-    }
-
-    propertyNamesOfClass(args, util) {
-        const property = args.PROPERTY
-        const cls = Cast.toClass(args.CLASS)
-        const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
-        let values = []
-        if (property === "instance method") values = instanceMethods
-        else if (property === "static method") values = staticMethods
-        else if (property === "getter method") values = getterMethods
-        else if (property === "setter method") values = setterMethods
-        else if (property === "operator method") values = operatorMethods
-        else if (property === "class variable") values = classVariables
-        let names = Object.keys(values)
-        if (property === "operator method") {
-            names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
-        }
-        return Cast.toArray(names)
-    }
-
-    // Blocks: Getters and Setters
-    
-    defineGetter = this._isACompiledBlock
-    defineSetter = this._isACompiledBlock
-
-    defineSetterValue(args, util) {
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        return util.thread.gceEnv.getSetterValueOrThrow()
-    }
-
-    // Blocks: Operator Methods
-    
-    defineOperatorMethod = this._isACompiledBlock
-    
-    operatorOtherValue(args, util) {
-        util.thread.gceEnv ??= new ThreadEnvManager()
-        return util.thread.gceEnv.getOtherValueOrThrow()
     }
     
     /************************************************************************************
     *                            Implementation of Operators                            *
-    ************************************************************************************/
+    **********************************************************************************************/
     /**
      * @param {any} object
      * @param {Thread} thread
@@ -2323,7 +2292,7 @@ class GCEClassBlocks {
     
     /************************************************************************************
     *                                      Helpers                                      *
-    ************************************************************************************/
+    **********************************************************************************************/
 
     _isACompiledBlock() {
         throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
