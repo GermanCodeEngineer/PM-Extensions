@@ -1990,11 +1990,8 @@ class GCEClassBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
-    /********** Classes **********/
+    /********** Define Classes **********/
     // Define Classes
-    // Use Classes
-    
-    /********** Class Members **********/
     // Define Instance Methods
     // Define Getters & Setters
     // Define Operator Methods
