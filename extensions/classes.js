@@ -24,42 +24,6 @@ if (!Scratch.extensions.unsandboxed) {
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
-const CUSTOM_SHAPE_ALT = {
-    emptyInputPath: "m 36 0 a 4 4 0 0 1 4 4 a 4 4 0 0 0 4 4 a 4 4 0 0 1 4 4 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 a 4 4 0 0 0 -4 4 a 4 4 0 0 1 -4 4 h -12 h -12 a 4 4 0 0 1 -4 -4 a 4 4 0 0 0 -4 -4 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 a 4 4 0 0 0 4 -4 a 4 4 0 0 1 4 -4 h 12 h 12 z",
-    emptyInputWidth: 16 * ScratchBlocks.BlockSvg.GRID_UNIT,
-    leftPath: (block) => {
-        const edgeWidth = block.height / 2
-        const s = edgeWidth / 16
-        return [
-            `h ${-12*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 0 ${-4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
-            `l ${4*s} ${-4*s} `+
-            `l ${-4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 0 ${4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s} `
-        ]
-    },
-    rightPath: (block) => {
-        const edgeWidth = block.edgeShapeWidth_
-        const s = edgeWidth / 16
-        return [
-            `h ${12*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 0 ${4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s} `+
-            `l ${-4*s} ${4*s} `+
-            `l ${4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 0 ${-4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s} `+
-            `h ${-12*s}`
-        ]
-    },
-}
-
 const CUSTOM_SHAPE = {
     emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
     emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
@@ -325,10 +289,10 @@ class ThreadEnvManager {
         }
         return env.other
     }
-    getClsOrThrow() {
+    getClsOrThrow(blockText) {
         const topEnv = this.environments[0]
         if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_CTX)) {
-            throw new Error("define method can only be used within a class definition or on class block.")
+            throw new Error(`${blockText} can only be used within a class definition or on class block.`)
         }
         return topEnv.cls
     }
@@ -743,7 +707,7 @@ class ClassType extends CustomType {
     getMemberOfType(name, expectedMemberType) {
         const {type, value} = this.getMember(name, true, expectedMemberType === "setter method")
         if (!type) throw new Error(`Undefined ${expectedMemberType} ${quote(name)}.`)
-        if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a/n ${expectedMemberType} but a/n ${type}.`)
+        if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a ${expectedMemberType} but a ${type}.`)
         return value
     }
 
@@ -1120,59 +1084,64 @@ class GCEClassBlocks {
             id: "gceClassesOOP",
             name: "Classes",
             color1: "#428af5ff",
-            menuIconURI: "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6L"+
-            "y93d3cudzMub3JnLzE5OTkveGxpbmsiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyNC4xNjc5MiIgdmlld0JveD0iMCwwLDIwLDI0LjE2NzkyIj48ZyB0cmFuc2Zvcm09InRyYW5zbGF0Z"+
-            "SgtMjMwLC0xNjcuMzIwODgpIj48ZyBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiPjxwYXRoIGQ9Ik0yMzEsMTgwYzAsLTQuOTcwNTYgNC4wMjk0NCwtOSA5LC05YzQuOTcwNTYsMCA5L"+
-            "DQuMDI5NDQgOSw5YzAsNC45NzA1NiAtNC4wMjk0NCw5IC05LDljLTQuOTcwNTYsMCAtOSwtNC4wMjk0NCAtOSwtOXoiIGZpbGw9IiM0MjhhZjUiIHN0cm9rZT0iIzJiNTg5ZCIgc"+
-            "3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjMyLjc1MTAyLDE4Ni4wOTQxNykgc2NhbGUoMC4yNTgxNiwwLjQzMTU3KSIgZm9udC1zaXplPSI0M"+
-            "CIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEiIGZvbnQtZmFtaWx5PSJTYW5zIFNlcmlmIiBmb250L"+
-            "XdlaWdodD0ibm9ybWFsIiB0ZXh0LWFuY2hvcj0ic3RhcnQiPjx0c3BhbiB4PSIwIiBkeT0iMCI+Jmx0OyAmZ3Q7PC90c3Bhbj48L3RleHQ+PC9nPjwvZz48L3N2Zz48IS0tcm90Y"+
-            "XRpb25DZW50ZXI6MTA6MTIuNjc5MTI0MjQ5Mjk4MDQyLS0+",
+            menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgdmlld0JveD0iMCAwIDIwIDIwIgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcxIgogICBzb2RpcG9kaTpkb2NuYW1lPSJvYmplY3RzLnN2ZyIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4zICgwZTE1MGVkNmM0LCAyMDIzLTA3LTIxKSIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzMSIgLz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9Im5hbWVkdmlldzEiCiAgICAgcGFnZWNvbG9yPSIjNTA1MDUwIgogICAgIGJvcmRlcmNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcm9wYWNpdHk9IjEiCiAgICAgaW5rc2NhcGU6c2hvd3BhZ2VzaGFkb3c9IjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMSIKICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiM1MDUwNTAiCiAgICAgaW5rc2NhcGU6em9vbT0iNDIuMjQ0MTA1IgogICAgIGlua3NjYXBlOmN4PSI3Ljc3NjIzMyIKICAgICBpbmtzY2FwZTpjeT0iOS43NzY1MTIxIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMjU2MCIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMzg3IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIxOTEyIgogICAgIGlua3NjYXBlOndpbmRvdy15PSItOCIKICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzEiIC8+CiAgPGNpcmNsZQogICAgIHN0eWxlPSJzdHJva2Utd2lkdGg6MnB4O3BhaW50LW9yZGVyOnN0cm9rZTtmaWxsOiM0MjhhZjVmZjtzdHJva2U6IzJkNWZhODtmaWxsLW9wYWNpdHk6MTtzdHJva2Utb3BhY2l0eToxIgogICAgIGN4PSIxMCIKICAgICBjeT0iMTAiCiAgICAgcj0iOSIKICAgICBpZD0iY2lyY2xlMSIgLz4KICA8cGF0aAogICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6IG0gMTMsMCAtNC41LC01LjUgLTEuMiwwLjYgMy43LDQuOSAtMy43LDQuOSAxLjIsMC42IHoiCiAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIKICAgICBpZD0iYW5nbGUtYnJhY2tldHMiIC8+Cjwvc3ZnPgo=",
             blocks: [
                 makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
-                    text: ["create class at [NAME]"],
+                    text: ["create class at [NAME] [SHADOW]"],
                     arguments: {
                         NAME: commonArguments.classVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
-                    text: ["create subclass at [NAME] with superclass [SUPERCLASS]"],
+                    text: ["create subclass at [NAME] with superclass [SUPERCLASS] [SHADOW]"],
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
                 {
                     ...gceClass.Block,
                     opcode: "createClassNamed",
-                    text: ["create class named [NAME]"],
+                    text: ["create class named [NAME] [SHADOW]"],
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
                 {
                     ...gceClass.Block,
                     opcode: "createSubclassNamed",
-                    text: ["create subclass named [NAME] with superclass [SUPERCLASS]"],
+                    text: ["create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]"],
                     branchCount: 1,
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },                
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
-                    text: ["on class [CLASS]"],
+                    text: ["on class [CLASS] [SHADOW]"],
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
                     },
+                },
+                {
+                    ...gceClassInstance.Block,
+                    opcode: "classBeingCreated",
+                    text: "class being created",
+                    canDragDuplicate: true,
+                    hideFromPalette: true,
                 },
                 {
                     ...commonBlocks.command,
@@ -1473,7 +1442,7 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Functions"),
                 "---",
-                makeLabel("Before Functions & Methods"),
+                makeLabel("Configure Before Define"),
                 {
                     ...commonBlocks.command,
                     opcode: "configureNextFunctionArgs",
@@ -1484,7 +1453,7 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                makeLabel("Configure & Define"),
+                makeLabel("Define"),
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createFunctionAt",
@@ -1550,6 +1519,40 @@ class GCEClassBlocks {
                         FUNC: gceFunction.ArgumentFunctionOrVarName,
                         POSARGS: jwArrayStub.Argument,
                     },
+                },
+                {
+                    ...gceFunction.Block,
+                    opcode: "getFunction",
+                    text: "get function [NAME]",
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...commonBlocks.returnsBoolean,
+                    opcode: "functionExists",
+                    text: "function [NAME] exists?",
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...jwArrayStub.Block,
+                    opcode: "allFunctions",
+                    text: "all functions",
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "deleteFunction",
+                    text: "delete function [NAME]",
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "deleteAllFunctions",
+                    text: "delete all functions",
                 },
                 "---",
                 "---",
@@ -1704,7 +1707,7 @@ class GCEClassBlocks {
             
             compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
                 `const ${nameLocal} = ${nameCode};` +
-                `thread.gceEnv.getClsOrThrow().setMember(${nameLocal}, ${quote(memberType)}, `+
+                `thread.gceEnv.getClsOrThrow("define method").setMember(${nameLocal}, ${quote(memberType)}, `+
                 `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             addSubstackCode(compiler, node.substack, imports)
             compiler.source += "thread.gceEnv.prepareReturn();" + 
@@ -1767,7 +1770,7 @@ class GCEClassBlocks {
                 callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], [], true),
 
 
-                // Configure & Define
+                // Define
                 createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
                 createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
 
@@ -1895,7 +1898,7 @@ class GCEClassBlocks {
                 },
 
 
-                // Configure & Define
+                // Define
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
                     const nameLocal = compiler.localVariables.next()
@@ -1988,7 +1991,7 @@ class GCEClassBlocks {
     
     /************************************************************************************
     *                                       Blocks                                      *
-    **********************************************************************************************/
+    ************************************************************************************/
 
     /******************** Classes ********************/
 
@@ -1997,7 +2000,6 @@ class GCEClassBlocks {
     createSubclassAt = this._isACompiledBlock
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
-
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS)
         util.thread.gceEnv ??= new ThreadEnvManager()
@@ -2006,7 +2008,10 @@ class GCEClassBlocks {
             util.thread.gceEnv.exitClassContext()
         })
     }
-    
+    classBeingCreated(args, util) {
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getClsOrThrow("class being created")
+    }
     setClass(args, util) {
         const name = Cast.toString(args.NAME)
         const cls = Cast.toClass(args.CLASS)
@@ -2137,7 +2142,7 @@ class GCEClassBlocks {
 
     /******************** Functions ********************/
 
-    // Before Functions & Methods
+    // Configure Before Define
     configureNextFunctionArgs(args, util) {
         const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
         const argDefaults = Cast.toArray(args.ARGDEFAULTS).array.map(val => Cast.toString(val))
@@ -2148,7 +2153,7 @@ class GCEClassBlocks {
         util.thread.gceEnv.setNextFuncConfig({argNames, argDefaults})
     }
 
-    // Configure & Define
+    // Define
     createFunctionAt = this._isACompiledBlock
     createFunctionNamed = this._isACompiledBlock
 
@@ -2174,6 +2179,23 @@ class GCEClassBlocks {
 
     // Use Functions
     callFunction = this._isACompiledBlock
+    getFunction(args, util) {
+        const name = Cast.toString(args.NAME)
+        return this.funcVars.get(name)
+    }
+    functionExists(args, util) {
+        const name = Cast.toString(args.NAME)
+        return Cast.toBoolean(this.funcVars.has(name))
+    }
+    allFunctions(args, util) {
+        return Cast.toArray(this.funcVars.getNames())
+    }
+    deleteFunction(args, util) {
+        this.funcVars.delete(Cast.toString(args.NAME))
+    }
+    deleteAllFunctions(args, util) {
+        this.funcVars.reset()
+    }
 
     /******************** Utilities ********************/
     objectAsString = this._isACompiledBlock
@@ -2224,7 +2246,7 @@ class GCEClassBlocks {
     
     /************************************************************************************
     *                            Implementation of Operators                            *
-    **********************************************************************************************/
+    ************************************************************************************/
     /**
      * @param {any} object
      * @param {Thread} thread
@@ -2292,7 +2314,7 @@ class GCEClassBlocks {
     
     /************************************************************************************
     *                                      Helpers                                      *
-    **********************************************************************************************/
+    ************************************************************************************/
 
     _isACompiledBlock() {
         throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
@@ -2347,11 +2369,9 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 /**
  * TODOS:
- * - reconsider .environment
- * - inline todos
  * - redo logo, possibly create banner
- * - class and function variable stuff
- * - add this cls block in class def or on class
+ * - create docs(e.g. members or configure args)
+ * - inline todos
  * 
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
