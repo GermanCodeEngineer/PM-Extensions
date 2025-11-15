@@ -830,7 +830,7 @@ class ClassInstanceType extends CustomType {
     toJSON() {
         return "Class Instances can not be serialized."
     }
-    // TODO: possibly define toReporterContent for better visualization
+    // OPTIONAL FUTURE TODO: define toReporterContent for better visualization
 
     /**
      * @param {Thread} thread
@@ -1084,7 +1084,7 @@ class GCEClassBlocks {
             id: "gceClassesOOP",
             name: "Classes",
             color1: "#428af5ff",
-            menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgdmlld0JveD0iMCAwIDIwIDIwIgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcxIgogICBzb2RpcG9kaTpkb2NuYW1lPSJvYmplY3RzLnN2ZyIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4zICgwZTE1MGVkNmM0LCAyMDIzLTA3LTIxKSIKICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzMSIgLz4KICA8c29kaXBvZGk6bmFtZWR2aWV3CiAgICAgaWQ9Im5hbWVkdmlldzEiCiAgICAgcGFnZWNvbG9yPSIjNTA1MDUwIgogICAgIGJvcmRlcmNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcm9wYWNpdHk9IjEiCiAgICAgaW5rc2NhcGU6c2hvd3BhZ2VzaGFkb3c9IjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMSIKICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiM1MDUwNTAiCiAgICAgaW5rc2NhcGU6em9vbT0iNDIuMjQ0MTA1IgogICAgIGlua3NjYXBlOmN4PSI3Ljc3NjIzMyIKICAgICBpbmtzY2FwZTpjeT0iOS43NzY1MTIxIgogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMjU2MCIKICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSIxMzg3IgogICAgIGlua3NjYXBlOndpbmRvdy14PSIxOTEyIgogICAgIGlua3NjYXBlOndpbmRvdy15PSItOCIKICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzEiIC8+CiAgPGNpcmNsZQogICAgIHN0eWxlPSJzdHJva2Utd2lkdGg6MnB4O3BhaW50LW9yZGVyOnN0cm9rZTtmaWxsOiM0MjhhZjVmZjtzdHJva2U6IzJkNWZhODtmaWxsLW9wYWNpdHk6MTtzdHJva2Utb3BhY2l0eToxIgogICAgIGN4PSIxMCIKICAgICBjeT0iMTAiCiAgICAgcj0iOSIKICAgICBpZD0iY2lyY2xlMSIgLz4KICA8cGF0aAogICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6IG0gMTMsMCAtNC41LC01LjUgLTEuMiwwLjYgMy43LDQuOSAtMy43LDQuOSAxLjIsMC42IHoiCiAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIKICAgICBpZD0iYW5nbGUtYnJhY2tldHMiIC8+Cjwvc3ZnPgo=",
+            menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
                 makeLabel("Define Classes"),
                 {
@@ -2103,7 +2103,14 @@ class GCEClassBlocks {
         else if (property === "operator method") values = operatorMethods
         else if (property === "class variable") values = classVariables
         let names = Object.keys(values)
-        if (property === "operator method") {
+        if (property == "instance method") {
+            let index
+            index = names.indexOf(CONFIG.INIT_METHOD_NAME)
+            if (index !== 1) names[index] = "[special] init"
+            index = names.indexOf(CONFIG.AS_STRING_METHOD_NAME)
+            if (index !== 1) names[index] = "[special] as string"
+        }
+        else if (property === "operator method") {
             names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
         }
         return Cast.toArray(names)
@@ -2367,9 +2374,10 @@ class GCEClassBlocks {
 const extensionClassInstance = new GCEClassBlocks()
 Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
+
 /**
  * TODOS:
- * - redo logo, possibly create banner
+ * - make as string work for arrays, objects too
  * - create docs(e.g. members or configure args)
  * - inline todos
  * 
