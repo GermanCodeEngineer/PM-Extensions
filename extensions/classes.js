@@ -509,16 +509,13 @@ class CustomType {
     }
 
     // Prevent dogeiscut rendering my custom types as objects
-    dogeiscutObjectHandler(expectsPlainString, context) {
-        // About args see https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/pull/412 
-        if (expectsPlainString) return this.toString()
-        else return span(this.toString()).outerHTML
+    dogeiscutObjectHandler() {
+        return span(this.toString()).outerHTML
     }
 
     // Render my custom types fully, instead of "Object"
-    jwArrayHandler(expectsPlainString, context) {
-        if (expectsPlainString) return this.toString()
-        else return span(this.toString()).outerHTML
+    jwArrayHandler() {
+        return span(this.toString()).outerHTML
     }
 }
 
