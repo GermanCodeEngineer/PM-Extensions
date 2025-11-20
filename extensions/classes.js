@@ -24,6 +24,7 @@ if (!Scratch.extensions.unsandboxed) {
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
+try { // If ScratchBlocks is not avaliable, skip
 const CUSTOM_SHAPE = {
     emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
     emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
@@ -57,6 +58,7 @@ const CUSTOM_SHAPE = {
         ]
     },
 }
+} catch {const CUSTOM_SHAPE = null}
 
 
 /************************************************************************************
