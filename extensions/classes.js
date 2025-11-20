@@ -1557,7 +1557,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.returnString,
                     opcode: "objectAsString",
-                    text: "as string [VALUE]",
+                    text: "[VALUE] as string",
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     }
