@@ -24,10 +24,11 @@ if (!Scratch.extensions.unsandboxed) {
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
+let CUSTOM_SHAPE
 try { // If ScratchBlocks is not avaliable, skip
-const CUSTOM_SHAPE = {
+CUSTOM_SHAPE = {
     emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
-    emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+    emptyInputWidth: 10 * ScratchBlockse.BlockSvg.GRID_UNIT,
     leftPath: (block) => {
         const edgeWidth = block.height / 2
         const s = edgeWidth / 16
@@ -58,7 +59,7 @@ const CUSTOM_SHAPE = {
         ]
     },
 }
-} catch {const CUSTOM_SHAPE = null}
+} catch {CUSTOM_SHAPE = null}
 
 
 /************************************************************************************
@@ -991,14 +992,12 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: "gceClassesOOP-doublePlus",
-        //blockShape: BlockShape.PLUS,
+        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: "gceClassesOOP-doublePlus",
-        //shape: BlockShape.PLUS,
+        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1976,6 +1975,7 @@ class GCEClassBlocks {
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
+            console.log("adding", CUSTOM_SHAPE)
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
         })
         
