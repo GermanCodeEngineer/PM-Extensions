@@ -24,8 +24,9 @@ if (!Scratch.extensions.unsandboxed) {
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
+let CUSTOM_SHAPE
 try { // If ScratchBlocks is not avaliable, skip
-const CUSTOM_SHAPE = {
+CUSTOM_SHAPE = {
     emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
     emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
     leftPath: (block) => {
@@ -58,7 +59,9 @@ const CUSTOM_SHAPE = {
         ]
     },
 }
-} catch {const CUSTOM_SHAPE = null}
+} catch (error) {
+    console.error("[Classes Extension] failed to create custom shape", error)
+}
 
 
 /************************************************************************************
@@ -141,7 +144,7 @@ function applyHacks(Scratch) {
                     "less than": "greater than",
                     "less or equal": "greater or equal",
                 }[leftMethod]
-                // I can not really use optimizations here
+                // I cannot really use optimizations here
                 return new TypedInput(`(yield* runtime.ext_gceClassesOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
                     `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
         }
@@ -1136,7 +1139,7 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...gceClassInstance.Block,
+                    ...gceClass.Block,
                     opcode: "classBeingCreated",
                     text: "class being created",
                     canDragDuplicate: true,
