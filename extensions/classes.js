@@ -994,14 +994,12 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: "gceClassesOOP-doublePlus",
-        //blockShape: BlockShape.PLUS,
+        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: "gceClassesOOP-doublePlus",
-        //shape: BlockShape.PLUS,
+        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1979,6 +1977,7 @@ class GCEClassBlocks {
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
+            console.log("adding", CUSTOM_SHAPE)
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
         })
         
