@@ -60,7 +60,7 @@ CUSTOM_SHAPE = {
     },
 }
 } catch (error) {
-    console.error("[Classes Extension] failed to create custom shape", error)
+    console.error("[Classes Extension] Failed to create custom shape", error)
 }
 
 
@@ -994,15 +994,19 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
+        blockShape: "gceClassesOOP-doublePlus",
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        blockShape: CUSTOM_SHAPE ? "gceClassesOOP-doublePlus" : undefined,
+        shape: "gceClassesOOP-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
+}
+if (!CUSTOM_SHAPE) {
+    delete gceClassInstance.Block.blockShape
+    delete gceClassInstance.Argument.shape
 }
 const gceNothing = {
     Type: NothingType,
@@ -1977,7 +1981,6 @@ class GCEClassBlocks {
             v => Nothing,
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
-            console.log("adding", CUSTOM_SHAPE)
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
         })
         
