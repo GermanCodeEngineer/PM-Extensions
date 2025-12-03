@@ -1049,6 +1049,16 @@ const commonArguments = {
         type: ArgumentType.STRING,
         defaultValue: "myAttr",
     },
+    argNames: {
+        type: ArgumentType.STRING,
+        exemptFromNormalization: true,
+        defaultValue: '["name"]',
+    },
+    argDefaults: {
+        type: ArgumentType.STRING,
+        exemptFromNormalization: true,
+        defaultValue: "[]",
+    },
     allowAnything: {
         type: ArgumentType.STRING,
         exemptFromNormalization: true,
@@ -1452,8 +1462,8 @@ class GCEClassBlocks {
                     opcode: "configureNextFunctionArgs",
                     text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
                     arguments: {
-                        ARGNAMES: jwArrayStub.Argument,
-                        ARGDEFAULTS: jwArrayStub.Argument,
+                        ARGNAMES: commonArguments.argNames,
+                        ARGDEFAULTS: commonArguments.argDefaults,
                     },
                 },
                 "---",
@@ -1599,6 +1609,9 @@ class GCEClassBlocks {
                         EXPR: commonArguments.allowAnything,
                     },
                 },
+                //{
+                //    
+                //},
             ],
             menus: {
                 classProperty: {
@@ -1982,7 +1995,9 @@ class GCEClassBlocks {
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
+            console.log("SB", ScratchBlocks)
         })
+        console.log("By", Scratch.gui.getBlockly())
         
         applyHacks(Scratch)
 
@@ -2156,7 +2171,7 @@ class GCEClassBlocks {
     // Configure Before Define
     configureNextFunctionArgs(args, util) {
         const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
-        const argDefaults = Cast.toArray(args.ARGDEFAULTS).array.map(val => Cast.toString(val))
+        const argDefaults = Cast.toArray(args.ARGDEFAULTS).array
         if (argDefaults.length > argNames.length) {
             throw new Error("There can only be as many default values as argument names.")
         }
