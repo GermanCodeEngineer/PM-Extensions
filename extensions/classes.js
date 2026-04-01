@@ -234,9 +234,10 @@ class SpecialBlockStorageManager {
 class ThreadEnvManager {
     static FUNCTION = "FUNCTION"
     static METHOD = "METHOD"
+    static GETTER_METHOD = "GETTER_METHOD"
     static SETTER_METHOD = "SETTER_METHOD"
     static OPERATOR_METHOD = "OPERATOR_METHOD"
-    static CLASS_CTX = "CLASS_DEF"
+    static CLASS_CTX = "CLASS_CTX"
     
     constructor() {
         this.environments = []
@@ -248,6 +249,9 @@ class ThreadEnvManager {
     }
     enterMethod(self, args) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args})
+    }
+    enterGetterMethod(self) {
+        self.environments.splice(0, 0, {type: ThreadEnvManager.GETTER_METHOD})
     }
     enterSetterMethod(self, setterValue) {
         this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue})
@@ -274,7 +278,7 @@ class ThreadEnvManager {
         return env.args
     }
     getSelfOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
+        const env = this._getEnv([ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
         if (!env) {
             throw new Error("self can only be used within an instance, getter or setter method.")
         }
@@ -304,7 +308,7 @@ class ThreadEnvManager {
     
     prepareReturn() {
         const topEnv = this.environments[0]
-        if (!topEnv || !([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(topEnv.type))) {
+        if (!topEnv || !([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(topEnv.type))) {
             throw new Error("return can only be used within a function or method.")
         }
         this.environments.shift()
@@ -525,6 +529,8 @@ class CustomType {
 }
 
 class BaseCallableType extends CustomType {
+    className = "Callable" // Should allow s-plural
+
     /**
      * @param {string} name 
      * @param {Function} jsFunc
@@ -538,115 +544,85 @@ class BaseCallableType extends CustomType {
         this.argNames = argNames
         this.argDefaults = argDefaults
     }
-}
 
-class FunctionType extends BaseCallableType {
     toString() {
-        return `<Function ${quote(this.name)}>`
+        return `<${this.className} ${quote(this.name)}>`
     }
     toJSON() {
-        return "Functions can not be serialized."
+        return `${this.className}s can not be serialized.`
     }
-
+    
     /**
-     * @param {Thread} thread 
-     * @param {array} posArgs
-     * @returns {any} the return value of the function
+     * @param {Thread} thread
+     * @param {...any} args - class instance and other shadow values from the block (e.g., instance, posArgs, setter value, other operand)
+     * @returns {any} the return value of the method
      */
-    *execute(thread, posArgs) {
-        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+    *execute(thread, ...args) {
         thread.gceEnv ??= new ThreadEnvManager()
         const sizeBefore = thread.gceEnv.getSize()
-        thread.gceEnv.enterFunction(args)
-
+        this.enterContext(thread, ...args)
+        
         const output = (yield* this.jsFunc(thread))
         if (sizeBefore !== thread.gceEnv.getSize()) {
             throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
         }
+        this.checkOutputValue(output)
         return output
+    }
+
+    enterContext(thread) {
+        // Allow better subclassing
+    }
+
+    checkOutputValue(output) {
+        // Allow better subclassing
+    }
+}
+
+class FunctionType extends BaseCallableType {
+    className = "Function"
+
+    enterContext(thread, posArgs) {
+        // Allow better subclassing
+        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        thread.gceEnv.enterFunction(args)
     }
 }
 
 class MethodType extends BaseCallableType {
-    toString() {
-        return `<Method ${quote(this.name)}>`
-    }
-    toJSON() {
-        return "Methods can not be serialized."
-    }
+    className = "Method"
 
-    /**
-     * @param {Thread} thread 
-     * @param {ClassInstanceType} instance
-     * @param {array} posArgs
-     * @returns {any} the return value of the method
-     */
-    *execute(thread, instance, posArgs = {}) {
+    enterContext(thread, instance, posArgs = []) {
+        // Allow better subclassing
         const args = extensionClassInstance._evaluateArgs(this, posArgs)
-        thread.gceEnv ??= new ThreadEnvManager()
-        const sizeBefore = thread.gceEnv.getSize()
         thread.gceEnv.enterMethod(instance, args)
-
-        const output = (yield* this.jsFunc(thread))
-        if (sizeBefore !== thread.gceEnv.getSize()) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
-        }
-        return output
     }
 }
 
-class SetterMethodType extends BaseCallableType {
-    toString() {
-        return `<Setter Method ${quote(this.name)}>`
+class GetterMethodType extends MethodType {
+    className = "Getter Method"
+    
+    enterContext(thread, instance, value) {
+        thread.gceEnv.enterGetterMethod(instance, value)
     }
-    toJSON() {
-        return "Setter Methods can not be serialized."
-    }
-
-    /**
-     * @param {Thread} thread 
-     * @param {ClassInstanceType} instance
-     * @param {any} value
-     * @returns {Nothing}
-     */
-    *execute(thread, instance, value) {
-        thread.gceEnv ??= new ThreadEnvManager()
-        const sizeBefore = thread.gceEnv.getSize()
+}
+class SetterMethodType extends MethodType {
+    className = "Setter Method"
+    
+    enterContext(thread, instance, value) {
         thread.gceEnv.enterSetterMethod(instance, value)
+    }
 
-        const output = (yield* this.jsFunc(thread))
-        if (sizeBefore !== thread.gceEnv.getSize()) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
-        }
+    checkOutputValue(output) {
         if (output !== Nothing) throw new Error(`Setter methods must return ${Nothing}.`)
-        return output
     }
 }
 
-class OperatorMethodType extends BaseCallableType {
-    toString() {
-        return `<Operator Method ${quote(this.name)}>`
-    }
-    toJSON() {
-        return "Operator Methods can not be serialized."
-    }
+class OperatorMethodType extends MethodType {
+    className = "Operator Method"
 
-    /**
-     * @param {Thread} thread 
-     * @param {ClassInstanceType} instance
-     * @param {any} other
-     * @returns {Nothing}
-     */
-    *execute(thread, instance, other) {
-        thread.gceEnv ??= new ThreadEnvManager()
-        const sizeBefore = thread.gceEnv.getSize()
+    enterContext(thread, instance, other) {
         thread.gceEnv.enterOperatorMethod(instance, other)
-
-        const output = (yield* this.jsFunc(thread))
-        if (sizeBefore !== thread.gceEnv.getSize()) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
-        }
-        return output
     }
 }
 
@@ -788,6 +764,7 @@ class ClassType extends CustomType {
     getStaticMethod(name) {
         return this.getMemberOfType(name, "static method")
     }
+
     /**
      * @param {ClassType} superCls
      * @returns {boolean}
@@ -1692,14 +1669,14 @@ class GCEClassBlocks {
         }
 
         const EXTENSION_PREFIX = "runtime.ext_gceClassesOOP"
-        const ENV_MANAGER = `${EXTENSION_PREFIX}.environment.ThreadEnvManager()`
-        const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
+        const ENV_MANAGER = `${ENV_PREFIX}.ThreadEnvManager()`
+        const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
 
         const createClassCore = (node, compiler, setVariable, superClsCode = null) => {
             const nameCode = compiler.descendInput(node.name).asString()
             const clsLocal = compiler.localVariables.next()
-            const superClass = superClsCode ? `${ENV_PREFIX}.Cast.toClass(${superClsCode})`: `${ENV_PREFIX}.commonSuperClass`
+            const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode})`: `${ENV_PREFIX}.commonSuperClass`
             
             return {
                 setup: `thread.gceEnv ??= new ${ENV_MANAGER};` +
@@ -1857,7 +1834,7 @@ class GCEClassBlocks {
                 // Define Getters & Setters
                 defineGetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "getter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", "getter method", true)
                 },
                 defineSetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.name).asString()
@@ -1981,8 +1958,9 @@ class GCEClassBlocks {
         Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
         this.Cast = Cast
         this.environment = {
-            VariableManager, SpecialBlockStorageManager, ThreadEnvManager, TypeChecker, Cast,
-            CustomType, FunctionType, MethodType, SetterMethodType, OperatorMethodType,
+            VariableManager, SpecialBlockStorageManager, ThreadEnvManager, CONFIG, 
+            TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
+            MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
@@ -1995,9 +1973,7 @@ class GCEClassBlocks {
         )
         Scratch.gui.getBlockly().then(ScratchBlocks => {
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
-            console.log("SB", ScratchBlocks)
         })
-        console.log("By", Scratch.gui.getBlockly())
         
         applyHacks(Scratch)
 
@@ -2228,8 +2204,7 @@ class GCEClassBlocks {
     typeof(args, util) {
         const value = args.VALUE
         // My Types
-        if (value instanceof FunctionType) return "Function"
-        if (value instanceof MethodType) return "Method"
+        if (value instanceof BaseCallableType) return value.className // respect subclass names
         if (value instanceof ClassType) return "Class"
         if (value instanceof ClassInstanceType) return "Class Instance"
         if (value instanceof NothingType) return "Nothing"
@@ -2395,10 +2370,11 @@ Scratch.extensions.register(extensionClassInstance)
 })(Scratch)
 
 /**
- * TODOS:
+ * TODO:
  * - make as string work for arrays, objects too
  * - create docs(e.g. members or configure args)
  * - option to exclude super classes when asking for members
+ * - implement right-click switch options for similar blocks
  * - inline todos
  * 
  * ON RELEASE:
