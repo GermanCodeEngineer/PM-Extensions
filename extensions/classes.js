@@ -11,7 +11,7 @@
 //  - https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extensions/jwLambda/index.js
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/DogeisCut/dogeiscutObject.js
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
-
+//  - https://github.com/SharkPool-SP/SharkPools-Extensions/blob/main/extension-code/Temporary-Variables.js
 
 (function(Scratch) {
 "use strict"
@@ -297,7 +297,7 @@ class ThreadEnvManager {
     getClsOrThrow(blockText) {
         const topEnv = this.environments[0]
         if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_CTX)) {
-            throw new Error(`${blockText} can only be used within a class definition or on class block.`)
+            throw new Error(`${blockText} can only be used within a class definition or "on class" block.`)
         }
         return topEnv.cls
     }
@@ -1352,7 +1352,7 @@ class GCEClassBlocks {
                         SHADOW: {fillIn: "allFunctionArgs"},
                     },
                 },
-                { // TODO: option to exclude super classes
+                {
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
@@ -2398,6 +2398,7 @@ Scratch.extensions.register(extensionClassInstance)
  * TODOS:
  * - make as string work for arrays, objects too
  * - create docs(e.g. members or configure args)
+ * - option to exclude super classes when asking for members
  * - inline todos
  * 
  * ON RELEASE:
