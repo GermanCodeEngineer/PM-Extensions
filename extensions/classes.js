@@ -1352,7 +1352,7 @@ class GCEClassBlocks {
                         SHADOW: {fillIn: "allFunctionArgs"},
                     },
                 },
-                {
+                { // TODO: option to exclude super classes
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
@@ -1793,7 +1793,7 @@ class GCEClassBlocks {
 
                 // Inside Functions & Methods
                 return: createIRGenerator("stack", ["VALUE"], []),
-                transferFunctionArgsToTempVars: createIRGenerator("stack", []),
+                transferFunctionArgsToTempVars: createIRGenerator("stack", [], []),
 
                 // Use Functions
                 callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
