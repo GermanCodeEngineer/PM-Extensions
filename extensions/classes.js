@@ -179,27 +179,60 @@ function span(text) {
     return element
 }
 
+/**
+ * Manages variables for a scope. ValueHolder can be referenced from multiple VariableManager instances.
+ */
 class VariableManager {
+    /**
+     * Implements a value storage, that can be set from multiple locations.
+     */
+    ValueHolder = class {
+        constructor(value) {
+            this.value = value
+            this.isDeleted = false
+        }
+    }
+
     constructor() {
         this.reset()
     }
     reset() {
+        if (this.variables !== undefined) {
+            this.getNames().forEach((name) => this.delete(name))
+        }
         this.variables = {}
     }
     set(name, value) {
-        this.variables[name] = value
+        if (this.has(name)) {
+            this.variables[name].value = value
+        } else {
+            this.variables[name] = new this.ValueHolder(value)
+        }
+    }
+    setHolder(name, holder) {
+        if (this.has(name)) {
+            throw new Error(`Variable ${quote(name)} already exists in the current scope, can not bind variable with the same name.`)
+        }
+        this.variables[name] = holder
     }
     delete(name) {
         if (this.has(name)) {
+            this.variables[name].isDeleted = true
             delete this.variables[name]
         }
     }
     has(name) {
-        return name in this.variables
+        return (name in this.variables) && (!this.variables[name].isDeleted)
     }
     get(name) {
         if (!this.has(name)) {
-            throw new Error(`${quote(name)} is not defined.`)
+            throw new Error(`Variable ${quote(name)} is not defined.`)
+        }
+        return this.variables[name].value
+    }
+    getHolder(name) {
+        if (!this.has(name)) {
+            throw new Error(`Variable ${quote(name)} is not defined.`)
         }
         return this.variables[name]
     }
@@ -232,6 +265,7 @@ class SpecialBlockStorageManager {
 
 // System for storing environment data on a thread
 class ThreadEnvManager {
+    static GLOBALS = "GLOBALS"
     static FUNCTION = "FUNCTION"
     static METHOD = "METHOD"
     static GETTER_METHOD = "GETTER_METHOD"
@@ -240,91 +274,109 @@ class ThreadEnvManager {
     static CLASS_CTX = "CLASS_CTX"
     
     constructor() {
-        this.environments = []
+        this.scopes = [{type: ThreadEnvManager.GLOBALS, vars: new VariableManager()}]
         this.setNextFuncConfig()
     }
     
+    // Enter Scopes
     enterFunction(args) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.FUNCTION, args})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.FUNCTION, args, vars: new VariableManager()})
     }
     enterMethod(self, args) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args, vars: new VariableManager()})
     }
     enterGetterMethod(self) {
-        self.environments.splice(0, 0, {type: ThreadEnvManager.GETTER_METHOD})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.GETTER_METHOD, vars: new VariableManager()})
     }
     enterSetterMethod(self, setterValue) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue, vars: new VariableManager()})
     }
     enterOperatorMethod(self, other) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.OPERATOR_METHOD, self, other})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.OPERATOR_METHOD, self, other, vars: new VariableManager()})
     }
     enterClassContext(cls) {
-        this.environments.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls, vars: new VariableManager()})
     }
-    
-    _getEnv(allowedTypes) {
-        for (let i = 0; i < this.environments.length; i++) {
-            if (allowedTypes.includes(this.environments[i].type)) return this.environments[i]
+
+    // Get Scope Variables
+    _getScopeOfTypes(allowedTypes) {
+        for (let i = 0; i < this.scopes.length; i++) {
+            if (allowedTypes.includes(this.scopes[i].type)) return this.scopes[i]
         }
         return null
     }
+    _getInnermostScope() {
+        const scope = this.scopes[0]
+        if (!scope) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 11]") // TODO: update error codes
+        }
+        return scope
+    }
     
     getArgsOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD])
-        if (!env) {
+        const scope = this._getScopeOfTypes([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD])
+        if (!scope) {
             throw new Error("Function arguments can only be used within a function or method.")
         }
-        return env.args
+        return scope.args
     }
     getSelfOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
-        if (!env) {
+        const scope = this._getScopeOfTypes([ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
+        if (!scope) {
             throw new Error("self can only be used within an instance, getter or setter method.")
         }
-        return env.self
+        return scope.self
     }
     getSetterValueOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.SETTER_METHOD])
-        if (!env) {
+        const scope = this._getScopeOfTypes([ThreadEnvManager.SETTER_METHOD])
+        if (!scope) {
             throw new Error("setter value can only be used within a setter method.")
         }
-        return env.setterValue
+        return scope.setterValue
     }
     getOtherValueOrThrow() {
-        const env = this._getEnv([ThreadEnvManager.OPERATOR_METHOD])
-        if (!env) {
+        const scope = this._getScopeOfTypes([ThreadEnvManager.OPERATOR_METHOD])
+        if (!scope) {
             throw new Error("other value can only be used within an operator method.")
         }
-        return env.other
+        return scope.other
     }
     getClsOrThrow(blockText) {
-        const topEnv = this.environments[0]
-        if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_CTX)) {
+        const innermost = this._getInnermostScope()
+        if (innermost.type !== ThreadEnvManager.CLASS_CTX) {
             throw new Error(`${blockText} can only be used within a class definition or "on class" block.`)
         }
-        return topEnv.cls
+        return innermost.cls
     }
     
+    // Exit Scopes
     prepareReturn() {
-        const topEnv = this.environments[0]
-        if (!topEnv || !([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(topEnv.type))) {
+        const innermost = this._getInnermostScope()
+        if (!([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(innermost.type))) {
             throw new Error("return can only be used within a function or method.")
         }
-        this.environments.shift()
+        this.scopes.shift()
     }
     exitClassContext() {
-        const topEnv = this.environments[0]
-        if (!topEnv || (topEnv.type !== ThreadEnvManager.CLASS_CTX)) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 02]")
+        const innermost = this._getInnermostScope()
+        if (innermost.type !== ThreadEnvManager.CLASS_CTX) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 11]")
         }
-        this.environments.shift()
+        this.scopes.shift()
     }
     
+    // Measure Scopes
     getSize() {
-        return this.environments.length
+        return this.scopes.length
     }
-    
+
+    trimSize(size) {
+        if (size < 0) size = 0
+        if (this.scopes.length <= size) return
+        this.scopes.splice(0, this.scopes.length - size)
+    }
+
+    // Function Arguments
     setNextFuncConfig(config = {argNames: [], argDefaults: []}) {
         this.nextFuncConfig = config
     }
@@ -336,6 +388,41 @@ class ThreadEnvManager {
     getDefaultFuncConfig() {
         return {argNames: [], argDefaults: []}
     }
+
+    // Access Scoped Variables
+    setScopeVar(name, value) {
+        const innermost = this._getInnermostScope()
+        innermost.vars.set(name, value)
+    }
+    _getScopeOfVar(name, startIndex = 0) {
+        for (let i = startIndex; i < this.scopes.length; i++) {
+            if (this.scopes[i].vars.has(name)) return this.scopes[i]
+        }
+        return null
+    }
+    getScopeVar(name) {
+        const varScope = this._getScopeOfVar(name)
+        if (!varScope) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 33]")
+        }
+        return varScope.vars.get(name)
+    }
+    bindScopeVarGlobal(name) {
+        const globalScope = this._getScopeOfTypes([ThreadEnvManager.GLOBALS])
+        if (!globalScope) {
+            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 44]")
+        }
+
+        const innermost = this._getInnermostScope()
+        innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
+    }
+    bindScopeVarNonlocal(name) {
+        const varScope = this._getScopeOfVar(name, 1) // skip innermost scope, as nonlocal variables can not be in the current scope
+
+        const innermost = this._getInnermostScope()
+        innermost.vars.setHolder(name, varScope.vars.getHolder(name))
+    }
+    // TODO: use the above
 }
 
 const {BlockType, BlockShape, ArgumentType} = Scratch
@@ -562,9 +649,21 @@ class BaseCallableType extends CustomType {
         const sizeBefore = thread.gceEnv.getSize()
         this.enterContext(thread, ...args)
         
-        const output = (yield* this.jsFunc(thread))
-        if (sizeBefore !== thread.gceEnv.getSize()) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 01]")
+        let output
+        let finished = false
+        try {
+            output = (yield* this.jsFunc(thread))
+            finished = true
+        } finally {
+            if (finished) {
+                if (sizeBefore !== thread.gceEnv.getSize()) {
+                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 55]")
+                }
+            } else {
+                // An error happend, so exit stack frames that where interrupted
+                thread.gceEnv.trimSize(sizeBefore)
+            }
+
         }
         this.checkOutputValue(output)
         return output
@@ -1077,11 +1176,40 @@ class GCEClassBlocks {
             color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
+                makeLabel("Scoped Variables"),
+                {
+                    ...commonBlocks.command,
+                    opcode: "setScopeVar",
+                    text: "set var [NAME] to [VALUE]",
+                },
+                {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "getScopeVar",
+                    text: "get var [NAME]",
+                },
+                {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "createVarScope",
+                    text: ["create local variable scope"],
+                    arguments: {
+                        NAME: commonArguments.classVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "bindVarToScope",
+                    text: "bind [KIND] variable [NAME] to local scope",
+                    arguments: {
+                        KIND: {type: ArgumentType.STRING, menu: "varScopeKind"},
+                        NAME: commonArguments.classVarName,
+                    },
+                },
                 makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
-                    text: ["create class at [NAME] [SHADOW]"],
+                    text: ["create class at var [NAME] [SHADOW]"],
                     arguments: {
                         NAME: commonArguments.classVarName,
                         SHADOW: {fillIn: "classBeingCreated"},
@@ -1090,7 +1218,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
-                    text: ["create subclass at [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1591,6 +1719,13 @@ class GCEClassBlocks {
                 //},
             ],
             menus: {
+                varScopeKind: {
+                    acceptReporters: false,
+                    items: [
+                        "non-local",
+                        "global",
+                    ],
+                },
                 classProperty: {
                     acceptReporters: false,
                     items: [
@@ -1651,7 +1786,7 @@ class GCEClassBlocks {
             inputs.forEach(inputName => {
                 const key = UPPER_TO_CAMEL_MAPPING[inputName]
                 if (!key) {
-                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
+                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 66]")
                 }
                 result[key] = inputName === "SUBSTACK" 
                     ? generator.descendSubstack(block, inputName)
@@ -1661,7 +1796,7 @@ class GCEClassBlocks {
             fields.forEach(fieldName => {
                 const key = UPPER_TO_CAMEL_MAPPING[fieldName]
                 if (!key) {
-                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 03]")
+                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 77]")
                 }
                 result[key] = block.fields[fieldName].value
             })
@@ -1987,6 +2122,41 @@ class GCEClassBlocks {
     /************************************************************************************
     *                                       Blocks                                      *
     ************************************************************************************/
+
+    /******************** Scoped Variables ********************/
+
+    setScopeVar(args, util) {
+        const name = Cast.toString(args.NAME)
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        util.thread.gceEnv.setScopeVar(name, args.VALUE)
+    }
+    getScopeVar(args, util) {
+        const name = Cast.toString(args.NAME)
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return util.thread.gceEnv.getScopeVar(name)
+    }
+    createVarScope(args, util) {
+        ({
+            ...commonBlocks.commandWithBranch,
+            opcode: "createVarScope",
+            text: ["create local variable scope"],
+            arguments: {
+                NAME: commonArguments.classVarName,
+                SHADOW: {fillIn: "classBeingCreated"},
+            },
+        })
+    }
+    bindVarToScope(args, util) {
+        ({
+            ...commonBlocks.command,
+            opcode: "bindVarToScope",
+            text: "bind [KIND] variable [NAME] to local scope",
+            arguments: {
+                KIND: {type: ArgumentType.STRING, menu: "varScopeKind"},
+                NAME: commonArguments.classVarName,
+            },
+        })
+    }
 
     /******************** Classes ********************/
 
@@ -2318,7 +2488,7 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     _isACompiledBlock() {
-        throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 04]")
+        throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 88]")
     }
     
     /**
@@ -2374,6 +2544,7 @@ Scratch.extensions.register(extensionClassInstance)
  * - make as string work for arrays, objects too
  * - create docs(e.g. members or configure args)
  * - option to exclude super classes when asking for members
+ * - implement hover tooltips
  * - implement right-click switch options for similar blocks
  * - inline todos
  * 
