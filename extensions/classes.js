@@ -179,6 +179,13 @@ function span(text) {
     return element
 }
 
+function raiseInternal(code, additionalMsg = "") {
+    throw new Error(
+        `An internal error occured in the classes extension. `+
+        `Please report it. ${additionalMsg} [ERROR CODE: ${code}]`
+    )
+}
+
 /**
  * Manages variables for a scope. ValueHolder can be referenced from multiple VariableManager instances.
  */
@@ -217,7 +224,7 @@ class VariableManager {
     }
     delete(name) {
         if (this.has(name)) {
-            this.variables[name].isDeleted = true
+            this.variables[name].isDeleted = true // Mark the variable deleted for all scopes
             delete this.variables[name]
         }
     }
@@ -272,6 +279,7 @@ class ThreadEnvManager {
     static SETTER_METHOD = "SETTER_METHOD"
     static OPERATOR_METHOD = "OPERATOR_METHOD"
     static CLASS_CTX = "CLASS_CTX"
+    static USER_SCOPE = "USER_SCOPE"
     
     constructor() {
         this.scopes = [{type: ThreadEnvManager.GLOBALS, vars: new VariableManager()}]
@@ -295,7 +303,10 @@ class ThreadEnvManager {
         this.scopes.splice(0, 0, {type: ThreadEnvManager.OPERATOR_METHOD, self, other, vars: new VariableManager()})
     }
     enterClassContext(cls) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls})
+    }
+    enterUserScope() {
+        this.scopes.splice(0, 0, {type: ThreadEnvManager.USER_SCOPE, vars: new VariableManager()})
     }
 
     // Get Scope Variables
@@ -308,7 +319,7 @@ class ThreadEnvManager {
     _getInnermostScope() {
         const scope = this.scopes[0]
         if (!scope) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 11]") // TODO: update error codes
+            raiseInternal("bold-koala")
         }
         return scope
     }
@@ -360,7 +371,14 @@ class ThreadEnvManager {
     exitClassContext() {
         const innermost = this._getInnermostScope()
         if (innermost.type !== ThreadEnvManager.CLASS_CTX) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 11]")
+            raiseInternal("nimble-panda")
+        }
+        this.scopes.shift()
+    }
+    exitUserScope() {
+        const innermost = this._getInnermostScope()
+        if (innermost.type !== ThreadEnvManager.USER_SCOPE) {
+            raiseInternal("curious-otter")
         }
         this.scopes.shift()
     }
@@ -392,37 +410,95 @@ class ThreadEnvManager {
     // Access Scoped Variables
     setScopeVar(name, value) {
         const innermost = this._getInnermostScope()
-        innermost.vars.set(name, value)
+        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
+            // TODO: implement set class variable here
+        } else {
+            innermost.vars.set(name, value)
+        }
     }
-    _getScopeOfVar(name, startIndex = 0) {
-        for (let i = startIndex; i < this.scopes.length; i++) {
+    _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0) {
+        for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
+            if (this.scopes[i].type === ThreadEnvManager.CLASS_CTX) continue
             if (this.scopes[i].vars.has(name)) return this.scopes[i]
         }
-        return null
+        // trick to raise:
+        (new VariableManager()).get(name)
     }
     getScopeVar(name) {
         const varScope = this._getScopeOfVar(name)
-        if (!varScope) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 33]")
-        }
         return varScope.vars.get(name)
+    }
+    deleteScopeVar(name) {
+        const varScope = this._getScopeOfVar(name)
+        varScope.vars.delete(name)
     }
     bindScopeVarGlobal(name) {
         const globalScope = this._getScopeOfTypes([ThreadEnvManager.GLOBALS])
         if (!globalScope) {
-            throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 44]")
+            raiseInternal("calm-seal")
+        }
+        if (!globalScope.vars.has(name)) {
+            throw new Error(`No global variable named ${quote(name)} found.`)
         }
 
         const innermost = this._getInnermostScope()
+        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
+            throw new Error(`Can not bind a variable to a class scope.`)
+        }
         innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
     }
     bindScopeVarNonlocal(name) {
-        const varScope = this._getScopeOfVar(name, 1) // skip innermost scope, as nonlocal variables can not be in the current scope
+        let varScope
+        try { // skip innermost(current) and global scope, as nonlocal variables can not be in either
+            varScope = this._getScopeOfVar(name, 1, 1)
+        } catch {
+            throw new Error(`No non-local variable named ${quote(name)} found.`)
+        }
 
         const innermost = this._getInnermostScope()
+        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
+            throw new Error(`Can not bind a variable to a class scope.`)
+        }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
-    // TODO: use the above
+    hasScopeVar(name, onlyCurrentScope = false) {
+        if (onlyCurrentScope) {
+            const innermost = this._getInnermostScope()
+            if (innermost.type === ThreadEnvManager.CLASS_CTX) return false
+            return innermost.vars.has(name)
+        }
+        try {
+            this._getScopeOfVar(name)
+            return true
+        } catch {
+            return false
+        }
+    }
+    /**
+     * Return an array with all variable names visible in the current thread environment.
+     * Iterates from outermost to innermost so inner-scope variables override outer ones.
+     * @param {boolean} onlyCurrentScope - if true, return names only from the innermost scope
+     * @returns {Array<string>}
+     */
+    getScopeVarNames(onlyCurrentScope = false) {
+        if (onlyCurrentScope) {
+            const innermost = this._getInnermostScope()
+            if (innermost.type === ThreadEnvManager.CLASS_CTX) return []
+            return innermost.vars.getNames()
+        }
+
+        const map = new Map()
+        for (let i = this.scopes.length - 1; i >= 0; i--) {
+            // iterate outermost -> innermost so inner scopes override outer ones
+            if (this.scopes[i].type === ThreadEnvManager.CLASS_CTX) continue
+            const names = this.scopes[i].vars.getNames()
+            for (const n of names) {
+                if (map.has(n)) map.delete(n)
+                map.set(n, true)
+            }
+        }
+        return Array.from(map.keys())
+    }
 }
 
 const {BlockType, BlockShape, ArgumentType} = Scratch
@@ -657,7 +733,7 @@ class BaseCallableType extends CustomType {
         } finally {
             if (finished) {
                 if (sizeBefore !== thread.gceEnv.getSize()) {
-                    throw new Error("An internal error occured in the classes extension. Please report it. [ERROR CODE: 55]")
+                    raiseInternal("clever-badger")
                 }
             } else {
                 // An error happend, so exit stack frames that where interrupted
@@ -1101,6 +1177,10 @@ const gceNothing = {
 
 
 const commonArguments = {
+    variableName: {
+        type: ArgumentType.STRING,
+        defaultValue: "myVar",
+    },
     classVarName: {
         type: ArgumentType.STRING,
         defaultValue: "MyClass",
@@ -1180,29 +1260,58 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.command,
                     opcode: "setScopeVar",
-                    text: "set var [NAME] to [VALUE]",
+                    text: "set local var [NAME] to [VALUE]",
+                    arguments: {
+                        NAME: commonArguments.variableName,
+                        VALUE: commonArguments.allowAnything,
+                    },
                 },
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "getScopeVar",
                     text: "get var [NAME]",
+                    arguments: {
+                        NAME: commonArguments.variableName,
+                    },
+                },
+                {
+                    ...commonBlocks.returnsBoolean,
+                    opcode: "hasScopeVar",
+                    text: "var [NAME] exists in [KIND]?",
+                    arguments: {
+                        NAME: commonArguments.variableName,
+                        KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "deleteScopeVar",
+                    text: "delete var [NAME]",
+                    arguments: {
+                        NAME: commonArguments.variableName,
+                    },
+                },
+                {
+                    ...jwArrayStub.Block,
+                    opcode: "allVariables",
+                    text: "all variables in [KIND]",
+                    arguments: {
+                        KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
+                    },
+
                 },
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createVarScope",
                     text: ["create local variable scope"],
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
-                    },
                 },
                 {
                     ...commonBlocks.command,
                     opcode: "bindVarToScope",
                     text: "bind [KIND] variable [NAME] to local scope",
                     arguments: {
-                        KIND: {type: ArgumentType.STRING, menu: "varScopeKind"},
-                        NAME: commonArguments.classVarName,
+                        KIND: {type: ArgumentType.STRING, menu: "bindVarOriginKind"},
+                        NAME: commonArguments.variableName,
                     },
                 },
                 makeLabel("Define Classes"),
@@ -1719,7 +1828,14 @@ class GCEClassBlocks {
                 //},
             ],
             menus: {
-                varScopeKind: {
+                variableAvailableKind: {
+                    acceptReporters: false,
+                    items: [
+                        "all scopes",
+                        "local scope",
+                    ],
+                },
+                bindVarOriginKind: {
                     acceptReporters: false,
                     items: [
                         "non-local",
@@ -2114,24 +2230,47 @@ class GCEClassBlocks {
         util.thread.gceEnv ??= new ThreadEnvManager()
         return util.thread.gceEnv.getScopeVar(name)
     }
+    hasScopeVar(args, util) {
+        const name = Cast.toString(args.NAME)
+        const onlyCurrentScope = Cast.toString(args.KIND) === "local scope"
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return Cast.toBoolean(util.thread.gceEnv.hasScopeVar(name, onlyCurrentScope))
+    }
+    deleteScopeVar(args, util) {
+        const name = Cast.toString(args.NAME)
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        util.thread.gceEnv.deleteScopeVar(name)
+    }
+    allVariables(args, util) {
+        const onlyCurrentScope = Cast.toString(args.KIND) === "local scope"
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        return Cast.toArray(util.thread.gceEnv.getScopeVarNames(onlyCurrentScope))
+    }
     createVarScope(args, util) {
-        ({
-            ...commonBlocks.commandWithBranch,
-            opcode: "createVarScope",
-            text: ["create local variable scope"],
-            arguments: {
-                NAME: commonArguments.classVarName,
-                SHADOW: {fillIn: "classBeingCreated"},
-            },
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        util.thread.gceEnv.enterUserScope()
+        util.startBranch(1, false, () => {
+            util.thread.gceEnv.exitUserScope()
         })
     }
     bindVarToScope(args, util) {
+        const name = Cast.toString(args.NAME)
+        util.thread.gceEnv ??= new ThreadEnvManager()
+        switch (Cast.toString(args.KIND)) {
+            case "non-local":
+                util.thread.gceEnv.bindScopeVarNonlocal(name)
+                break
+            case "global":
+                util.thread.gceEnv.bindScopeVarGlobal(name)
+                break
+        }
+        util.thread.gceEnv ??= new ThreadEnvManager()
         ({
             ...commonBlocks.command,
             opcode: "bindVarToScope",
             text: "bind [KIND] variable [NAME] to local scope",
             arguments: {
-                KIND: {type: ArgumentType.STRING, menu: "varScopeKind"},
+                KIND: {type: ArgumentType.STRING, menu: "bindVarOriginKind"},
                 NAME: commonArguments.classVarName,
             },
         })
@@ -2467,7 +2606,7 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     _isACompiledBlock() {
-        throw new Error("It is likely an internal error occured in the classes extension. Please report it. [ERROR CODE: 88]")
+        raiseInternal("spry-hare")
     }
     
     /**
@@ -2525,6 +2664,7 @@ Scratch.extensions.register(extensionClassInstance)
  * - option to exclude super classes when asking for members
  * - implement hover tooltips
  * - implement right-click switch options for similar blocks
+ * - name of class/function block
  * - inline todos
  * 
  * ON RELEASE:
