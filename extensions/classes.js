@@ -158,7 +158,7 @@ function applyHacks(Scratch) {
 ************************************************************************************/
 
 function quote(s) {
-    if (typeof s !== "string") s = s.toString()
+    if (typeof s !== "string") s = String(s)
     s = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
     return `'${s}'`
 }
@@ -237,6 +237,13 @@ class VariableManager {
         }
         return this.variables[name].value
     }
+    safeGet(name) {
+        try {
+            return [true, this.get(name)]
+        } catch (e) {
+            return [false, undefined]
+        }
+    }
     getHolder(name) {
         if (!this.has(name)) {
             throw new Error(`Variable ${quote(name)} is not defined.`)
@@ -248,6 +255,7 @@ class VariableManager {
     }
 }
 
+// TODO: remove after variable update if still unused
 // System for storing data for a block, which will automatically be deleted when its thread is finished or stopped
 class SpecialBlockStorageManager {
     constructor() {
@@ -282,39 +290,104 @@ class ThreadEnvManager {
     static USER_SCOPE = "USER_SCOPE"
     
     constructor() {
-        this.scopes = [{type: ThreadEnvManager.GLOBALS, vars: new VariableManager()}]
+        /**
+         * @type {Array<
+         *   {
+         *     type: string,
+         *     isGlobalScope?: boolean,
+         *     isUserScope?: boolean,
+         *     isCallable?: boolean,
+         *     supportsVars?: boolean,
+         *     supportsArgs?: boolean,
+         *     supportsSelf?: boolean,
+         *     supportsSetterValue?: boolean,
+         *     supportsOtherValue?: boolean,
+         *     supportsCls?: boolean,
+         *     vars?: VariableManager,
+         *     args?: Object<string, any>,
+         *     self?: ClassInstanceType,
+         *     setterValue?: any,
+         *     other?: any,
+         *     cls?: ClassType,
+         *   }
+         * >}
+         */
+        this.scopes = [{
+            type: ThreadEnvManager.GLOBALS,
+            isGlobalScope: true, supportsVars: true,
+            vars: extensionClassInstance.globalVariables,
+        }]
+        // Use the global varibles manager for all global scopes
         this.setNextFuncConfig()
+        console.log("New ThreadEnvManager created", this)
     }
     
     // Enter Scopes
     enterFunction(args) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.FUNCTION, args, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.FUNCTION,
+            supportsArgs: true, isCallable: true,
+            supportsVars: true,
+            args, vars: new VariableManager(),
+        })
     }
     enterMethod(self, args) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.METHOD, self, args, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.METHOD,
+            supportsArgs: true, supportsSelf: true, isCallable: true,
+            supportsVars: true,
+            self, args, vars: new VariableManager(),
+        })
     }
     enterGetterMethod(self) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.GETTER_METHOD, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.GETTER_METHOD,
+            supportsSelf: true, isCallable: true,
+            supportsVars: true,
+            vars: new VariableManager(),
+        })
     }
     enterSetterMethod(self, setterValue) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.SETTER_METHOD, self, setterValue, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.SETTER_METHOD,
+            supportsSelf: true, supportsSetterValue: true, isCallable: true,
+            supportsVars: true,
+            self, setterValue, vars: new VariableManager(),
+        })
     }
     enterOperatorMethod(self, other) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.OPERATOR_METHOD, self, other, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.OPERATOR_METHOD,
+            supportsSelf: true, supportsOtherValue: true, isCallable: true,
+            supportsVars: true,
+            self, other, vars: new VariableManager(),
+        })
     }
     enterClassContext(cls) {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.CLASS_CTX, cls})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.CLASS_CTX,
+            supportsCls: true,
+            cls,
+        })
     }
     enterUserScope() {
-        this.scopes.splice(0, 0, {type: ThreadEnvManager.USER_SCOPE, vars: new VariableManager()})
+        this.scopes.splice(0, 0, {
+            type: ThreadEnvManager.USER_SCOPE,
+            isUserScope: true,
+            supportsVars: true,
+            vars: new VariableManager(),
+        })
     }
 
-    // Get Scope Variables
-    _getScopeOfTypes(allowedTypes) {
+    // Get Scope 
+    _getQualifiedScope(qualified_fn) {
         for (let i = 0; i < this.scopes.length; i++) {
-            if (allowedTypes.includes(this.scopes[i].type)) return this.scopes[i]
+            if (qualified_fn(this.scopes[i])) {
+                return this.scopes[i]
+            }
         }
         return null
+
     }
     _getInnermostScope() {
         const scope = this.scopes[0]
@@ -325,28 +398,28 @@ class ThreadEnvManager {
     }
     
     getArgsOrThrow() {
-        const scope = this._getScopeOfTypes([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD])
+        const scope = this._getQualifiedScope(scope => scope.supportsArgs)
         if (!scope) {
             throw new Error("Function arguments can only be used within a function or method.")
         }
         return scope.args
     }
     getSelfOrThrow() {
-        const scope = this._getScopeOfTypes([ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD])
+        const scope = this._getQualifiedScope(scope => scope.supportsSelf)
         if (!scope) {
             throw new Error("self can only be used within an instance, getter or setter method.")
         }
         return scope.self
     }
     getSetterValueOrThrow() {
-        const scope = this._getScopeOfTypes([ThreadEnvManager.SETTER_METHOD])
+        const scope = this._getQualifiedScope(scope => scope.supportsSetterValue)
         if (!scope) {
             throw new Error("setter value can only be used within a setter method.")
         }
         return scope.setterValue
     }
     getOtherValueOrThrow() {
-        const scope = this._getScopeOfTypes([ThreadEnvManager.OPERATOR_METHOD])
+        const scope = this._getQualifiedScope(scope => scope.supportsOtherValue)
         if (!scope) {
             throw new Error("other value can only be used within an operator method.")
         }
@@ -354,7 +427,7 @@ class ThreadEnvManager {
     }
     getClsOrThrow(blockText) {
         const innermost = this._getInnermostScope()
-        if (innermost.type !== ThreadEnvManager.CLASS_CTX) {
+        if (!innermost.supportsCls) {
             throw new Error(`${blockText} can only be used within a class definition or "on class" block.`)
         }
         return innermost.cls
@@ -363,21 +436,21 @@ class ThreadEnvManager {
     // Exit Scopes
     prepareReturn() {
         const innermost = this._getInnermostScope()
-        if (!([ThreadEnvManager.FUNCTION, ThreadEnvManager.METHOD, ThreadEnvManager.GETTER_METHOD, ThreadEnvManager.SETTER_METHOD, ThreadEnvManager.OPERATOR_METHOD].includes(innermost.type))) {
+        if (!innermost.isCallable) {
             throw new Error("return can only be used within a function or method.")
         }
         this.scopes.shift()
     }
     exitClassContext() {
         const innermost = this._getInnermostScope()
-        if (innermost.type !== ThreadEnvManager.CLASS_CTX) {
+        if (!innermost.supportsCls) {
             raiseInternal("nimble-panda")
         }
         this.scopes.shift()
     }
     exitUserScope() {
         const innermost = this._getInnermostScope()
-        if (innermost.type !== ThreadEnvManager.USER_SCOPE) {
+        if (!innermost.isUserScope) {
             raiseInternal("curious-otter")
         }
         this.scopes.shift()
@@ -410,15 +483,15 @@ class ThreadEnvManager {
     // Access Scoped Variables
     setScopeVar(name, value) {
         const innermost = this._getInnermostScope()
-        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
-            // TODO: implement set class variable here
+        if (innermost.supportsCls) {
+            innermost.cls.variables[name] = value
         } else {
             innermost.vars.set(name, value)
         }
     }
     _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0) {
         for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
-            if (this.scopes[i].type === ThreadEnvManager.CLASS_CTX) continue
+            if (this.scopes[i].supportsVars) continue
             if (this.scopes[i].vars.has(name)) return this.scopes[i]
         }
         // trick to raise:
@@ -433,7 +506,7 @@ class ThreadEnvManager {
         varScope.vars.delete(name)
     }
     bindScopeVarGlobal(name) {
-        const globalScope = this._getScopeOfTypes([ThreadEnvManager.GLOBALS])
+        const globalScope = this._getQualifiedScope(scope => scope.isGlobalScope)
         if (!globalScope) {
             raiseInternal("calm-seal")
         }
@@ -442,8 +515,8 @@ class ThreadEnvManager {
         }
 
         const innermost = this._getInnermostScope()
-        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
-            throw new Error(`Can not bind a variable to a class scope.`)
+        if (!innermost.supportsVars) {
+            throw new Error(`Can not bind a variable to a scope, which does not support variables(e.g. a class definition).`)
         }
         innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
     }
@@ -456,15 +529,15 @@ class ThreadEnvManager {
         }
 
         const innermost = this._getInnermostScope()
-        if (innermost.type === ThreadEnvManager.CLASS_CTX) {
-            throw new Error(`Can not bind a variable to a class scope.`)
+        if (!innermost.supportsVars) {
+            throw new Error(`Can not bind a variable to a scope, which does not support variables(e.g. a class definition).`)
         }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
     hasScopeVar(name, onlyCurrentScope = false) {
         if (onlyCurrentScope) {
             const innermost = this._getInnermostScope()
-            if (innermost.type === ThreadEnvManager.CLASS_CTX) return false
+            if (!innermost.supportsVars) return false
             return innermost.vars.has(name)
         }
         try {
@@ -483,14 +556,14 @@ class ThreadEnvManager {
     getScopeVarNames(onlyCurrentScope = false) {
         if (onlyCurrentScope) {
             const innermost = this._getInnermostScope()
-            if (innermost.type === ThreadEnvManager.CLASS_CTX) return []
+            if (!innermost.supportsVars) return []
             return innermost.vars.getNames()
         }
 
         const map = new Map()
         for (let i = this.scopes.length - 1; i >= 0; i--) {
             // iterate outermost -> innermost so inner scopes override outer ones
-            if (this.scopes[i].type === ThreadEnvManager.CLASS_CTX) continue
+            if (!innermost.supportsVars) continue
             const names = this.scopes[i].vars.getNames()
             for (const n of names) {
                 if (map.has(n)) map.delete(n)
@@ -615,8 +688,9 @@ class Cast extends Scratch.Cast {
     /** @returns {ClassType} */
     static toClass(value) {
         if (value instanceof ClassType) return value
-        else if ((typeof value) === "string") return extensionClassInstance.classVars.get(value)
-        else throw new Error("Expected a class or class variable name.")
+        const [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        if (found && (varValue instanceof ClassType)) return varValue
+        throw new Error("Expected a class or class variable name.")
     }
 
     /** @returns {ClassInstanceType} */
@@ -628,8 +702,9 @@ class Cast extends Scratch.Cast {
     /** @returns {FunctionType} */
     static toFunction(value) {
         if (value instanceof FunctionType) return value
-        else if ((typeof value) === "string") return extensionClassInstance.funcVars.get(value)
-        else throw new Error("Expected a function or function variable name.")
+        const [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        if (found && (varValue instanceof FunctionType)) return varValue
+        throw new Error("Expected a function or function variable name.")
     }
 }
 
@@ -1256,11 +1331,16 @@ class GCEClassBlocks {
             color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
+                // TODO: remove temporary block
+                {
+                    ...commonBlocks.command,
+                    opcode: "logScopes",
+                },
                 makeLabel("Scoped Variables"),
                 {
                     ...commonBlocks.command,
                     opcode: "setScopeVar",
-                    text: "set local var [NAME] to [VALUE]",
+                    text: "set var [NAME] to [VALUE] in current scope",
                     arguments: {
                         NAME: commonArguments.variableName,
                         VALUE: commonArguments.allowAnything,
@@ -1286,7 +1366,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.command,
                     opcode: "deleteScopeVar",
-                    text: "delete var [NAME]",
+                    text: "delete var [NAME] in current scope",
                     arguments: {
                         NAME: commonArguments.variableName,
                     },
@@ -1314,11 +1394,12 @@ class GCEClassBlocks {
                         NAME: commonArguments.variableName,
                     },
                 },
+                "---",
                 makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
-                    text: ["create class at var [NAME] [SHADOW]"],
+                    text: ["create class at global var [NAME] [SHADOW]"],
                     arguments: {
                         NAME: commonArguments.classVarName,
                         SHADOW: {fillIn: "classBeingCreated"},
@@ -1327,7 +1408,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
-                    text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    text: ["create subclass at global var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1371,57 +1452,14 @@ class GCEClassBlocks {
                     canDragDuplicate: true,
                     hideFromPalette: true,
                 },
-                {
-                    ...commonBlocks.command,
-                    opcode: "setClass",
-                    text: "set class [NAME] to [CLASS]",
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                        CLASS: gceClass.Argument,
-                    },
-                },
                 "---",
                 makeLabel("Use Classes"),
-                {
-                    ...gceClass.Block,
-                    opcode: "getClass",
-                    text: "get class [NAME]",
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsBoolean,
-                    opcode: "classExists",
-                    text: "class [NAME] exists?",
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                    },
-                },
-                {
-                    ...jwArrayStub.Block,
-                    opcode: "allClasses",
-                    text: "all classes",
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteClass",
-                    text: "delete class [NAME]",
-                    arguments: {
-                        NAME: commonArguments.classVarName,
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteAllClasses",
-                    text: "delete all classes",
-                },
                 {
                     ...commonBlocks.returnsBoolean,
                     opcode: "isSubclass",
                     text: "is [SUBCLASS] a subclass of [SUPERCLASS] ?",
                     arguments: {
-                        SUBCLASS: gceClass.ArgumentClassOrVarName,
+                        SUBCLASS: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
@@ -1685,7 +1723,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createFunctionAt",
-                    text: ["create function at [NAME] [SHADOW]"],
+                    text: ["create function at global var [NAME] [SHADOW]"],
                     arguments: {
                         NAME: commonArguments.funcName,
                         SHADOW: {fillIn: "allFunctionArgs"},
@@ -1823,9 +1861,6 @@ class GCEClassBlocks {
                         EXPR: commonArguments.allowAnything,
                     },
                 },
-                //{
-                //    
-                //},
             ],
             menus: {
                 variableAvailableKind: {
@@ -1910,7 +1945,7 @@ class GCEClassBlocks {
             return {
                 setup: `thread.gceEnv ??= new ${ENV_MANAGER};` +
                     `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
-                    (setVariable ? `${EXTENSION_PREFIX}.classVars.set(${clsLocal}.name, ${clsLocal});` : "") +
+                    (setVariable ? `${EXTENSION_PREFIX}.globalVariables.set(${clsLocal}.name, ${clsLocal});` : "") +
                     `thread.gceEnv.enterClassContext(${clsLocal});`,
                 cleanup: "thread.gceEnv.exitClassContext();",
                 clsLocal
@@ -2129,7 +2164,7 @@ class GCEClassBlocks {
                     
                     compiler.source += `thread.gceEnv ??= new ${ENV_MANAGER};` +
                         `const ${nameLocal} = ${nameCode};` +
-                        `${EXTENSION_PREFIX}.funcVars.set(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
+                        `${EXTENSION_PREFIX}.globalVariables.set(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
                     addSubstackCode(compiler, node.SUBSTACK, imports)
                     compiler.source += "thread.gceEnv.prepareReturn();" +
                         // Nothing is indepedent of function context, so we can exit context before
@@ -2207,8 +2242,7 @@ class GCEClassBlocks {
         
         applyHacks(Scratch)
 
-        this.classVars = new VariableManager()
-        this.funcVars = new VariableManager()
+        this.globalVariables = new VariableManager()
         this.specialBlockStorage = new SpecialBlockStorageManager()
         
         runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.deleteThreadStorage(thread)})
@@ -2217,6 +2251,10 @@ class GCEClassBlocks {
     /************************************************************************************
     *                                       Blocks                                      *
     ************************************************************************************/
+
+    logScopes(args, util) {
+        console.log("Current thread scopes:", util.thread.gceEnv ? [...util.thread.gceEnv.scopes] : "No scopes")
+    }
 
     /******************** Scoped Variables ********************/
 
@@ -2295,30 +2333,8 @@ class GCEClassBlocks {
         util.thread.gceEnv ??= new ThreadEnvManager()
         return util.thread.gceEnv.getClsOrThrow("class being created")
     }
-    setClass(args, util) {
-        const name = Cast.toString(args.NAME)
-        const cls = Cast.toClass(args.CLASS)
-        this.classVars.set(name, cls)
-    }
 
     // Use Classes
-    getClass(args, util) {
-        const name = Cast.toString(args.NAME)
-        return this.classVars.get(name)
-    }
-    classExists(args, util) {
-        const name = Cast.toString(args.NAME)
-        return Cast.toBoolean(this.classVars.has(name))
-    }
-    allClasses(args, util) {
-        return Cast.toArray(this.classVars.getNames())
-    }
-    deleteClass(args, util) {
-        this.classVars.delete(Cast.toString(args.NAME))
-    }
-    deleteAllClasses(args, util) {
-        this.classVars.reset()
-    }
     isSubclass(args, util) {
         const subCls = Cast.toClass(args.SUBCLASS)
         const superCls = Cast.toClass(args.SUPERCLASS)
@@ -2469,23 +2485,6 @@ class GCEClassBlocks {
 
     // Use Functions
     callFunction = this._isACompiledBlock
-    getFunction(args, util) {
-        const name = Cast.toString(args.NAME)
-        return this.funcVars.get(name)
-    }
-    functionExists(args, util) {
-        const name = Cast.toString(args.NAME)
-        return Cast.toBoolean(this.funcVars.has(name))
-    }
-    allFunctions(args, util) {
-        return Cast.toArray(this.funcVars.getNames())
-    }
-    deleteFunction(args, util) {
-        this.funcVars.delete(Cast.toString(args.NAME))
-    }
-    deleteAllFunctions(args, util) {
-        this.funcVars.reset()
-    }
 
     /******************** Utilities ********************/
     objectAsString = this._isACompiledBlock
@@ -2534,7 +2533,7 @@ class GCEClassBlocks {
     }
     
     /************************************************************************************
-    *                            Implementation of Operators                            *
+    *                        Implementation (Helpers) for Blocks                        *
     ************************************************************************************/
     /**
      * @param {any} object
@@ -2664,6 +2663,7 @@ Scratch.extensions.register(extensionClassInstance)
  * - option to exclude super classes when asking for members
  * - implement hover tooltips
  * - implement right-click switch options for similar blocks
+ * - optional: "all variables that are classes/functions" block
  * - name of class/function block
  * - inline todos
  * 

@@ -1,0 +1,12 @@
+Function Definitions
+Method Definitions
+Class Definitions
+- accesses outer scopes
+
+Function Calls
+- accesses outer scopes (saved at definition time)
+Method Calls (including init)
+- accesses outer scopes (saved at definition time)
+
+
+
