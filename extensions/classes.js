@@ -542,8 +542,9 @@ class ScopeStack {
     }
     _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0) {
         for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
-            if (this.scopes[i].supportsVars) continue
-            if (this.scopes[i].vars.has(name)) return this.scopes[i]
+            const scope = this.scopes[i]
+            if (!scope.supportsVars) continue
+            if (scope.vars.has(name)) return scope
         }
         // trick to raise:
         (new VariableManager()).get(name)
@@ -614,8 +615,9 @@ class ScopeStack {
         const map = new Map()
         for (let i = this.scopes.length - 1; i >= 0; i--) {
             // iterate outermost -> innermost so inner scopes override outer ones
-            if (!innermost.supportsVars) continue
-            const names = this.scopes[i].vars.getNames()
+            const scope = this.scopes[i]
+            if (!scope.supportsVars) continue
+            const names = scope.vars.getNames()
             for (const n of names) {
                 if (map.has(n)) map.delete(n)
                 map.set(n, true)
