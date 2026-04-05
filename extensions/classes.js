@@ -255,29 +255,6 @@ class VariableManager {
     }
 }
 
-// TODO: remove after variable update if still unused
-// System for storing data for a block, which will automatically be deleted when its thread is finished or stopped
-class SpecialBlockStorageManager {
-    constructor() {
-        this.threads = new Map()
-    }    
-    storeBlockData(blockId, thread, data) {
-        if (!this.threads.has(thread)) {
-            this.threads.set(thread, {})
-        }
-        const threadBlockDatas = this.threads.get(thread)
-        threadBlockDatas[blockId] = data
-    }
-    getBlockData(blockId, thread) {
-        if (!this.threads.has(thread)) return
-        const threadBlockDatas = this.threads.get(thread)
-        return threadBlockDatas[blockId]
-    }
-    deleteThreadStorage(thread) {
-        this.threads.delete(thread) // does not ever throw
-    }
-}
-
 class ThreadUtil {
     /**
      * @returns {ScopeStack}
@@ -1471,7 +1448,7 @@ class GCEClassBlocks {
                 // TODO: remove temporary block
                 {
                     ...commonBlocks.command,
-                    opcode: "logScopes",
+                    opcode: "logStacks",
                 },
                 makeLabel("Scoped Variables"),
                 {
@@ -2368,8 +2345,8 @@ class GCEClassBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
-    logScopes(args, util) {
-        console.log("Current thread scopes:", ThreadUtil.getCurrentStack(util.thread).scopes)
+    logStacks(args, util) {
+        console.log("Current thread stacks:", util.thread.gceSSM.stacks)
     }
 
     /******************** Scoped Variables ********************/
