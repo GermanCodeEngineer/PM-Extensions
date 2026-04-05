@@ -952,6 +952,50 @@ class BaseCallableType extends CustomType {
     checkOutputValue(output) {
         // Allow better subclassing
     }
+
+    
+    /**
+     * @param {Array} posArgs
+     * @returns {Object}
+     */
+    evaluateArgs(posArgs) {
+        const args = Object.create(null)
+        let name
+        let prefix
+
+        if (this instanceof MethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = "Initializing object"
+        else if (this instanceof MethodType) prefix = `Calling method ${quote(this.name)}`
+        else prefix = `Calling function ${quote(this.name)}`
+
+        // Ensure there are not too many arguments
+        if (posArgs.length > this.argNames.length) {
+            throw new Error(`${prefix}: expected at most ${this.argNames.length}, but got ${posArgs.length} arguments.`)
+        }
+    
+        // Count how many arguments do NOT have defaults
+        const posOnlyCount = this.argNames.length - this.argDefaults.length
+    
+        // Ensure enough positional arguments
+        if (posArgs.length < posOnlyCount) {
+            throw new Error(`${prefix}: expected at least ${posOnlyCount} positional arguments, but got only ${posArgs.length}.`)
+        }
+    
+        // Assign positional arguments
+        for (let i = 0; i < posArgs.length; i++) {
+            name = this.argNames[i]
+            args[name] = posArgs[i]
+        }
+    
+        // Fill in defaults for missing arguments
+        const defaultsStartIndex = this.argNames.length - this.argDefaults.length
+        for (let i = posArgs.length; i < this.argNames.length; i++) {
+            name = this.argNames[i]
+            const defaultIndex = i - defaultsStartIndex
+            args[name] = this.argDefaults[defaultIndex]
+        }
+    
+        return args
+    }
 }
 
 class FunctionType extends BaseCallableType {
@@ -959,7 +1003,7 @@ class FunctionType extends BaseCallableType {
 
     enterContext(thread, posArgs) {
         // Allow better subclassing
-        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        const args = this.evaluateArgs(posArgs)
         ThreadUtil.getCurrentStack(thread).enterFunctionCall(args)
     }
 }
@@ -969,7 +1013,7 @@ class MethodType extends BaseCallableType {
 
     enterContext(thread, instance, posArgs = []) {
         // Allow better subclassing
-        const args = extensionClassInstance._evaluateArgs(this, posArgs)
+        const args = this.evaluateArgs(posArgs)
         ThreadUtil.getCurrentStack(thread).enterMethodCall(instance, args)
     }
 }
@@ -2667,50 +2711,6 @@ class GCEClassBlocks {
 
     _isACompiledBlock() {
         throwInternal("spry-hare")
-    }
-    
-    /**
-     * @param {FunctionType} func
-     * @param {Array} posargs
-     * @returns {Object}
-     */
-    _evaluateArgs(func, posArgs) {
-        const args = Object.create(null)
-        let name
-        let prefix
-
-        if (func instanceof MethodType && (func.name === CONFIG.INIT_METHOD_NAME)) prefix = "initializing object"
-        else if (func instanceof MethodType) prefix = `calling method ${quote(func.name)}`
-        else prefix = `calling function ${quote(func.name)}`
-
-        // Ensure there are not too many arguments
-        if (posArgs.length > func.argNames.length) {
-            throw new Error(`${prefix}: expected at most ${func.argNames.length}, but got ${posArgs.length} arguments.`)
-        }
-    
-        // Count how many arguments do NOT have defaults
-        const posOnlyCount = func.argNames.length - func.argDefaults.length
-    
-        // Ensure enough positional arguments
-        if (posArgs.length < posOnlyCount) {
-            throw new Error(`${prefix}: expected at least ${posOnlyCount} positional arguments, but got only ${posArgs.length}.`)
-        }
-    
-        // Assign positional arguments
-        for (let i = 0; i < posArgs.length; i++) {
-            name = func.argNames[i]
-            args[name] = posArgs[i]
-        }
-    
-        // Fill in defaults for missing arguments
-        const defaultsStartIndex = func.argNames.length - func.argDefaults.length
-        for (let i = posArgs.length; i < func.argNames.length; i++) {
-            name = func.argNames[i]
-            const defaultIndex = i - defaultsStartIndex
-            args[name] = func.argDefaults[defaultIndex]
-        }
-    
-        return args
     }
 }
 const extensionClassInstance = new GCEClassBlocks()
