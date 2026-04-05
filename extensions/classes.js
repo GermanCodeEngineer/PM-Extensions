@@ -279,6 +279,9 @@ class SpecialBlockStorageManager {
 }
 
 class ThreadUtil {
+    /**
+     * @returns {ScopeStack}
+     */
     static getCurrentStack(thread) {
         thread.gceSSM ??= new ScopeStackManager()
         return thread.gceSSM.getCurrentStack()
@@ -589,11 +592,25 @@ class ScopeStack {
         }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
-    hasScopeVar(name, onlyCurrentScope = false) {
+    /**
+     * @param {boolean} onlyCurrentScope - if true, return names only from the innermost scope
+     * @param {boolean} onlyGlobalScope - if true, return names only from the global scope
+     * @returns {Array<string>}
+     */
+    hasScopeVar(name, onlyCurrentScope = false, onlyGlobalScope = false) {
+        if (onlyCurrentScope && onlyGlobalScope) {
+            throwInternal("bold-raven")
+        }
         if (onlyCurrentScope) {
             const innermost = this._getInnermostScope()
             if (!innermost.supportsVars) return false
             return innermost.vars.has(name)
+        }
+        if (onlyGlobalScope) {
+            const globalScope = this._getQualifiedScope(scope => scope.isGlobalScope)
+            if (!globalScope) throwInternal("spry-fox")
+            if (!globalScope.supportsVars) throwInternal("toic-panda")
+            return globalScope.vars.has(name)
         }
         try {
             this._getScopeOfVar(name)
@@ -606,13 +623,21 @@ class ScopeStack {
      * Return an array with all variable names visible in the current thread environment.
      * Iterates from outermost to innermost so inner-scope variables override outer ones.
      * @param {boolean} onlyCurrentScope - if true, return names only from the innermost scope
+     * @param {boolean} onlyGlobalScope - if true, return names only from the global scope
      * @returns {Array<string>}
      */
-    getScopeVarNames(onlyCurrentScope = false) {
+    getScopeVarNames(onlyCurrentScope = false, onlyGlobalScope = false) {
+        if (onlyCurrentScope && onlyGlobalScope) throwInternal("brave-fox")
         if (onlyCurrentScope) {
             const innermost = this._getInnermostScope()
             if (!innermost.supportsVars) return []
             return innermost.vars.getNames()
+        }
+        if (onlyGlobalScope) {
+            const globalScope = this._getQualifiedScope(scope => scope.isGlobalScope)
+            if (!globalScope) throwInternal("mirthful-seal")
+            if (!globalScope.supportsVars) throwInternal("quiet-heron")
+            return globalScope.vars.getNames()
         }
 
         const map = new Map()
@@ -1946,6 +1971,7 @@ class GCEClassBlocks {
                     items: [
                         "all scopes",
                         "local scope",
+                        "global scope",
                     ],
                 },
                 bindVarOriginKind: {
@@ -2358,16 +2384,40 @@ class GCEClassBlocks {
     }
     hasScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
-        const onlyCurrentScope = Cast.toString(args.KIND) === "local scope"
-        return Cast.toBoolean(ThreadUtil.getCurrentStack(util.thread).hasScopeVar(name, onlyCurrentScope))
+        const currentStack = ThreadUtil.getCurrentStack(util.thread)
+        let hasVar
+        switch (args.KIND) {
+            case "all scopes":
+                hasVar = currentStack.hasScopeVar(name, false, false)
+                break
+            case "local scope":
+                hasVar = currentStack.hasScopeVar(name, true, false)
+                break
+            case "global scope":
+                hasVar = currentStack.hasScopeVar(name, false, true)
+                break
+        }
+        return Cast.toBoolean(hasVar)
     }
     deleteScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
         ThreadUtil.getCurrentStack(util.thread).deleteScopeVar(name)
     }
     allVariables(args, util) {
-        const onlyCurrentScope = Cast.toString(args.KIND) === "local scope"
-        return Cast.toArray(ThreadUtil.getCurrentStack(util.thread).getScopeVarNames(onlyCurrentScope))
+        const currentStack = ThreadUtil.getCurrentStack(util.thread)
+        let varNames
+        switch (args.KIND) {
+            case "all scopes":
+                varNames = currentStack.getScopeVarNames(false, false)
+                break
+            case "local scope":
+                varNames = currentStack.getScopeVarNames(true, false)
+                break
+            case "global scope":
+                varNames = currentStack.getScopeVarNames(false, true)
+                break
+        }
+        return Cast.toArray(varNames)
     }
     createVarScope(args, util) {
         ThreadUtil.getCurrentStack(util.thread).enterUserScope()
@@ -2695,7 +2745,6 @@ Scratch.extensions.register(extensionClassInstance)
  * TODO:
  * - finish new scope sytem
  * - also update commented blocks
- * - no longer always store functions and classes globally
  * - make as string work for arrays, objects too
  * - create docs(e.g. members or configure args)
  * - option to exclude super classes when asking for members
