@@ -257,19 +257,24 @@ class VariableManager {
 
 class ThreadUtil {
     /**
+     * @returns {ScopeStackManager}
+     */
+    static getStackManager(thread) {
+        thread.gceSSM ??= new ScopeStackManager()
+        return thread.gceSSM
+    }
+
+    /**
      * @returns {ScopeStack}
      */
     static getCurrentStack(thread) {
-        thread.gceSSM ??= new ScopeStackManager()
-        return thread.gceSSM.getCurrentStack()
+        return ThreadUtil.getStackManager(thread).getCurrentStack()
     }
     static pushStack(thread, stack) {
-        thread.gceSSM ??= new ScopeStackManager()
-        thread.gceSSM.pushStack(stack)
+        ThreadUtil.getStackManager(thread).pushStack(stack)
     }
     static popStack(thread) {
-        thread.gceSSM ??= new ScopeStackManager()
-        return thread.gceSSM.popStack()
+        return ThreadUtil.getStackManager(thread).popStack()
     }
 }
 
@@ -2221,7 +2226,7 @@ class GCEClassBlocks {
 
                 // Define Getters & Setters
                 defineGetter: (node, compiler, imports) => {
-                    const nameCode = compiler.descendInput(node.name).asString()
+                    const nameCode = compiler.descendInput(node.NAME).asString()
                     createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", "getter method", true)
                 },
                 defineSetter: (node, compiler, imports) => {
@@ -2346,7 +2351,7 @@ class GCEClassBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
-            VariableManager, SpecialBlockStorageManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, 
+            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, 
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
@@ -2366,9 +2371,6 @@ class GCEClassBlocks {
         applyHacks(Scratch)
 
         this.globalVariables = new VariableManager()
-        this.specialBlockStorage = new SpecialBlockStorageManager()
-        
-        runtime.on("THREAD_FINISHED", (thread) => {this.specialBlockStorage.deleteThreadStorage(thread)})
     }
     setup() {
         const commonSuperClass = new ClassType("Superclass", null)
@@ -2390,7 +2392,7 @@ class GCEClassBlocks {
     ************************************************************************************/
 
     logStacks(args, util) {
-        console.log("Current thread stacks:", util.thread.gceSSM.stacks)
+        console.log("Current thread stacks:", ThreadUtil.getStackManager(util.thread).stacks)
     }
 
     /******************** Scoped Variables ********************/
@@ -2448,7 +2450,7 @@ class GCEClassBlocks {
     }
     bindVarToScope(args, util) {
         const name = Cast.toString(args.NAME)
-        switch (Cast.toString(args.KIND)) {
+        switch (args.KIND) {
             case "non-local":
                 ThreadUtil.getCurrentStack(util.thread).bindScopeVarNonlocal(name)
                 break
@@ -2544,9 +2546,9 @@ class GCEClassBlocks {
         if (property == "instance method") {
             let index
             index = names.indexOf(CONFIG.INIT_METHOD_NAME)
-            if (index !== 1) names[index] = "[special] init"
+            if (index !== -1) names[index] = "[special] init" // TODO: test ma,es
             index = names.indexOf(CONFIG.AS_STRING_METHOD_NAME)
-            if (index !== 1) names[index] = "[special] as string"
+            if (index !== -1) names[index] = "[special] as string"
         }
         else if (property === "operator method") {
             names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
