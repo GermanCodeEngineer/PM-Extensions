@@ -182,7 +182,7 @@ function span(text) {
 function throwInternal(code, additionalMsg = "") {
     throw new Error(
         `An internal error occured in the classes extension. `+
-        `Please report it. ${additionalMsg} [ERROR CODE: ${code}]`
+        `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
     )
 }
 
@@ -438,7 +438,6 @@ class ScopeStack {
             }
         }
         return null
-
     }
     _getInnermostScope() {
         const scope = this.scopes[0]
@@ -552,6 +551,10 @@ class ScopeStack {
     getScopeVar(name) {
         const varScope = this._getScopeOfVar(name)
         return varScope.vars.get(name)
+    }
+    safeGetScopeVar(name) {
+        const varScope = this._getScopeOfVar(name)
+        return varScope.vars.safeGet(name)
     }
     deleteScopeVar(name) {
         const varScope = this._getScopeOfVar(name)
@@ -720,6 +723,46 @@ class TypeChecker {
         if (!Scratch.vm.jwXML) return false
         return value instanceof Scratch.vm.jwXML.Type
     }
+
+    
+    static isClassicScratchValue(value) {
+        return ((value === undefined) || (value === null) || 
+        (typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
+    }
+
+    static string_typeof(value) {
+        // My Types
+        if (value instanceof BaseCallableType) return value.className // respect subclass names
+        if (value instanceof ClassType) return "Class"
+        if (value instanceof ClassInstanceType) return "Class Instance"
+        if (value instanceof NothingType) return "Nothing"
+        
+        // Common/Safe JS data types
+        if (value === undefined) return "JavaScript Undefined"
+        if (value === null) return "JavaScript Null"
+        if (typeof value === "boolean") return "Boolean"
+        if (typeof value === "number") return "Number"
+        if (typeof value === "string") return "String"
+        
+        // Foreign Extensions
+        if (TypeChecker.isArray(value)) return "Array"
+        if (TypeChecker.isObject(value)) return "Object"
+        if (TypeChecker.isDate(value)) return "Date"
+        if (TypeChecker.isSet(value)) return "Set"
+        if (TypeChecker.isLambda(value)) return "Lambda"
+        if (TypeChecker.isColor(value)) return "Color"
+        if (TypeChecker.isUnlimitedNum(value)) return "Unlimited Number"
+        if (TypeChecker.isTarget(value)) return "Target"
+        if (TypeChecker.isXML(value)) return "XML"
+        
+        // Rare/Overlapping JS data types
+        if (typeof value === "bigint") return "JavaScript BigInt"
+        if (typeof value === "symbol") return "JavaScript Symbol"
+        if (typeof value === "function") return "JavaScript Function"
+        if (typeof value === "object") return "JavaScript Object"
+
+        return "Unknown"
+    }
 }
 
 
@@ -738,32 +781,52 @@ class Cast extends Scratch.Cast {
     }
     
     // Own
-    /** @returns {ClassType} */
-    static toClass(value) {
+    /**
+     * @param {?ScopeStack} currentStack
+     * @returns {ClassType} **/
+    static toClass(value, currentStack = null) {
         if (value instanceof ClassType) return value
-        const [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
+            throw new Error(`Expected a class or class variable name not a ${TypeChecker.string_typeof(value)}.`)
+        }
+        let found = null; let varValue = null
+        if (currentStack) {
+            [found, varValue] = currentStack.safeGetScopeVar(Cast.toString(value))
+        } else {
+            [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        }
         if (found) {
             if (varValue instanceof ClassType) return varValue
-            else throw new Error(`Variable ${quote(value)} is not a class.`)
+            else throw new Error(`Expected a class or class variable name, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
         }
-        else throw new Error("Expected a class or class variable name.")
+        else throw new Error(`Expected a class or class variable name, but variable ${quote(value)} is not defined.`)
     }
 
     /** @returns {ClassInstanceType} */
     static toClassInstance(value) {
         if (value instanceof ClassInstanceType) return value
-        else throw new Error("Expected a class instance.")
+        else throw new Error(`Expected a class instance not a ${TypeChecker.string_typeof(value)}.`)
     }
 
-    /** @returns {FunctionType} */
-    static toFunction(value) {
+    /**
+     * @param {?ScopeStack} currentStack
+     * @returns {FunctionType} **/
+    static toFunction(value, currentStack = null) {
         if (value instanceof FunctionType) return value
-        const [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
+            throw new Error(`Expected a function or function variable name not a ${TypeChecker.string_typeof(value)}.`)
+        }
+        let found = null; let varValue = null
+        if (currentStack) {
+            [found, varValue] = currentStack.safeGetScopeVar(Cast.toString(value))
+        } else {
+            [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
+        }
         if (found) {
             if (varValue instanceof FunctionType) return varValue
-            else throw new Error(`Variable ${quote(value)} is not a function.`)
+            else throw new Error(`Expected a function or function variable name, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
         }
-        else throw new Error("Expected a function or function variable name.")
+        else throw new Error(`Expected a function or function variable name, but variable ${quote(value)} is not defined.`)
     }
 }
 
@@ -1437,7 +1500,7 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.command,
                     opcode: "bindVarToScope",
-                    text: "bind [KIND] variable [NAME] to local scope",
+                    text: "bind [KIND] variable [NAME] to current scope",
                     arguments: {
                         KIND: {type: ArgumentType.STRING, menu: "bindVarOriginKind"},
                         NAME: commonArguments.variableName,
@@ -1835,40 +1898,6 @@ class GCEClassBlocks {
                         POSARGS: jwArrayStub.Argument,
                     },
                 },
-                {
-                    ...gceFunction.Block,
-                    opcode: "getFunction",
-                    text: "get function [NAME]",
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsBoolean,
-                    opcode: "functionExists",
-                    text: "function [NAME] exists?",
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...jwArrayStub.Block,
-                    opcode: "allFunctions",
-                    text: "all functions",
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteFunction",
-                    text: "delete function [NAME]",
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteAllFunctions",
-                    text: "delete all functions",
-                },
                 "---",
                 "---",
                 makeLabel("Utilities"),
@@ -1990,7 +2019,7 @@ class GCEClassBlocks {
         const createClassCore = (node, compiler, setVariable, superClsCode = null) => {
             const nameCode = compiler.descendInput(node.NAME).asString()
             const clsLocal = compiler.localVariables.next()
-            const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode})`: `${ENV_PREFIX}.commonSuperClass`
+            const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode}, ${CURRENT_STACK})`: `${ENV_PREFIX}.commonSuperClass`
             
             return {
                 setup: `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
@@ -2023,8 +2052,8 @@ class GCEClassBlocks {
                 `${CURRENT_STACK}.` + (disableFuncConfig ? "getDefaultFuncConfig()" : "getAndResetNextFuncConfig()") + "));\n"
         }
 
-        const createCallCode = (castMethod, target, m, ...args) => {
-            return `(yield* ${CAST_PREFIX}.${castMethod}(${target}).${m}(thread, ${args.join(", ")}))`
+        const createCallCode = (castMethod, castArgs, m, ...args) => {
+            return `(yield* ${CAST_PREFIX}.${castMethod}(${castArgs.join(", ")}).${m}(thread, ${args.join(", ")}))`
         }
 
         const addSubstackCode = (compiler, substack, imports) => {
@@ -2169,7 +2198,7 @@ class GCEClassBlocks {
                 createInstance: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.CLASS).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", classCode, "createInstance", posArgsCode)
+                    const generatedCode = createCallCode("toClass", [classCode, CURRENT_STACK], "createInstance", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2178,12 +2207,12 @@ class GCEClassBlocks {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const valueCode = compiler.descendInput(node.VALUE).asUnknown()
-                    compiler.source += createCallCode("toClassInstance", instanceCode, "setAttribute", nameCode, valueCode) + ";\n"
+                    compiler.source += createCallCode("toClassInstance", [instanceCode], "setAttribute", nameCode, valueCode) + ";\n"
                 },
                 getAttribute: (node, compiler, imports) => {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    const generatedCode = createCallCode("toClassInstance", instanceCode, "getAttribute", nameCode) 
+                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "getAttribute", nameCode) 
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2192,14 +2221,14 @@ class GCEClassBlocks {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClassInstance", instanceCode, "executeInstanceMethod", nameCode, posArgsCode)
+                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "executeInstanceMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 callStaticMethod: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.CLASS).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", classCode, "executeStaticMethod", nameCode, posArgsCode)
+                    const generatedCode = createCallCode("toClass", [classCode, CURRENT_STACK], "executeStaticMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2248,7 +2277,7 @@ class GCEClassBlocks {
                 callFunction: (node, compiler, imports) => {
                     const funcCode = compiler.descendInput(node.FUNC).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toFunction", funcCode, "execute", posArgsCode)
+                    const generatedCode = createCallCode("toFunction", [funcCode, CURRENT_STACK], "execute", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2366,7 +2395,7 @@ class GCEClassBlocks {
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
     onClass(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         ThreadUtil.getCurrentStack(util.thread).enterClassContext(cls)
         util.startBranch(1, false, () => {
             ThreadUtil.getCurrentStack(util.thread).exitClassContext()
@@ -2378,12 +2407,12 @@ class GCEClassBlocks {
 
     // Use Classes
     isSubclass(args, util) {
-        const subCls = Cast.toClass(args.SUBCLASS)
-        const superCls = Cast.toClass(args.SUPERCLASS)
+        const subCls = Cast.toClass(args.SUBCLASS, ThreadUtil.getCurrentStack(util.thread))
+        const superCls = Cast.toClass(args.SUPERCLASS, ThreadUtil.getCurrentStack(util.thread))
         return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
     getSuperclass(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         return cls.superCls ?? Nothing
     }
     
@@ -2413,25 +2442,25 @@ class GCEClassBlocks {
 
     // Define Static Methods & Class Variables
     setClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
         cls.variables[name] = value
     }
     getClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         const name = Cast.toString(args.NAME)
         return cls.getClassVariable(name)
     }
     deleteClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         const name = Cast.toString(args.NAME)
         delete cls.variables[name]
     }
     defineStaticMethod = this._isACompiledBlock
     propertyNamesOfClass(args, util) {
         const property = args.PROPERTY
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
         if (property === "instance method") values = instanceMethods
@@ -2460,7 +2489,7 @@ class GCEClassBlocks {
     createInstance = this._isACompiledBlock
     isInstance(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE)
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         return Cast.toBoolean(instance.cls.isSubclassOf(cls))
     }
     getClassOfInstance(args, util) {
@@ -2480,7 +2509,7 @@ class GCEClassBlocks {
     callMethod = this._isACompiledBlock
     callStaticMethod = this._isACompiledBlock
     getStaticMethodFunc(args, util) {
-        const cls = Cast.toClass(args.CLASS)
+        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         const name = Cast.toString(args.NAME)
         return cls.getStaticMethod(name)
     }
@@ -2525,38 +2554,7 @@ class GCEClassBlocks {
     /******************** Utilities ********************/
     objectAsString = this._isACompiledBlock
     typeof(args, util) {
-        const value = args.VALUE
-        // My Types
-        if (value instanceof BaseCallableType) return value.className // respect subclass names
-        if (value instanceof ClassType) return "Class"
-        if (value instanceof ClassInstanceType) return "Class Instance"
-        if (value instanceof NothingType) return "Nothing"
-        
-        // Common/Safe JS data types
-        if (value === undefined) return "JavaScript Undefined"
-        if (value === null) return "JavaScript Null"
-        if (typeof value === "boolean") return "Boolean"
-        if (typeof value === "number") return "Number"
-        if (typeof value === "string") return "String"
-        
-        // Foreign Extensions
-        if (TypeChecker.isArray(value)) return "Array"
-        if (TypeChecker.isObject(value)) return "Object"
-        if (TypeChecker.isDate(value)) return "Date"
-        if (TypeChecker.isSet(value)) return "Set"
-        if (TypeChecker.isLambda(value)) return "Lambda"
-        if (TypeChecker.isColor(value)) return "Color"
-        if (TypeChecker.isUnlimitedNum(value)) return "Unlimited Number"
-        if (TypeChecker.isTarget(value)) return "Target"
-        if (TypeChecker.isXML(value)) return "XML"
-        
-        // Rare/Overlapping JS data types
-        if (typeof value === "bigint") return "JavaScript BigInt"
-        if (typeof value === "symbol") return "JavaScript Symbol"
-        if (typeof value === "function") return "JavaScript Function"
-        if (typeof value === "object") return "JavaScript Object"
-
-        return "Unknown"
+        return TypeChecker.string_typeof(args.VALUE)
     }
     checkIdentity(args, util) {
         return Cast.toBoolean(Object.is(args.VALUE1, args.VALUE2))
