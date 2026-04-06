@@ -1671,20 +1671,20 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineInstanceMethod",
-                    text: ["define instance method [NAME] [SHADOW1]"],
+                    text: ["define instance method [NAME] [SHADOW]"],
                     arguments: {
                         NAME: commonArguments.methodName,
-                        SHADOW1: {fillIn: "self"},
+                        SHADOW: {fillIn: "self"},
                     },
                 },
                 {
                     ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
-                    text: ["define [SPECIAL_METHOD] method [SHADOW1]"],
+                    text: ["define [SPECIAL_METHOD] method [SHADOW]"],
                     arguments: {
                         SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
-                        SHADOW1: {fillIn: "self"},
+                        SHADOW: {fillIn: "self"},
                     },
                 },
                 {
