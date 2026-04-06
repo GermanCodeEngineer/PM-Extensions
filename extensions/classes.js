@@ -72,15 +72,15 @@ function applyHacks(Scratch) {
     const {IRGenerator, JSGenerator} = Scratch.vm.exports
     const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
     const ScriptTreeGenerator = IRGenerator.exports.ScriptTreeGenerator
-    
+
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
     Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
         if (value instanceof NothingType) return false
         return oldToBoolean(value)
     }
-    
-    // Wrap ScriptTreeGenerator.descendInput to make 
+
+    // Wrap ScriptTreeGenerator.descendInput to make
     // notequals, ltorequal and gtorequal compiled blocks (as the other comparison blocks are)
     const oldDescendTreeGenInput = ScriptTreeGenerator.prototype.descendInput
     ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
@@ -120,7 +120,7 @@ function applyHacks(Scratch) {
 
                 return new TypedInput(`(yield* runtime.ext_gceClassesOOP._binaryOperator(thread, ${left}, ${right}, `+
                     `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
-            
+
             case "op.equals":
             case "op.notequal":
             case "op.greater":
@@ -150,7 +150,7 @@ function applyHacks(Scratch) {
         }
         return oldDescendJSGenInput.call(this, node, visualReport)
     }
-    
+
 }
 
 /************************************************************************************
@@ -200,8 +200,16 @@ class VariableManager {
         }
     }
 
-    constructor() {
+    /**
+     * @param {?Object<string, any>} startVars
+     */
+    constructor(startVars = null) {
         this.reset()
+        if (startVars) {
+            for (const [name, value] of Object.entries(startVars)) {
+                this.set(name, value)
+            }
+        }
     }
     reset() {
         if (this.variables !== undefined) {
@@ -296,6 +304,84 @@ class ScopeStackManager {
         return this.stacks.pop();
     }
 
+    // Enter Scopes
+    /**
+     * @param {BaseCallableType} callable
+     * @param {Object} scope
+     */
+    insertScopeAndPushStack(callable, scope) {
+        const callableStack = callable.stack.shallowCopy()
+        callableStack.insertScope(scope)
+        this.pushStack(callableStack)
+    }
+    enterFunctionCall(callable, args) {
+        this.insertScopeAndPushStack(callable, {
+            type: ScopeStack.FUNCTION,
+            isCallable: true, supportsVars: true,
+            vars: new VariableManager(args),
+        })
+    }
+    // Untraslated code
+    enterMethodCall(self, args) {
+        this.insertScopeAndPushStack({
+            type: ScopeStack.METHOD,
+            supportsSelf: true, isCallable: true,
+            supportsVars: true,
+            self, vars: new VariableManager(args),
+        })
+    }
+    enterGetterMethodCall(self) {
+        this.insertScopeAndPushStack({
+            type: ScopeStack.GETTER_METHOD,
+            supportsSelf: true, isCallable: true,
+            supportsVars: true,
+            vars: new VariableManager(args),
+        })
+    }
+    enterSetterMethodCall(self, setterValue) {
+        this.insertScopeAndPushStack({
+            type: ScopeStack.SETTER_METHOD,
+            supportsSelf: true, supportsSetterValue: true, isCallable: true,
+            supportsVars: true,
+            self, setterValue, vars: new VariableManager(args),
+        })
+    }
+    enterOperatorMethodCall(self, other) {
+        this.insertScopeAndPushStack({
+            type: ScopeStack.OPERATOR_METHOD,
+            supportsSelf: true, supportsOtherValue: true, isCallable: true,
+            supportsVars: true,
+            self, other, vars: new VariableManager(args),
+        })
+    }
+    enterClassContext(cls) { // TODO: test and/or rework
+        this.getCurrentStack().insertScope({
+            type: ScopeStack.CLASS_CTX,
+            supportsCls: true,
+            cls,
+        })
+    }
+    enterUserScope() {
+        this.getCurrentStack().insertScope({
+            type: ScopeStack.USER_SCOPE,
+            isUserScope: true,
+            supportsVars: true,
+            vars: new VariableManager(),
+        })
+    }
+
+    // Exit Scopes
+    prepareReturn() {
+        this.getCurrentStack().prepareReturn()
+        this.popStack()
+    }
+    exitClassContext() {
+        this.getCurrentStack().exitClassContext()
+    }
+    exitUserScope() {
+        this.getCurrentStack().exitUserScope()
+    }
+
     // Measure Scopes
     getSize() {
         return this.stacks.length
@@ -318,7 +404,7 @@ class ScopeStack {
     static OPERATOR_METHOD = "OPERATOR_METHOD"
     static CLASS_CTX = "CLASS_CTX"
     static USER_SCOPE = "USER_SCOPE"
-    
+
     constructor() {
         /**
          * @type {Array<
@@ -328,13 +414,11 @@ class ScopeStack {
          *     isUserScope?: boolean,
          *     isCallable?: boolean,
          *     supportsVars?: boolean,
-         *     supportsArgs?: boolean,
          *     supportsSelf?: boolean,
          *     supportsSetterValue?: boolean,
          *     supportsOtherValue?: boolean,
          *     supportsCls?: boolean,
          *     vars?: VariableManager,
-         *     args?: Object<string, any>,
          *     self?: ClassInstanceType,
          *     setterValue?: any,
          *     other?: any,
@@ -346,10 +430,9 @@ class ScopeStack {
             type: ScopeStack.GLOBALS,
             isGlobalScope: true, supportsVars: true,
             vars: extensionClassInstance.globalVariables,
-        }]
+        }] // Item 0 is innermost // TODO: reconsider to standardize
         // Use the global variables manager for all global scopes
         this.setNextFuncConfig()
-        console.log("New ScopeStack created", this)
     }
 
     shallowCopy() { // Keep the same scope instances, but within a new array
@@ -357,62 +440,10 @@ class ScopeStack {
         newStack.scopes = [...this.scopes]
         return newStack
     }
-    
+
     // Enter Scopes
-    enterFunctionCall(args) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.FUNCTION,
-            supportsArgs: true, isCallable: true,
-            supportsVars: true,
-            args, vars: new VariableManager(),
-        })
-    }
-    enterMethodCall(self, args) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.METHOD,
-            supportsArgs: true, supportsSelf: true, isCallable: true,
-            supportsVars: true,
-            self, args, vars: new VariableManager(),
-        })
-    }
-    enterGetterMethodCall(self) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.GETTER_METHOD,
-            supportsSelf: true, isCallable: true,
-            supportsVars: true,
-            vars: new VariableManager(),
-        })
-    }
-    enterSetterMethodCall(self, setterValue) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.SETTER_METHOD,
-            supportsSelf: true, supportsSetterValue: true, isCallable: true,
-            supportsVars: true,
-            self, setterValue, vars: new VariableManager(),
-        })
-    }
-    enterOperatorMethodCall(self, other) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.OPERATOR_METHOD,
-            supportsSelf: true, supportsOtherValue: true, isCallable: true,
-            supportsVars: true,
-            self, other, vars: new VariableManager(),
-        })
-    }
-    enterClassContext(cls) {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.CLASS_CTX,
-            supportsCls: true,
-            cls,
-        })
-    }
-    enterUserScope() {
-        this.scopes.splice(0, 0, {
-            type: ScopeStack.USER_SCOPE,
-            isUserScope: true,
-            supportsVars: true,
-            vars: new VariableManager(),
-        })
+    insertScope(scope) {
+        this.scopes.splice(0, 0, scope)
     }
 
     // Get Scope
@@ -431,14 +462,7 @@ class ScopeStack {
         }
         return scope
     }
-    
-    getArgsOrThrow() {
-        const scope = this._getQualifiedScope(scope => scope.supportsArgs)
-        if (!scope) {
-            throw new Error("Function arguments can only be used within a function or method.")
-        }
-        return scope.args
-    }
+
     getSelfOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsSelf)
         if (!scope) {
@@ -467,9 +491,9 @@ class ScopeStack {
         }
         return innermost.cls
     }
-    
+
     // Exit Scopes
-    prepareReturn() {
+    prepareReturn() { // TODO: refractor to just a permission check
         const innermost = this._getInnermostScope()
         if (!innermost.isCallable) {
             throw new Error("return can only be used within a function or method.")
@@ -490,7 +514,7 @@ class ScopeStack {
         }
         this.scopes.shift()
     }
-    
+
     // Measure Scopes
     getSize() {
         return this.scopes.length
@@ -654,7 +678,7 @@ const CONFIG = {
     "left divide", "right divide",
     "left power", "right power",
     "left mod", "right mod",
-    
+
     "equals", "not equals",
     "greater than", "greater or equal",
     "less than", "less or equal",
@@ -677,17 +701,17 @@ class TypeChecker {
     // - UnlimitedNum (really Num, to avoid confusion)
     // - Target
     // - XML
-    
+
     static isArray(value) {
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return value instanceof Scratch.vm.jwArray.Type
     }
-    
+
     static isObject(value) {
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return value instanceof Scratch.vm.dogeiscutObject.Type
     }
-    
+
     static isDate(value) { // There are three date extension
         if (Scratch.vm.jwDate && (value instanceof Scratch.vm.jwDate.Type)) return true
         if (runtime.ext_ddeDateFormat) {
@@ -700,22 +724,22 @@ class TypeChecker {
         }
         return false
     }
-    
+
     static isSet(value) {
         if (!Scratch.vm.dogeiscutSet) return false
         return value instanceof Scratch.vm.dogeiscutSet.Type
     }
-    
+
     static isLambda(value) {
         if (!Scratch.vm.jwLambda) return false
         return value instanceof Scratch.vm.jwLambda.Type
     }
-    
+
     static isColor(value) {
         if (!Scratch.vm.jwColor) return false
         return value instanceof Scratch.vm.jwColor.Type
     }
-    
+
     static isUnlimitedNum(value) {
         if (!Scratch.vm.jwNum) return false
         return value instanceof Scratch.vm.jwNum.Type
@@ -725,15 +749,15 @@ class TypeChecker {
         if (!Scratch.vm.jwTargets) return false
         return value instanceof Scratch.vm.jwTargets.Type
     }
-    
+
     static isXML(value) {
         if (!Scratch.vm.jwXML) return false
         return value instanceof Scratch.vm.jwXML.Type
     }
 
-    
+
     static isClassicScratchValue(value) {
-        return ((value === undefined) || (value === null) || 
+        return ((value === undefined) || (value === null) ||
         (typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
     }
 
@@ -743,14 +767,14 @@ class TypeChecker {
         if (value instanceof ClassType) return "Class"
         if (value instanceof ClassInstanceType) return "Class Instance"
         if (value instanceof NothingType) return "Nothing"
-        
+
         // Common/Safe JS data types
         if (value === undefined) return "JavaScript Undefined"
         if (value === null) return "JavaScript Null"
         if (typeof value === "boolean") return "Boolean"
         if (typeof value === "number") return "Number"
         if (typeof value === "string") return "String"
-        
+
         // Foreign Extensions
         if (TypeChecker.isArray(value)) return "Array"
         if (TypeChecker.isObject(value)) return "Object"
@@ -761,7 +785,7 @@ class TypeChecker {
         if (TypeChecker.isUnlimitedNum(value)) return "Unlimited Number"
         if (TypeChecker.isTarget(value)) return "Target"
         if (TypeChecker.isXML(value)) return "XML"
-        
+
         // Rare/Overlapping JS data types
         if (typeof value === "bigint") return "JavaScript BigInt"
         if (typeof value === "symbol") return "JavaScript Symbol"
@@ -780,13 +804,13 @@ class Cast extends Scratch.Cast {
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
-    
+
     /** @returns {Scratch.vm.dogeiscutObject.Type} */
     static toObject(value, copy = false) {
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
     }
-    
+
     // Own
     /**
      * @param {?ScopeStack} currentStack
@@ -899,7 +923,7 @@ class BaseCallableType extends CustomType {
     className = "Callable" // Should allow s-plural
 
     /**
-     * @param {string} name 
+     * @param {string} name
      * @param {Function} jsFunc
      * @param {ScopeStack} stack
      * @param {Array<string>} argNames
@@ -920,7 +944,7 @@ class BaseCallableType extends CustomType {
     toJSON() {
         return `${this.className}s can not be serialized.`
     }
-    
+
     /**
      * @param {Thread} thread
      * @param {...any} args - class instance and other shadow values from the block (e.g., instance, posArgs, setter value, other operand)
@@ -929,7 +953,7 @@ class BaseCallableType extends CustomType {
     *execute(thread, ...args) {
         const sizeBefore = ThreadUtil.getCurrentStack(thread).getSize()
         this.enterContext(thread, ...args)
-        
+
         let output
         let finished = false
         try {
@@ -958,7 +982,7 @@ class BaseCallableType extends CustomType {
         // Allow better subclassing
     }
 
-    
+
     /**
      * @param {Array} posArgs
      * @returns {Object}
@@ -976,21 +1000,21 @@ class BaseCallableType extends CustomType {
         if (posArgs.length > this.argNames.length) {
             throw new Error(`${prefix}: expected at most ${this.argNames.length}, but got ${posArgs.length} arguments.`)
         }
-    
+
         // Count how many arguments do NOT have defaults
         const posOnlyCount = this.argNames.length - this.argDefaults.length
-    
+
         // Ensure enough positional arguments
         if (posArgs.length < posOnlyCount) {
             throw new Error(`${prefix}: expected at least ${posOnlyCount} positional arguments, but got only ${posArgs.length}.`)
         }
-    
+
         // Assign positional arguments
         for (let i = 0; i < posArgs.length; i++) {
             name = this.argNames[i]
             args[name] = posArgs[i]
         }
-    
+
         // Fill in defaults for missing arguments
         const defaultsStartIndex = this.argNames.length - this.argDefaults.length
         for (let i = posArgs.length; i < this.argNames.length; i++) {
@@ -998,7 +1022,7 @@ class BaseCallableType extends CustomType {
             const defaultIndex = i - defaultsStartIndex
             args[name] = this.argDefaults[defaultIndex]
         }
-    
+
         return args
     }
 }
@@ -1009,7 +1033,7 @@ class FunctionType extends BaseCallableType {
     enterContext(thread, posArgs) {
         // Allow better subclassing
         const args = this.evaluateArgs(posArgs)
-        ThreadUtil.getCurrentStack(thread).enterFunctionCall(args)
+        ThreadUtil.getStackManager(thread).enterFunctionCall(this, args)
     }
 }
 
@@ -1019,22 +1043,22 @@ class MethodType extends BaseCallableType {
     enterContext(thread, instance, posArgs = []) {
         // Allow better subclassing
         const args = this.evaluateArgs(posArgs)
-        ThreadUtil.getCurrentStack(thread).enterMethodCall(instance, args)
+        ThreadUtil.getStackManager(thread).enterMethodCall(this, instance, args)
     }
 }
 
 class GetterMethodType extends MethodType {
     className = "Getter Method"
-    
+
     enterContext(thread, instance, value) {
-        ThreadUtil.getCurrentStack(thread).enterGetterMethodCall(instance, value)
+        ThreadUtil.getStackManager(thread).enterGetterMethodCall(this, instance, value)
     }
 }
 class SetterMethodType extends MethodType {
     className = "Setter Method"
-    
+
     enterContext(thread, instance, value) {
-        ThreadUtil.getCurrentStack(thread).enterSetterMethodCall(instance, value)
+        ThreadUtil.getStackManager(thread).enterSetterMethodCall(this, instance, value)
     }
 
     checkOutputValue(output) {
@@ -1046,7 +1070,7 @@ class OperatorMethodType extends MethodType {
     className = "Operator Method"
 
     enterContext(thread, instance, other) {
-        ThreadUtil.getCurrentStack(thread).enterOperatorMethodCall(instance, other)
+        ThreadUtil.getStackManager(thread).enterOperatorMethodCall(this, instance, other)
     }
 }
 
@@ -1148,7 +1172,7 @@ class ClassType extends CustomType {
     setMember(name, newMemberType, value) {
         const currentMemberType = this.getMember(name, false, false).type // preference does not matter
         if (currentMemberType && (currentMemberType !== newMemberType) && !(
-            ((currentMemberType === "getter method") && (newMemberType === "setter method")) || 
+            ((currentMemberType === "getter method") && (newMemberType === "setter method")) ||
             ((currentMemberType === "setter method") && (newMemberType === "getter method"))
         )) {
             throw new Error(`Can not assign ${newMemberType}: ${currentMemberType} alredy exists with the same name ${quote(name)}.`)
@@ -1160,14 +1184,14 @@ class ClassType extends CustomType {
         else if (newMemberType === "operator method") this.operatorMethods[name] = value
         else if (newMemberType === "class variable") this.variables[name] = value
     }
-    
+
     /**
-     * @param {Thread} thread 
+     * @param {Thread} thread
      * @param {array} posArgs
      * @returns {ClassInstanceType} the instance
      */
     *createInstance(thread, posArgs) {
-        const instance = new ClassInstanceType(this) 
+        const instance = new ClassInstanceType(this)
         const output = yield* instance.executeInstanceMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs) // an init method always exists
         if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
         return instance
@@ -1176,7 +1200,7 @@ class ClassType extends CustomType {
         const methodFunc = this.getMemberOfType(name, "static method")
         return yield* methodFunc.execute(thread, posArgs)
     }
-    
+
     getClassVariable(name) {
         const member = this.getMember(name, true, false) // preference does not matter
         if (!member || member.type !== "class variable") {
@@ -1184,7 +1208,7 @@ class ClassType extends CustomType {
         }
         return member.value
     }
-    
+
     getStaticMethod(name) {
         return this.getMemberOfType(name, "static method")
     }
@@ -1208,7 +1232,7 @@ class ClassInstanceType extends CustomType {
     customId = "gceClassInstance"
 
     /**
-     * @param {ClassType} cls 
+     * @param {ClassType} cls
      */
     constructor(cls) {
         super()
@@ -1269,7 +1293,7 @@ class ClassInstanceType extends CustomType {
         const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
         return yield* method.execute(thread, this, other)
     }
- 
+
     /**
      * @param {Thread} thread
      * @param {string} name
@@ -1285,7 +1309,7 @@ class ClassInstanceType extends CustomType {
         }
         throw new Error(`${this} has no attribute or getter method for ${quote(name)}.`)
     }
-    
+
     /**
      * @param {Thread} thread
      * @param {string} name
@@ -1488,6 +1512,7 @@ class GCEClassBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
+        const temporaryHide = {hideFromPalette: true} // TODO: remove temporary hide
         const info = {
             id: "gceClassesOOP",
             name: "Classes",
@@ -1568,38 +1593,42 @@ class GCEClassBlocks {
                         SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "createSubclassAt",
-                //    text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
-                //    arguments: {
-                //        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
-                //        SUPERCLASS: gceClass.ArgumentClassOrVarName,
-                //        SHADOW: {fillIn: "classBeingCreated"},
-                //    },
-                //},
-                //{
-                //    ...gceClass.Block,
-                //    opcode: "createClassNamed",
-                //    text: ["create class named [NAME] [SHADOW]"],
-                //    branchCount: 1,
-                //    arguments: {
-                //        NAME: commonArguments.classVarName,
-                //        SHADOW: {fillIn: "classBeingCreated"},
-                //    },
-                //},
-                //{
-                //    ...gceClass.Block,
-                //    opcode: "createSubclassNamed",
-                //    text: ["create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]"],
-                //    branchCount: 1,
-                //    arguments: {
-                //        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
-                //        SUPERCLASS: gceClass.ArgumentClassOrVarName,
-                //        SHADOW: {fillIn: "classBeingCreated"},
-                //    },
-                //},                
                 {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "createSubclassAt",
+                    text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    arguments: {
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...gceClass.Block,
+                    opcode: "createClassNamed",
+                    text: ["create class named [NAME] [SHADOW]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.classVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...gceClass.Block,
+                    opcode: "createSubclassNamed",
+                    text: ["create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                        SHADOW: {fillIn: "classBeingCreated"},
+                    },
+                },
+                {
+                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
                     text: ["on class [CLASS] [SHADOW]"],
@@ -1642,140 +1671,150 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineInstanceMethod",
-                    text: ["define instance method [NAME] [SHADOW1] [SHADOW2]"],
+                    text: ["define instance method [NAME] [SHADOW1]"],
                     arguments: {
                         NAME: commonArguments.methodName,
                         SHADOW1: {fillIn: "self"},
-                        SHADOW2: {fillIn: "allFunctionArgs"},
                     },
                 },
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "defineSpecialMethod",
-                //    text: ["define [SPECIAL_METHOD] method [SHADOW1] [SHADOW2]"],
-                //    arguments: {
-                //        SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
-                //        SHADOW1: {fillIn: "self"},
-                //        SHADOW2: {fillIn: "allFunctionArgs"},
-                //    },
-                //},
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineSpecialMethod",
+                    text: ["define [SPECIAL_METHOD] method [SHADOW1]"],
+                    arguments: {
+                        SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
+                        SHADOW1: {fillIn: "self"},
+                    },
+                },
                 {
                     ...gceClassInstance.Block,
                     opcode: "self",
                     text: "self",
                     canDragDuplicate: true,
                 },
-                //{
-                //    ...commonBlocks.returnsAnything,
-                //    opcode: "callSuperMethod",
-                //    text: "call super method [NAME] with positional args [POSARGS]",
-                //    arguments: {
-                //        NAME: commonArguments.methodName,
-                //        POSARGS: jwArrayStub.Argument,
-                //    },
-                //},
-                //{
-                //    ...gceNothing.Block,
-                //    opcode: "callSuperInitMethod",
-                //    text: "call super init method with positional args [POSARGS]",
-                //    arguments: {
-                //        POSARGS: jwArrayStub.Argument,
-                //    },
-                //},
-                //"---",
-                //makeLabel("Define Getters & Setters"),
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "defineGetter",
-                //    text: ["define getter [NAME] [SHADOW]"],
-                //    arguments: {
-                //        NAME: commonArguments.attributeName,
-                //        SHADOW: {fillIn: "self"},
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "defineSetter",
-                //    text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
-                //    arguments: {
-                //        NAME: commonArguments.attributeName,
-                //        SHADOW1: {fillIn: "self"},
-                //        SHADOW2: {fillIn: "defineSetterValue"},
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.returnsAnything,
-                //    opcode: "defineSetterValue",
-                //    text: "value",
-                //    hideFromPalette: true,
-                //    canDragDuplicate: true,
-                //},
-                //"---",
-                //makeLabel("Define Operator Methods"),
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "defineOperatorMethod",
-                //    text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
-                //    arguments: {
-                //        OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
-                //        SHADOW: {fillIn: "operatorOtherValue"},
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.returnsAnything,
-                //    opcode: "operatorOtherValue",
-                //    text: "other value",
-                //    hideFromPalette: true,
-                //    canDragDuplicate: true,
-                //},
-                //"---",
-                //makeLabel("Define Static Methods & Class Variables"),
-                //{
-                //    ...commonBlocks.command,
-                //    opcode: "setClassVariable",
-                //    text: "on [CLASS] set class variable [NAME] to [VALUE]",
-                //    arguments: {
-                //        CLASS: gceClass.ArgumentClassOrVarName,
-                //        NAME: commonArguments.classVariableName,
-                //        VALUE: commonArguments.allowAnything,
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.returnsAnything,
-                //    opcode: "getClassVariable",
-                //    text: "get class variable [NAME] of [CLASS]",
-                //    arguments: {
-                //        NAME: commonArguments.classVariableName,
-                //        CLASS: gceClass.ArgumentClassOrVarName,
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.command,
-                //    opcode: "deleteClassVariable",
-                //    text: "on [CLASS] delete class variable [NAME]",
-                //    arguments: {
-                //        CLASS: gceClass.ArgumentClassOrVarName,
-                //        NAME: commonArguments.classVariableName,
-                //    },
-                //},
-                //{
-                //    ...commonBlocks.commandWithBranch,
-                //    opcode: "defineStaticMethod",
-                //    text: ["define static method [NAME] [SHADOW]"],
-                //    arguments: {
-                //        NAME: commonArguments.methodName,
-                //        SHADOW: {fillIn: "allFunctionArgs"},
-                //    },
-                //},
-                //{
-                //    ...jwArrayStub.Block,
-                //    opcode: "propertyNamesOfClass",
-                //    text: "[PROPERTY] names of class [CLASS]",
-                //    arguments: {
-                //        PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
-                //        CLASS: gceClass.ArgumentClassOrVarName,
-                //    },
-                //},
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.returnsAnything,
+                    opcode: "callSuperMethod",
+                    text: "call super method [NAME] with positional args [POSARGS]",
+                    arguments: {
+                        NAME: commonArguments.methodName,
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...gceNothing.Block,
+                    opcode: "callSuperInitMethod",
+                    text: "call super init method with positional args [POSARGS]",
+                    arguments: {
+                        POSARGS: jwArrayStub.Argument,
+                    },
+                },
+                "---",
+                makeLabel("Define Getters & Setters"),
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineGetter",
+                    text: ["define getter [NAME] [SHADOW]"],
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        SHADOW: {fillIn: "self"},
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineSetter",
+                    text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
+                    arguments: {
+                        NAME: commonArguments.attributeName,
+                        SHADOW1: {fillIn: "self"},
+                        SHADOW2: {fillIn: "defineSetterValue"},
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.returnsAnything,
+                    opcode: "defineSetterValue",
+                    text: "value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                },
+                "---",
+                makeLabel("Define Operator Methods"),
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineOperatorMethod",
+                    text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
+                    arguments: {
+                        OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
+                        SHADOW: {fillIn: "operatorOtherValue"},
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.returnsAnything,
+                    opcode: "operatorOtherValue",
+                    text: "other value",
+                    hideFromPalette: true,
+                    canDragDuplicate: true,
+                },
+                "---",
+                makeLabel("Define Static Methods & Class Variables"),
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.command,
+                    opcode: "setClassVariable",
+                    text: "on [CLASS] set class variable [NAME] to [VALUE]",
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.classVariableName,
+                        VALUE: commonArguments.allowAnything,
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.returnsAnything,
+                    opcode: "getClassVariable",
+                    text: "get class variable [NAME] of [CLASS]",
+                    arguments: {
+                        NAME: commonArguments.classVariableName,
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.command,
+                    opcode: "deleteClassVariable",
+                    text: "on [CLASS] delete class variable [NAME]",
+                    arguments: {
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: commonArguments.classVariableName,
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "defineStaticMethod",
+                    text: ["define static method [NAME]"],
+                    arguments: {
+                        NAME: commonArguments.methodName,
+                    },
+                },
+                {
+                    ...temporaryHide,
+                    ...jwArrayStub.Block,
+                    opcode: "propertyNamesOfClass",
+                    text: "[PROPERTY] names of class [CLASS]",
+                    arguments: {
+                        PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
+                        CLASS: gceClass.ArgumentClassOrVarName,
+                    },
+                },
                 "---",
                 "---",
                 makeLabel("Working with Instances"),
@@ -1886,39 +1925,23 @@ class GCEClassBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createFunctionAt",
-                    text: ["create function at var [NAME] [SHADOW]"],
+                    text: ["create function at var [NAME]"],
                     arguments: {
                         NAME: commonArguments.funcName,
-                        SHADOW: {fillIn: "allFunctionArgs"},
                     },
                 },
-                //{
-                //    ...gceFunction.Block,
-                //    opcode: "createFunctionNamed",
-                //    text: ["create function named [NAME] [SHADOW]"],
-                //    branchCount: 1,
-                //    arguments: {
-                //        NAME: commonArguments.funcName,
-                //        SHADOW: {fillIn: "allFunctionArgs"},
-                //    },
-                //},
+                {
+                    ...temporaryHide,
+                    ...gceFunction.Block,
+                    opcode: "createFunctionNamed",
+                    text: ["create function named [NAME]"],
+                    branchCount: 1,
+                    arguments: {
+                        NAME: commonArguments.funcName,
+                    },
+                },
                 "---",
                 makeLabel("Inside Functions & Methods"),
-                {
-                    ...dogeiscutObjectStub.Block,
-                    opcode: "allFunctionArgs",
-                    text: "function arguments",
-                    canDragDuplicate: true,
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "functionArg",
-                    text: "function arg [NAME]",
-                    arguments: {
-                        NAME: commonArguments.argumentName,
-                    },
-                    canDragDuplicate: true,
-                },
                 {
                     ...commonBlocks.command,
                     opcode: "return",
@@ -1927,11 +1950,6 @@ class GCEClassBlocks {
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     },
-                },
-                { // TODO: probably remove after variable update
-                    ...commonBlocks.command,
-                    opcode: "transferFunctionArgsToTempVars",
-                    text: "transfer arguments to temporary variables",
                 },
                 { // BUTTON
                     opcode: "addTempVars",
@@ -2044,18 +2062,18 @@ class GCEClassBlocks {
         }
         return info
     }
-    
+
     getCompileInfo() {
         const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => (generator, block) => {
             if (yieldRequired) generator.script.yields = true
             const result = { kind }
-            
+
             inputs.forEach(inputName => {
-                result[inputName] = inputName === "SUBSTACK" 
+                result[inputName] = inputName === "SUBSTACK"
                     ? generator.descendSubstack(block, inputName)
                     : generator.descendInputOfBlock(block, inputName)
             })
-            
+
             fields.forEach(fieldName => {
                 result[fieldName] = block.fields[fieldName].value
             })
@@ -2066,18 +2084,19 @@ class GCEClassBlocks {
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
         const THREAD_UTIL_PREFIX = `${EXTENSION_PREFIX}.ThreadUtil`
         const CURRENT_STACK = `${THREAD_UTIL_PREFIX}.getCurrentStack(thread)`
+        const STACK_MANAGER = `${THREAD_UTIL_PREFIX}.getStackManager(thread)`
         const CAST_PREFIX = `${EXTENSION_PREFIX}.Cast`
 
         const createClassCore = (node, compiler, setVariable, superClsCode = null) => {
             const nameCode = compiler.descendInput(node.NAME).asString()
             const clsLocal = compiler.localVariables.next()
             const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode}, ${CURRENT_STACK})`: `${ENV_PREFIX}.commonSuperClass`
-            
+
             return {
                 setup: `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
                     (setVariable ? `${CURRENT_STACK}.setScopeVar(${clsLocal}.name, ${clsLocal});` : "") +
-                    `${CURRENT_STACK}.enterClassContext(${clsLocal});`,
-                cleanup: `${CURRENT_STACK}.exitClassContext();`,
+                    `${STACK_MANAGER}.enterClassContext(${clsLocal});`,
+                cleanup: `${STACK_MANAGER}.exitClassContext();`,
                 clsLocal
             }
         }
@@ -2087,17 +2106,17 @@ class GCEClassBlocks {
         }
 
         const createMethodDefinition = (
-            node, compiler, imports, 
-            nameCode, classId, memberType, 
+            node, compiler, imports,
+            nameCode, classId, memberType,
             disableFuncConfig,
         ) => {
             const nameLocal = compiler.localVariables.next()
-            
+
             compiler.source += `const ${nameLocal} = ${nameCode};` +
                 `${CURRENT_STACK}.getClsOrThrow("define method").setMember(${nameLocal}, ${quote(memberType)}, `+
                 `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             addSubstackCode(compiler, node.SUBSTACK, imports)
-            compiler.source += "${CURRENT_STACK}.prepareReturn();" + 
+            compiler.source += `${STACK_MANAGER}.prepareReturn();` +
                 // Nothing is indepedent of function context, so we can exit context before
                 `return ${ENV_PREFIX}.Nothing;` +
                 `}, ${CURRENT_STACK}, ` +
@@ -2144,7 +2163,7 @@ class GCEClassBlocks {
 
                 // Define Static Methods & Class Variables
                 defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                
+
 
                 // Create & Inspect
                 createInstance: createIRGenerator("input", ["CLASS", "POSARGS"], [], true),
@@ -2164,14 +2183,13 @@ class GCEClassBlocks {
 
                 // Inside Functions & Methods
                 return: createIRGenerator("stack", ["VALUE"], []),
-                transferFunctionArgsToTempVars: createIRGenerator("stack", [], []),
 
                 // Use Functions
                 callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
 
 
                 // Utilities
-                objectAsString: createIRGenerator("input", ["VALUE"], [], true),                
+                objectAsString: createIRGenerator("input", ["VALUE"], [], true),
             },
             js: {
                 // Define Classes
@@ -2233,7 +2251,7 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
                 },
-                
+
                 // Define Operator Methods
                 defineOperatorMethod: (node, compiler, imports) => {
                     createMethodDefinition(node, compiler, imports, quote(node.OPERATOR_KIND), "OperatorMethodType", "operator method", true)
@@ -2264,7 +2282,7 @@ class GCEClassBlocks {
                 getAttribute: (node, compiler, imports) => {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "getAttribute", nameCode) 
+                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "getAttribute", nameCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2289,11 +2307,11 @@ class GCEClassBlocks {
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const nameLocal = compiler.localVariables.next()
-                    
+
                     compiler.source += `const ${nameLocal} = ${nameCode};` +
                         `${CURRENT_STACK}.setScopeVar(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
                     addSubstackCode(compiler, node.SUBSTACK, imports)
-                    compiler.source += `${CURRENT_STACK}.prepareReturn();` +
+                    compiler.source += `${STACK_MANAGER}.prepareReturn();` +
                         // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
                         `}, ${CURRENT_STACK},`+
@@ -2303,7 +2321,7 @@ class GCEClassBlocks {
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const generatedCode = `(new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`+
                         getSubstackCode(compiler, node.SUBSTACK, imports)+
-                        `${CURRENT_STACK}.prepareReturn();` +
+                        `${STACK_MANAGER}.prepareReturn();` +
                         // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
                         `}, ${CURRENT_STACK},` +
@@ -2316,13 +2334,8 @@ class GCEClassBlocks {
                     const returnValueLocal = compiler.localVariables.next()
                     // We need to cache the return value before exiting context, as it might depend on it
                     compiler.source += `const ${returnValueLocal} = ${compiler.descendInput(node.VALUE).asUnknown()};` +
-                        `${CURRENT_STACK}.prepareReturn();` +
+                        `${STACK_MANAGER}.prepareReturn();` +
                         `return ${returnValueLocal};\n`
-                },
-                transferFunctionArgsToTempVars: (node, compiler, imports) => {
-                    // tempVars seems to always be defined
-                    compiler.source += 'try {tempVars} catch {throw new Error("Failed to transfer to temporary variables.")};' +
-                        `Object.assign(tempVars, ${CURRENT_STACK}.getArgsOrThrow());\n`
                 },
 
                 // Use Functions
@@ -2343,7 +2356,7 @@ class GCEClassBlocks {
             },
         }
     }
-    
+
     constructor() {
         // to allow other extensions access from the extension class
         Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
@@ -2351,7 +2364,7 @@ class GCEClassBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
-            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, 
+            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
@@ -2367,7 +2380,7 @@ class GCEClassBlocks {
         Scratch.gui.getBlockly().then(ScratchBlocks => {
             ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
         })
-        
+
         applyHacks(Scratch)
 
         this.globalVariables = new VariableManager()
@@ -2375,9 +2388,9 @@ class GCEClassBlocks {
     setup() {
         const commonSuperClass = new ClassType("Superclass", null)
         commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
-            CONFIG.INIT_METHOD_NAME, 
+            CONFIG.INIT_METHOD_NAME,
             function* (thread) {
-                ThreadUtil.getCurrentStack(thread).prepareReturn()
+                ThreadUtil.getStackManager(thread).prepareReturn()
                 // Nothing is indepedent of function context, so we can exit context before
                 return Nothing
             },
@@ -2386,13 +2399,13 @@ class GCEClassBlocks {
         )
         this.environment.commonSuperClass = commonSuperClass
     }
-    
+
     /************************************************************************************
     *                                       Blocks                                      *
     ************************************************************************************/
 
     logStacks(args, util) {
-        console.log("Current thread stacks:", ThreadUtil.getStackManager(util.thread).stacks)
+        console.log("Current thread stacks:", JSON.stringify([...ThreadUtil.getStackManager(util.thread).stacks], null, 2))
     }
 
     /******************** Scoped Variables ********************/
@@ -2443,9 +2456,9 @@ class GCEClassBlocks {
         return Cast.toArray(varNames)
     }
     createVarScope(args, util) {
-        ThreadUtil.getCurrentStack(util.thread).enterUserScope()
+        ThreadUtil.getStackManager(util.thread).enterUserScope()
         util.startBranch(1, false, () => {
-            ThreadUtil.getCurrentStack(util.thread).exitUserScope()
+            ThreadUtil.getStackManager(util.thread).exitUserScope()
         })
     }
     bindVarToScope(args, util) {
@@ -2469,9 +2482,9 @@ class GCEClassBlocks {
     createSubclassNamed = this._isACompiledBlock
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
-        ThreadUtil.getCurrentStack(util.thread).enterClassContext(cls)
+        ThreadUtil.getStackManager(util.thread).enterClassContext(cls)
         util.startBranch(1, false, () => {
-            ThreadUtil.getCurrentStack(util.thread).exitClassContext()
+            ThreadUtil.getStackManager(util.thread).exitClassContext()
         })
     }
     classBeingCreated(args, util) {
@@ -2488,7 +2501,7 @@ class GCEClassBlocks {
         const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
         return cls.superCls ?? Nothing
     }
-    
+
     /******************** Class Members ********************/
 
     // Define Instance Methods
@@ -2604,17 +2617,7 @@ class GCEClassBlocks {
     createFunctionNamed = this._isACompiledBlock
 
     // Inside Functions & Methods
-    allFunctionArgs(blockArgs, util) {
-        return Cast.toObject(ThreadUtil.getCurrentStack(util.thread).getArgsOrThrow())
-    }
-    functionArg(blockArgs, util) {
-        const args = ThreadUtil.getCurrentStack(util.thread).getArgsOrThrow()
-        const name = Cast.toString(blockArgs.NAME)
-        if (!(name in args)) throw new Error(`Undefined function argument ${quote(name)}.`)
-        return args[name]
-    }
     return = this._isACompiledBlock
-    transferFunctionArgsToTempVars = this._isACompiledBlock
     addTempVars() { // BUTTON
         if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
             Scratch.vm.extensionManager.loadExtensionIdSync("tempVars")
@@ -2638,7 +2641,7 @@ class GCEClassBlocks {
     executeExpression(args, util) {
         // do nothing
     }
-    
+
     /************************************************************************************
     *                        Implementation (Helpers) for Blocks                        *
     ************************************************************************************/
@@ -2679,7 +2682,7 @@ class GCEClassBlocks {
         }
         return null
     }
-    
+
     *_comparisonOperator(thread, left, right, method, oppositeMethod, nodeKind) {
         let foundMethod = false
         let output = undefined
@@ -2697,7 +2700,7 @@ class GCEClassBlocks {
         // default implementation(see scratch3_operators.js)
         const compareResult = Cast.compare(left, right)
         switch (nodeKind) {
-            case "op.equals": return compareResult === 0 
+            case "op.equals": return compareResult === 0
             case "op.notequal": return compareResult !== 0
             case "op.greater": return compareResult > 0
             case "op.gtorequal": return compareResult >= 0
@@ -2706,7 +2709,7 @@ class GCEClassBlocks {
         }
         return null
     }
-    
+
     /************************************************************************************
     *                                      Helpers                                      *
     ************************************************************************************/
@@ -2725,14 +2728,17 @@ Scratch.extensions.register(extensionClassInstance)
  * - finish new scope sytem
  * - also update commented blocks
  * - make as string work for arrays, objects too
- * - create docs(e.g. members or configure args)
+ * - create docs(e.g. members or configure args, explain roles of internal classes)
  * - option to exclude super classes when asking for members
  * - implement hover tooltips
  * - implement right-click switch options for similar blocks
  * - optional: "all variables that are classes/functions" block
+ * - avoid methods with same name in different classes to avoid confusion
  * - name of class/function block
+ * - reorganize block cagegories
+ * - optional future todo: investigate why inputs are not supported in shadow blocks
  * - inline todos
- * 
+ *
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
  */
