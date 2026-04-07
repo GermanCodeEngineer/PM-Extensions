@@ -12,11 +12,22 @@ from pathlib import Path
 class CORSRequestHandler(SimpleHTTPRequestHandler):
     """Serve static files and add CORS headers expected by PenguinMod Studio."""
 
-    # Restrict this to PenguinMod Studio. Change to "*" if needed for other tools.
-    allowed_origin = "https://studio.penguinmod.com"
+    # Allow PenguinMod Studio and common local dev origins.
+    allowed_origins = {
+        "https://studio.penguinmod.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174"
+    }
 
     def end_headers(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", self.allowed_origin)
+        origin = self.headers.get("Origin")
+        if origin in self.allowed_origins:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "*")
         self.send_header("Access-Control-Max-Age", "86400")
@@ -33,14 +44,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--host",
-        default="127.0.0.1",
-        help="Host interface to bind to (default: 127.0.0.1)",
+        default="localhost",
+        help="Host interface to bind to (default: localhost)",
     )
     parser.add_argument(
         "--port",
         type=int,
-        default=5500,
-        help="Port to listen on (default: 5500)",
+        default=5173,
+        help="Port to listen on (default: 5173; will try 5174 if unavailable)",
     )
     parser.add_argument(
         "--dir",
@@ -49,8 +60,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--origin",
-        default="https://studio.penguinmod.com",
-        help='Allowed Access-Control-Allow-Origin value (default: "https://studio.penguinmod.com")',
+        action="append",
+        dest="origins",
+        default=None,
+        help='Allowed Access-Control-Allow-Origin value. Can be passed multiple times.',
     )
     return parser
 
@@ -62,13 +75,33 @@ def main() -> None:
     if not serve_dir.exists() or not serve_dir.is_dir():
         raise SystemExit(f"Not a directory: {serve_dir}")
 
-    CORSRequestHandler.allowed_origin = args.origin
+    if args.origins:
+        CORSRequestHandler.allowed_origins = set(args.origins)
+
     handler = partial(CORSRequestHandler, directory=str(serve_dir))
 
-    server = ThreadingHTTPServer((args.host, args.port), handler)
+    ports_to_try = [args.port]
+    if args.port == 5173:
+        ports_to_try.append(5174)
+
+    server = None
+    bound_port = None
+    for port in ports_to_try:
+        try:
+            server = ThreadingHTTPServer((args.host, port), handler)
+            bound_port = port
+            break
+        except OSError:
+            continue
+
+    if server is None or bound_port is None:
+        raise SystemExit(f"Could not bind to any of these ports: {ports_to_try}")
+
     print(f"Serving {serve_dir}")
-    print(f"URL: http://{args.host}:{args.port}/")
-    print(f"CORS Access-Control-Allow-Origin: {CORSRequestHandler.allowed_origin}")
+    print(f"URL: http://localhost:{bound_port}/")
+    print("Allowed CORS origins:")
+    for origin in sorted(CORSRequestHandler.allowed_origins):
+        print(f"  - {origin}")
 
     try:
         server.serve_forever()
