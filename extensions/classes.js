@@ -276,13 +276,13 @@ class ThreadUtil {
      * @returns {ScopeStack}
      */
     static getCurrentStack(thread) {
-        return ThreadUtil.getStackManager(thread).getCurrentStack()
+        return ThreadUtil.getStackManager(thread).getCurrentStackFromManager()
     }
     static pushStack(thread, stack) {
-        ThreadUtil.getStackManager(thread).pushStack(stack)
+        ThreadUtil.getStackManager(thread).pushStackToManager(stack)
     }
     static popStack(thread) {
-        return ThreadUtil.getStackManager(thread).popStack()
+        return ThreadUtil.getStackManager(thread).popStackFromManager()
     }
 }
 
@@ -291,13 +291,13 @@ class ScopeStackManager {
     constructor() {
         this.stacks = [new ScopeStack()]; // Live default stack
     }
-    getCurrentStack() {
+    getCurrentStackFromManager() {
         return this.stacks[this.stacks.length - 1]
     }
-    pushStack(stack) {
+    pushStackToManager(stack) {
         this.stacks.push(stack)
     }
-    popStack() {
+    popStackFromManager() {
         if (this.stacks.length <= 1) {
             throwInternal("stoic-penguin")
         }
@@ -312,7 +312,7 @@ class ScopeStackManager {
     insertScopeAndPushStack(callable, scope) {
         const callableStack = callable.stack.shallowCopy()
         callableStack.insertScope(scope)
-        this.pushStack(callableStack)
+        this.pushStackToManager(callableStack)
     }
     enterFunctionCall(callable, args) {
         this.insertScopeAndPushStack(callable, {
@@ -354,32 +354,11 @@ class ScopeStackManager {
             self, other, vars: new VariableManager(args),
         })
     }
-    enterClassContext(cls) { // TODO: test and/or rework
-        this.getCurrentStack().insertScope({
-            type: ScopeStack.CLASS_CTX,
-            supportsCls: true,
-            cls,
-        })
-    }
-    enterUserScope() {
-        this.getCurrentStack().insertScope({
-            type: ScopeStack.USER_SCOPE,
-            isUserScope: true,
-            supportsVars: true,
-            vars: new VariableManager(),
-        })
-    }
 
     // Exit Scopes
     prepareReturn() {
-        this.getCurrentStack().prepareReturn()
-        this.popStack()
-    }
-    exitClassContext() {
-        this.getCurrentStack().exitClassContext()
-    }
-    exitUserScope() {
-        this.getCurrentStack().exitUserScope()
+        this.getCurrentStackFromManager().assertCanReturn()
+        this.popStackFromManager()
     }
 
     // Measure Scopes
@@ -402,7 +381,7 @@ class ScopeStack {
     static GETTER_METHOD = "GETTER_METHOD"
     static SETTER_METHOD = "SETTER_METHOD"
     static OPERATOR_METHOD = "OPERATOR_METHOD"
-    static CLASS_CTX = "CLASS_CTX"
+    static CLASS_DEF = "CLASS_DEF"
     static USER_SCOPE = "USER_SCOPE"
 
     constructor() {
@@ -444,6 +423,21 @@ class ScopeStack {
     // Enter Scopes
     insertScope(scope) {
         this.scopes.splice(0, 0, scope)
+    }
+    enterClassDef(cls) { // TODO: test and/or rework
+        this.insertScope({
+            type: ScopeStack.CLASS_DEF,
+            supportsCls: true,
+            cls,
+        })
+    }
+    enterUserScope() {
+        this.insertScope({
+            type: ScopeStack.USER_SCOPE,
+            isUserScope: true,
+            supportsVars: true,
+            vars: new VariableManager(),
+        })
     }
 
     // Get Scope
@@ -493,14 +487,13 @@ class ScopeStack {
     }
 
     // Exit Scopes
-    prepareReturn() { // TODO: refractor to just a permission check
+    assertCanReturn() {
         const innermost = this._getInnermostScope()
         if (!innermost.isCallable) {
             throw new Error("return can only be used within a function or method.")
         }
-        this.scopes.shift()
     }
-    exitClassContext() {
+    exitClassDefScope() {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsCls) {
             throwInternal("nimble-panda")
@@ -2095,8 +2088,8 @@ class GCEClassBlocks {
             return {
                 setup: `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
                     (setVariable ? `${CURRENT_STACK}.setScopeVar(${clsLocal}.name, ${clsLocal});` : "") +
-                    `${STACK_MANAGER}.enterClassContext(${clsLocal});`,
-                cleanup: `${STACK_MANAGER}.exitClassContext();`,
+                    `${CURRENT_STACK}.enterClassDef(${clsLocal});`,
+                cleanup: `${CURRENT_STACK}.exitClassDefScope();`,
                 clsLocal
             }
         }
@@ -2456,9 +2449,9 @@ class GCEClassBlocks {
         return Cast.toArray(varNames)
     }
     createVarScope(args, util) {
-        ThreadUtil.getStackManager(util.thread).enterUserScope()
+        ThreadUtil.getCurrentStack(util.thread).enterUserScope()
         util.startBranch(1, false, () => {
-            ThreadUtil.getStackManager(util.thread).exitUserScope()
+            ThreadUtil.getCurrentStack(util.thread).exitUserScope()
         })
     }
     bindVarToScope(args, util) {
@@ -2482,9 +2475,9 @@ class GCEClassBlocks {
     createSubclassNamed = this._isACompiledBlock
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
-        ThreadUtil.getStackManager(util.thread).enterClassContext(cls)
+        ThreadUtil.getCurrentStack(util.thread).enterClassDef(cls)
         util.startBranch(1, false, () => {
-            ThreadUtil.getStackManager(util.thread).exitClassContext()
+            ThreadUtil.getCurrentStack(util.thread).exitClassDefScope()
         })
     }
     classBeingCreated(args, util) {
@@ -2733,7 +2726,6 @@ Scratch.extensions.register(extensionClassInstance)
  * - implement hover tooltips
  * - implement right-click switch options for similar blocks
  * - optional: "all variables that are classes/functions" block
- * - avoid methods with same name in different classes to avoid confusion
  * - name of class/function block
  * - reorganize block cagegories
  * - optional future todo: investigate why inputs are not supported in shadow blocks
