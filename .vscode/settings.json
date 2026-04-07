@@ -3,5 +3,11 @@
     "editor.formatOnSave": false,
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "never"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "/^node tests/test_classes\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

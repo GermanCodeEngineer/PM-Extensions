@@ -324,36 +324,36 @@ class ScopeStackManager {
         })
     }
     // Untraslated code
-    enterMethodCall(self, args) {
-        this.insertScopeAndPushStack({
+    enterMethodCall(callable, self, args) {
+        this.insertScopeAndPushStack(callable, {
             type: ScopeStack.METHOD,
             supportsSelf: true, isCallable: true,
             supportsVars: true,
             self, vars: new VariableManager(args),
         })
     }
-    enterGetterMethodCall(self) {
-        this.insertScopeAndPushStack({
+    enterGetterMethodCall(callable, self) {
+        this.insertScopeAndPushStack(callable, {
             type: ScopeStack.GETTER_METHOD,
             supportsSelf: true, isCallable: true,
             supportsVars: true,
-            vars: new VariableManager(args),
+            self, vars: new VariableManager(),
         })
     }
-    enterSetterMethodCall(self, setterValue) {
-        this.insertScopeAndPushStack({
+    enterSetterMethodCall(callable, self, setterValue) {
+        this.insertScopeAndPushStack(callable, {
             type: ScopeStack.SETTER_METHOD,
             supportsSelf: true, supportsSetterValue: true, isCallable: true,
             supportsVars: true,
-            self, setterValue, vars: new VariableManager(args),
+            self, setterValue, vars: new VariableManager(),
         })
     }
-    enterOperatorMethodCall(self, other) {
-        this.insertScopeAndPushStack({
+    enterOperatorMethodCall(callable, self, other) {
+        this.insertScopeAndPushStack(callable, {
             type: ScopeStack.OPERATOR_METHOD,
             supportsSelf: true, supportsOtherValue: true, isCallable: true,
             supportsVars: true,
-            self, other, vars: new VariableManager(args),
+            self, other, vars: new VariableManager(),
         })
     }
 
@@ -1068,8 +1068,8 @@ class MethodType extends BaseCallableType {
 class GetterMethodType extends MethodType {
     className = "Getter Method"
 
-    enterContext(thread, instance, value) {
-        ThreadUtil.getStackManager(thread).enterGetterMethodCall(this, instance, value)
+    enterContext(thread, instance) {
+        ThreadUtil.getStackManager(thread).enterGetterMethodCall(this, instance)
     }
 }
 class SetterMethodType extends MethodType {
@@ -1122,7 +1122,7 @@ class ClassType extends CustomType {
      * @param {string} name
      * @param {boolean} recursive
      * @param {boolean} preferSetter
-     * @returns {?{type: string, value: any}}
+     * @returns {{type: ?string, value: any}}
      */
     getMember(name, recursive, preferSetter) {
         if (name in this.instanceMethods) return {type: "instance method", value: this.instanceMethods[name]}
@@ -1215,7 +1215,8 @@ class ClassType extends CustomType {
         return instance
     }
     *executeStaticMethod(thread, name, posArgs) {
-        const methodFunc = this.getMemberOfType(name, "static method")
+        /** @type {FunctionType} */
+        const methodFunc = this.getStaticMethod(name)
         return yield* methodFunc.execute(thread, posArgs)
     }
 
@@ -1228,6 +1229,7 @@ class ClassType extends CustomType {
     }
 
     getStaticMethod(name) {
+        /** @type {FunctionType} */
         return this.getMemberOfType(name, "static method")
     }
 
@@ -1273,6 +1275,7 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the return value of the method
      */
     *executeInstanceMethod(thread, name, posArgs) {
+        /** @type {MethodType} */
         const method = this.cls.getMemberOfType(name, "instance method")
         return yield* method.execute(thread, this, posArgs)
     }
@@ -1285,6 +1288,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeSuperMethod(thread, name, posArgs) {
         if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
+        /** @type {MethodType} */
         const method = this.cls.superCls.getMemberOfType(name, "instance method")
         return yield* method.execute(thread, this, posArgs)
     }
@@ -1308,6 +1312,7 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the return value of the operator method
      */
     *executeOperatorMethod(thread, name, other) {
+        /** @type {OperatorMethodType} */
         const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
         return yield* method.execute(thread, this, other)
     }
@@ -1318,9 +1323,11 @@ class ClassInstanceType extends CustomType {
      * @returns {any} the attribute value or return value of getter method
      */
     *getAttribute(thread, name) {
-        const methodMember = this.cls.getMember(name, true, false)
-        if (methodMember && methodMember.type === "getter method") {
-            return (yield* methodMember.value.execute(thread, this, []))
+        const {type, value} = this.cls.getMember(name, true, false)
+        if (type === "getter method") {
+            /** @type {GetterMethodType} */
+            const getterMethod = value
+            return (yield* getterMethod.execute(thread, this))
         }
         if (name in this.attributes) {
             return this.attributes[name]
@@ -2082,7 +2089,7 @@ class GCEClassBlocks {
     }
 
     getCompileInfo() {
-        const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => (generator, block) => {
+        const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => ((generator, block) => {
             if (yieldRequired) generator.script.yields = true
             const result = { kind }
 
@@ -2096,7 +2103,7 @@ class GCEClassBlocks {
                 result[fieldName] = block.fields[fieldName].value
             })
             return result
-        }
+        })
 
         const EXTENSION_PREFIX = "runtime.ext_gceClassesOOP"
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
@@ -2678,6 +2685,7 @@ class GCEClassBlocks {
         if (!(object instanceof ClassInstanceType)) return object.toString()
         let method
         try {
+            /** @type {MethodType} */
             method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
         } catch {}
         if (!method) return object.toString()
@@ -2764,7 +2772,9 @@ if (!isRuntimeEnv) {
  * - name of class/function block
  * - reorganize block cagegories
  * - optional future todo: investigate why inputs are not supported in shadow blocks
+ * - possibly make "self" available as a variable in methods
  * - inline todos
+ * - optional future todo: implement translations
  *
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
