@@ -15,8 +15,8 @@
 
 (function(Scratch) {
 "use strict"
-
-if (!Scratch.extensions.unsandboxed) {
+const isRuntimeEnv = !Scratch.extensions.isTestingEnv // Allow importing this file in a non-Scratch testing environment
+if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed.")
 }
 
@@ -25,42 +25,44 @@ if (!Scratch.extensions.unsandboxed) {
 ************************************************************************************/
 
 let CUSTOM_SHAPE
-try { // If ScratchBlocks is not avaliable, skip
-CUSTOM_SHAPE = {
-    emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
-    emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
-    leftPath: (block) => {
-        const edgeWidth = block.height / 2
-        const s = edgeWidth / 16
-        return [
-            `h ${-12*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
-            `l ${4*s} ${-4*s} `+
-            `l ${-4*s} ${-4*s} `+
-            `l 0 ${-8*s} `+
-            `l ${4*s} ${-4*s} `+
-            `l ${-4*s} ${-4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
-        ]
-    },
-    rightPath: (block) => {
-        const edgeWidth = block.edgeShapeWidth_
-        const s = edgeWidth / 16
-        return [
-            `h ${12*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
-            `l ${-4*s} ${4*s} `+
-            `l ${4*s} ${4*s} `+
-            `l 0 ${8*s} `+
-            `l ${-4*s} ${4*s} `+
-            `l ${4*s} ${4*s} `+
-            `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
-            `h ${-12*s}`
-        ]
-    },
-}
-} catch (error) {
-    console.error("[Classes Extension] Failed to create custom shape", error)
+if (isRuntimeEnv) {
+    try { // If ScratchBlocks is not avaliable, skip
+    CUSTOM_SHAPE = {
+        emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
+        emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+        leftPath: (block) => {
+            const edgeWidth = block.height / 2
+            const s = edgeWidth / 16
+            return [
+                `h ${-12*s} `+
+                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+                `l ${4*s} ${-4*s} `+
+                `l ${-4*s} ${-4*s} `+
+                `l 0 ${-8*s} `+
+                `l ${4*s} ${-4*s} `+
+                `l ${-4*s} ${-4*s} `+
+                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
+            ]
+        },
+        rightPath: (block) => {
+            const edgeWidth = block.edgeShapeWidth_
+            const s = edgeWidth / 16
+            return [
+                `h ${12*s} `+
+                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
+                `l ${-4*s} ${4*s} `+
+                `l ${4*s} ${4*s} `+
+                `l 0 ${8*s} `+
+                `l ${-4*s} ${4*s} `+
+                `l ${4*s} ${4*s} `+
+                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
+                `h ${-12*s}`
+            ]
+        },
+    }
+    } catch (error) {
+        console.error("[Classes Extension] Failed to create custom shape", error)
+    }
 }
 
 
@@ -695,17 +697,26 @@ class TypeChecker {
     // - Target
     // - XML
 
+    static _assertRuntimeEnv() {
+        if (!isRuntimeEnv) {
+            throw new Error("Type checking for extension types is not available in a non-runtime environment.")
+        }
+    }
+
     static isArray(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return value instanceof Scratch.vm.jwArray.Type
     }
 
     static isObject(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return value instanceof Scratch.vm.dogeiscutObject.Type
     }
 
     static isDate(value) { // There are three date extension
+        TypeChecker._assertRuntimeEnv()
         if (Scratch.vm.jwDate && (value instanceof Scratch.vm.jwDate.Type)) return true
         if (runtime.ext_ddeDateFormat) {
             const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
@@ -719,31 +730,37 @@ class TypeChecker {
     }
 
     static isSet(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutSet) return false
         return value instanceof Scratch.vm.dogeiscutSet.Type
     }
 
     static isLambda(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwLambda) return false
         return value instanceof Scratch.vm.jwLambda.Type
     }
 
     static isColor(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwColor) return false
         return value instanceof Scratch.vm.jwColor.Type
     }
 
     static isUnlimitedNum(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwNum) return false
         return value instanceof Scratch.vm.jwNum.Type
     }
 
     static isTarget(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwTargets) return false
         return value instanceof Scratch.vm.jwTargets.Type
     }
 
     static isXML(value) {
+        TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwXML) return false
         return value instanceof Scratch.vm.jwXML.Type
     }
@@ -791,15 +808,23 @@ class TypeChecker {
 
 
 class Cast extends Scratch.Cast {
+    static _assertRuntimeEnv() {
+        if (!isRuntimeEnv) {
+            throw new Error("Casting to extension types is not available in a non-runtime environment.")
+        }
+    }
+
     // Foreign
     /** @returns {Scratch.vm.jwArray.Type} */
     static toArray(value) {
+        Cast._assertRuntimeEnv()
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
 
     /** @returns {Scratch.vm.dogeiscutObject.Type} */
     static toObject(value, copy = false) {
+        Cast._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
     }
@@ -858,8 +883,8 @@ class Cast extends Scratch.Cast {
 *                            Dependencies and Value Types                           *
 ************************************************************************************/
 
-if (!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
-if (!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
+if (isRuntimeEnv &&!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
+if (isRuntimeEnv &&!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
     "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
 )
 
@@ -2352,7 +2377,9 @@ class GCEClassBlocks {
 
     constructor() {
         // to allow other extensions access from the extension class
-        Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
+        if (isRuntimeEnv) {
+            Object.assign(Scratch.vm, {gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing})
+        }
         this.Cast = Cast
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
@@ -2363,22 +2390,26 @@ class GCEClassBlocks {
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
-
-        runtime.registerCompiledExtensionBlocks("gceClassesOOP", this.getCompileInfo())
-        runtime.registerSerializer(
-            "gceNothing",
-            v => (v instanceof NothingType ? v.toJSON() : null),
-            v => Nothing,
-        )
-        Scratch.gui.getBlockly().then(ScratchBlocks => {
-            ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
-        })
-
-        applyHacks(Scratch)
+        
+        if (isRuntimeEnv) {
+            runtime.registerCompiledExtensionBlocks("gceClassesOOP", this.getCompileInfo())
+            runtime.registerSerializer(
+                "gceNothing",
+                v => (v instanceof NothingType ? v.toJSON() : null),
+                v => Nothing,
+            )
+            Scratch.gui.getBlockly().then(ScratchBlocks => {
+                ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
+            })
+            
+            applyHacks(Scratch)
+        }
 
         this.globalVariables = new VariableManager()
     }
     setup() {
+        if (!isRuntimeEnv) return
+
         const commonSuperClass = new ClassType("Superclass", null)
         commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
             CONFIG.INIT_METHOD_NAME,
@@ -2711,9 +2742,13 @@ class GCEClassBlocks {
         throwInternal("spry-hare")
     }
 }
+
 const extensionClassInstance = new GCEClassBlocks()
 extensionClassInstance.setup()
 Scratch.extensions.register(extensionClassInstance)
+if (!isRuntimeEnv) {
+    console.log("Imported classes extension in non-runtime environment")
+}
 })(Scratch)
 
 /**
