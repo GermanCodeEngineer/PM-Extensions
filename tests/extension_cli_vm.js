@@ -170,10 +170,15 @@ const ScratchVar = makeConfiguredStub({
                 runtime: runtimeStub,
             },
         }),
-        // I only included the properties which a resonable getInfo should use
+        // I only included the properties which a resonable outer extension code or getInfo should use
 
-        // To allow builtin PM extension to import them (they are not used in getInfo)
-        Cast: defaultStubValue,
+        // To allow builtin PM extension to import them (they are not used in outer extension or getInfo)
+        Cast: makeConfiguredStub({
+            basis: function () { return defaultStubValue },
+            valueProps: {
+                toString: (value) => String(value),
+            },
+        }),
         Clone: defaultStubValue,
         Color: defaultStubValue,
     },

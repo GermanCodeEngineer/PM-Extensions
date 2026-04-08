@@ -16,7 +16,7 @@ if (!ext) {
 
 const {
     VariableManager, ThreadUtil, ScopeStackManager, ScopeStack,
-    CustomType, BaseCallableType, FunctionType, MethodType,
+    CONFIG, Cast, CustomType, BaseCallableType, FunctionType, MethodType,
     GetterMethodType, SetterMethodType, OperatorMethodType,
     ClassType, ClassInstanceType, NothingType, Nothing,
 } = ext.environment
@@ -55,7 +55,7 @@ function assertThrows(fn, messageContains = null) {
     let threw = false
     try { fn() } catch (error) {
         threw = true
-        if (messageContains && !error.message.includes(messageContains)) {
+        if (messageContains && !error.message.toLowerCase().includes(messageContains.toLowerCase())) {
             throw new Error(`Expected error containing "${messageContains}" but got: "${error.message}"`)
         }
     }
@@ -66,6 +66,16 @@ function assertDoesNotThrow(fn) {
     try { fn() } catch (error) {
         throw new Error(`Expected no throw, but got: ${error.message}`)
     }
+}
+
+function runGenerator(gen) {
+    let result = gen.next()
+    while (!result.done) result = gen.next()
+    return result.value
+}
+
+function assertGeneratorThrows(gen, messageContains = null) {
+    assertThrows(() => runGenerator(gen), messageContains)
 }
 
 // Unique variable names to avoid cross-test pollution in the shared global VariableManager
@@ -314,7 +324,7 @@ describe("ScopeStackManager", () => {
 
         test("throws when only one stack remains", () => {
             const m = new ScopeStackManager()
-            assertThrows(() => m.popStackFromManager())
+            assertThrows(() => m.popStackFromManager(), "Internal error")
         })
     })
 
@@ -519,11 +529,11 @@ describe("ScopeStack", () => {
         })
     })
 
-    describe("enterClassDef", () => {
+    describe("enterClassDefScope", () => {
         test("adds a CLASS_DEF scope with the given class", () => {
             const s = new ScopeStack()
             const cls = { name: "Foo", variables: {} }
-            s.enterClassDef(cls)
+            s.enterClassDefScope(cls)
             const inner = s._getInnermostScope()
             assert.equal(inner.type, ScopeStack.CLASS_DEF)
             assert.strictEqual(inner.cls, cls)
@@ -628,14 +638,18 @@ describe("ScopeStack", () => {
         test("returns the class when inside a class def scope", () => {
             const s = new ScopeStack()
             const cls = { name: "Bar" }
-            s.enterClassDef(cls)
+            s.enterClassDefScope(cls)
             assert.strictEqual(s.getClsOrThrow("test block"), cls)
             s.exitClassDefScope()
         })
 
         test("throws when not in a class def scope", () => {
             const s = new ScopeStack()
+            s.enterClassDefScope({ name: "Bar"})
+            s.enterUserScope()
             assertThrows(() => s.getClsOrThrow("test block"), "class definition")
+            s.exitUserScope()
+            s.exitClassDefScope()
         })
     })
 
@@ -657,7 +671,7 @@ describe("ScopeStack", () => {
     describe("exitClassDefScope", () => {
         test("removes the class def scope", () => {
             const s = new ScopeStack()
-            s.enterClassDef({ name: "X", variables: {} })
+            s.enterClassDefScope({ name: "X", variables: {} })
             s.exitClassDefScope()
             assert.equal(s.getSize(), 1)
             assert.equal(s._getInnermostScope().type, ScopeStack.GLOBALS)
@@ -665,7 +679,7 @@ describe("ScopeStack", () => {
 
         test("throws when innermost is not a class def scope", () => {
             const s = new ScopeStack()
-            assertThrows(() => s.exitClassDefScope())
+            assertThrows(() => s.exitClassDefScope(), "Internal error")
         })
     })
 
@@ -680,7 +694,7 @@ describe("ScopeStack", () => {
 
         test("throws when innermost is not a user scope", () => {
             const s = new ScopeStack()
-            assertThrows(() => s.exitUserScope())
+            assertThrows(() => s.exitUserScope(), "Internal error")
         })
     })
 
@@ -705,7 +719,37 @@ describe("ScopeStack", () => {
         })
     })
 
-    describe("setNextFuncConfig / getAndResetNextFuncConfig", () => {
+    describe("setNextFuncConfig", () => {
+        describe("config handling", () => {
+            test("stores the provided function config", () => {
+                const s = new ScopeStack()
+                s.setNextFuncConfig({ argNames: ["a", "b"], argDefaults: [1] })
+
+                assert.deepEqual(s.nextFuncConfig.argNames, ["a", "b"])
+                assert.deepEqual(s.nextFuncConfig.argDefaults, [1])
+            })
+
+            test("falls back to the default config when omitted", () => {
+                const s = new ScopeStack()
+                s.setNextFuncConfig({ argNames: ["a"], argDefaults: [] })
+
+                s.setNextFuncConfig()
+
+                assert.deepEqual(s.nextFuncConfig.argNames, [])
+                assert.deepEqual(s.nextFuncConfig.argDefaults, [])
+            })
+
+            test("throws when there are more default values than argument names", () => {
+                const s = new ScopeStack()
+                assertThrows(
+                    () => s.setNextFuncConfig({ argNames: ["a"], argDefaults: [1, 2] }),
+                    "as many default values as argument names"
+                )
+            })
+        })
+    })
+
+    describe("getAndResetNextFuncConfig", () => {
         test("round-trips and resets to defaults", () => {
             const s = new ScopeStack()
             s.setNextFuncConfig({ argNames: ["a", "b"], argDefaults: [1] })
@@ -739,11 +783,67 @@ describe("ScopeStack", () => {
             test("writes directly to cls.variables inside a class def scope", () => {
                 const s = new ScopeStack()
                 const cls = { name: "X", variables: {} }
-                s.enterClassDef(cls)
+                s.enterClassDefScope(cls)
                 s.setScopeVar("myProp", "value")
                 assert.equal(cls.variables["myProp"], "value")
                 s.exitClassDefScope()
             })
+        })
+    })
+
+    describe("_getScopeOfVar", () => {
+        test("returns the innermost matching variable scope", () => {
+            const s = new ScopeStack()
+            const name = v("scope_lookup")
+            s.setScopeVar(name, "global")
+            s.enterUserScope()
+            s.setScopeVar(name, "local")
+
+            const foundScope = s._getScopeOfVar(name)
+
+            assert.strictEqual(foundScope, s._getInnermostScope())
+            assert.strictEqual(foundScope.vars.get(name), "local")
+            s.exitUserScope()
+        })
+
+        test("respects startIndex by skipping the innermost matching scope", () => {
+            const s = new ScopeStack()
+            const name = v("shadowed")
+            s.enterUserScope()
+            s.setScopeVar(name, "outer")
+            const outerScope = s._getInnermostScope()
+            s.enterUserScope()
+            s.setScopeVar(name, "inner")
+
+            const foundScope = s._getScopeOfVar(name, 1)
+
+            assert.strictEqual(foundScope, outerScope)
+            assert.strictEqual(foundScope.vars.get(name), "outer")
+            s.exitUserScope()
+            s.exitUserScope()
+        })
+
+        test("respects excludeLastIndecies by excluding the global scope", () => {
+            const s = new ScopeStack()
+            const name = v("global_only")
+            s.setScopeVar(name, "global")
+            s.enterUserScope()
+
+            assertThrows(() => s._getScopeOfVar(name, 0, 1), "is not defined")
+            assert.strictEqual(s._getScopeOfVar(name, 0, 1, false), null)
+
+            s.exitUserScope()
+        })
+
+        test("supports throwOnNotFound=false without throwing for missing variables", () => {
+            const s = new ScopeStack()
+
+            assertDoesNotThrow(() => {
+                const foundScope = s._getScopeOfVar("__missing_explicit__", 0, 0, false)
+                assert.strictEqual(foundScope, null)
+            })
+
+            assertThrows(() => s._getScopeOfVar("__missing_explicit__", 0, 0, true), "is not defined")
         })
     })
 
@@ -779,9 +879,11 @@ describe("ScopeStack", () => {
             assert.equal(value, 77)
         })
 
-        test("throws for a missing variable", () => {
+        test("returns [false, undefined] for a missing variable", () => {
             const s = new ScopeStack()
-            assertThrows(() => s.safeGetScopeVar("__missing_safe_scope_var__"), "is not defined")
+            const [found, value] = s.safeGetScopeVar("__missing_safe_scope_var__")
+            assert.equal(found, false)
+            assert.equal(value, undefined)
         })
     })
 
@@ -885,7 +987,7 @@ describe("ScopeStack", () => {
         describe("validation", () => {
             test("throws when both onlyCurrentScope and onlyGlobalScope are true", () => {
                 const s = new ScopeStack()
-                assertThrows(() => s.hasScopeVar("x", true, true))
+                assertThrows(() => s.hasScopeVar("x", true, true), "Internal error")
             })
         })
     })
@@ -944,14 +1046,139 @@ describe("ScopeStack", () => {
     })
 })
 
-describe("CustomType and subclasses", () => {
-    function runGenerator(gen) {
-        let result = gen.next()
-        while (!result.done) result = gen.next()
-        return result.value
-    }
+describe("Cast", () => {
+    describe("_safeGetNamedValue", () => {
+        test("reads the innermost named value from the current thread", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const name = v("named_value")
 
-    describe("CustomType", () => {
+            s.setScopeVar(name, "global")
+            s.enterUserScope()
+            s.setScopeVar(name, "local")
+
+            const [found, value] = Cast._safeGetNamedValue(name, thread)
+
+            assert.strictEqual(found, true)
+            assert.strictEqual(value, "local")
+            s.exitUserScope()
+        })
+
+        test("falls back to globals when no thread is provided", () => {
+            const name = v("global_named_value")
+            const globalStack = new ScopeStack()
+            globalStack.setScopeVar(name, 42)
+
+            const [found, value] = Cast._safeGetNamedValue(name)
+
+            assert.strictEqual(found, true)
+            assert.strictEqual(value, 42)
+        })
+
+        test("returns [false, undefined] for missing names", () => {
+            const [found, value] = Cast._safeGetNamedValue("__missing_named_value__", {})
+            assert.strictEqual(found, false)
+            assert.strictEqual(value, undefined)
+        })
+    })
+
+    describe("_toTypeFromValueOrVariable", () => {
+        test("returns matching instances unchanged", () => {
+            const cls = new ClassType("DirectClass", null)
+            assert.strictEqual(
+                Cast._toTypeFromValueOrVariable(cls, {}, ClassType, "class or class variable name"),
+                cls
+            )
+        })
+
+        test("resolves named values through the current thread", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const name = v("shared_resolver")
+            const fn = new FunctionType(
+                "sharedFn",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+            s.setScopeVar(name, fn)
+
+            assert.strictEqual(
+                Cast._toTypeFromValueOrVariable(name, thread, FunctionType, "function or function variable name"),
+                fn
+            )
+        })
+
+        test("throws for missing variable names", () => {
+            assertThrows(
+                () => Cast._toTypeFromValueOrVariable("__missing_class__", {}, ClassType, "class or class variable name"),
+                "is not defined"
+            )
+        })
+
+        test("throws when a named variable has the wrong type", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const name = v("wrong_type")
+            s.setScopeVar(name, 123)
+
+            assertThrows(
+                () => Cast._toTypeFromValueOrVariable(name, thread, ClassType, "class or class variable name"),
+                "is a Number"
+            )
+        })
+    })
+
+    describe("toClass", () => {
+        test("accepts class values and resolves named class variables", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const cls = new ClassType("DirectClass", null)
+            const name = v("class_lookup")
+
+            s.setScopeVar(name, cls)
+
+            assert.strictEqual(Cast.toClass(cls), cls)
+            assert.strictEqual(Cast.toClass(name, thread), cls)
+        })
+    })
+
+    describe("toClassInstance", () => {
+        test("accepts instance values and resolves named instance variables", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const instance = new ClassInstanceType(new ClassType("Thing", null))
+            const name = v("instance_lookup")
+
+            s.setScopeVar(name, instance)
+
+            assert.strictEqual(Cast.toClassInstance(instance, {}), instance)
+            assert.strictEqual(Cast.toClassInstance(name, thread), instance)
+        })
+    })
+
+    describe("toFunction", () => {
+        test("accepts function values and resolves named function variables", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const fn = new FunctionType(
+                "directFn",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+            const name = v("fn_lookup")
+
+            s.setScopeVar(name, fn)
+
+            assert.strictEqual(Cast.toFunction(fn), fn)
+            assert.strictEqual(Cast.toFunction(name, thread), fn)
+        })
+    })
+})
+
+describe("CustomType", () => {
+    describe("subclassing", () => {
         test("can be subclassed and participates in instanceof", () => {
             class DerivedCustomType extends CustomType {
                 toString() { return "<Derived>" }
@@ -961,9 +1188,54 @@ describe("CustomType and subclasses", () => {
             assert.equal(value.toString(), "<Derived>")
         })
     })
+})
 
-    describe("BaseCallableType", () => {
-        test("evaluateArgs assigns positional and default values", () => {
+describe("BaseCallableType", () => {
+    describe("execute", () => {
+        test("runs the callable and restores the stack after return", () => {
+            const thread = {}
+            const callable = new FunctionType(
+                "runMe",
+                function* (thread) {
+                    const stack = ThreadUtil.getCurrentStack(thread)
+                    assert.strictEqual(stack.getScopeVar("value"), 123)
+                    ThreadUtil.getStackManager(thread).prepareReturn()
+                    return "done"
+                },
+                new ScopeStack(),
+                { argNames: ["value"], argDefaults: [] }
+            )
+            const manager = ThreadUtil.getStackManager(thread)
+            const sizeBefore = manager.getSize()
+
+            const output = runGenerator(callable.execute(thread, [123]))
+
+            assert.strictEqual(output, "done")
+            assert.strictEqual(manager.getSize(), sizeBefore)
+        })
+
+        test("trims interrupted inner scopes when the callable throws", () => {
+            const thread = {}
+            const callable = new FunctionType(
+                "broken",
+                function* (thread) {
+                    const stack = ThreadUtil.getCurrentStack(thread)
+                    stack.enterUserScope()
+                    stack.setScopeVar("temp", 1)
+                    throw new Error("boom")
+                },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+
+            assertGeneratorThrows(callable.execute(thread, []), "boom")
+            assert.strictEqual(ThreadUtil.getCurrentStack(thread).getSize(), 1)
+            assert.strictEqual(ThreadUtil.getCurrentStack(thread).hasScopeVar("temp"), false)
+        })
+    })
+
+    describe("evaluateArgs", () => {
+        test("assigns positional and default values", () => {
             const callable = new BaseCallableType(
                 "f",
                 function* () { return Nothing },
@@ -971,12 +1243,12 @@ describe("CustomType and subclasses", () => {
                 { argNames: ["a", "b", "c"], argDefaults: [2, 3] }
             )
             const args = callable.evaluateArgs([1])
-            assert.equal(args.a, 1)
-            assert.equal(args.b, 2)
-            assert.equal(args.c, 3)
+            assert.strictEqual(args.a, 1)
+            assert.strictEqual(args.b, 2)
+            assert.strictEqual(args.c, 3)
         })
 
-        test("evaluateArgs throws when too many positional args are provided", () => {
+        test("throws when too many positional args are provided", () => {
             const callable = new BaseCallableType(
                 "f",
                 function* () { return Nothing },
@@ -985,10 +1257,22 @@ describe("CustomType and subclasses", () => {
             )
             assertThrows(() => callable.evaluateArgs([1, 2]), "at most")
         })
-    })
 
-    describe("FunctionType", () => {
-        test("enterContext pushes function call scope with evaluated args", () => {
+        test("throws when required positional args are missing", () => {
+            const callable = new BaseCallableType(
+                "f",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: ["a", "b"], argDefaults: [2] }
+            )
+            assertThrows(() => callable.evaluateArgs([]), "at least 1 positional")
+        })
+    })
+})
+
+describe("FunctionType", () => {
+    describe("enterContext", () => {
+        test("pushes function call scope with evaluated args", () => {
             const fn = new FunctionType(
                 "myFn",
                 function* () { return Nothing },
@@ -1006,9 +1290,11 @@ describe("CustomType and subclasses", () => {
             manager.popStackFromManager()
         })
     })
+})
 
-    describe("MethodType", () => {
-        test("enterContext pushes method scope with self and args", () => {
+describe("MethodType", () => {
+    describe("enterContext", () => {
+        test("pushes method scope with self and args", () => {
             const method = new MethodType(
                 "myMethod",
                 function* () { return Nothing },
@@ -1029,17 +1315,37 @@ describe("CustomType and subclasses", () => {
             manager.popStackFromManager()
         })
     })
+})
 
-    describe("Getter/Setter/Operator method types", () => {
-        test("have expected className values", () => {
-            const stack = new ScopeStack()
-            const cfg = { argNames: [], argDefaults: [] }
-            assert.equal(new GetterMethodType("g", function* () { return Nothing }, stack, cfg).className, "Getter Method")
-            assert.equal(new SetterMethodType("s", function* () { return Nothing }, stack, cfg).className, "Setter Method")
-            assert.equal(new OperatorMethodType("o", function* () { return Nothing }, stack, cfg).className, "Operator Method")
+describe("GetterMethodType", () => {
+    describe("className", () => {
+        test("uses the expected className", () => {
+            const method = new GetterMethodType(
+                "g",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+            assert.equal(method.className, "Getter Method")
         })
+    })
+})
 
-        test("SetterMethodType.checkOutputValue enforces Nothing return", () => {
+describe("SetterMethodType", () => {
+    describe("className", () => {
+        test("uses the expected className", () => {
+            const method = new SetterMethodType(
+                "s",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+            assert.equal(method.className, "Setter Method")
+        })
+    })
+
+    describe("checkOutputValue", () => {
+        test("enforces Nothing return", () => {
             const setter = new SetterMethodType(
                 "setX",
                 function* () { return Nothing },
@@ -1050,16 +1356,34 @@ describe("CustomType and subclasses", () => {
             assertThrows(() => setter.checkOutputValue("not-nothing"), "must return")
         })
     })
+})
 
-    describe("ClassType", () => {
-        test("toString includes superclass info when present", () => {
+describe("OperatorMethodType", () => {
+    describe("className", () => {
+        test("uses the expected className", () => {
+            const method = new OperatorMethodType(
+                "o",
+                function* () { return Nothing },
+                new ScopeStack(),
+                { argNames: [], argDefaults: [] }
+            )
+            assert.equal(method.className, "Operator Method")
+        })
+    })
+})
+
+describe("ClassType", () => {
+    describe("toString", () => {
+        test("includes superclass info when present", () => {
             const base = new ClassType("Base", null)
             const sub = new ClassType("Sub", base)
             assert.equal(base.toString(), "<Class 'Base'>")
             assert.equal(sub.toString(), "<Class 'Sub'(super 'Base')>")
         })
+    })
 
-        test("isSubclassOf reflects inheritance chain", () => {
+    describe("isSubclassOf", () => {
+        test("reflects inheritance chain", () => {
             const base = new ClassType("Base", null)
             const mid = new ClassType("Mid", base)
             const sub = new ClassType("Sub", mid)
@@ -1068,31 +1392,252 @@ describe("CustomType and subclasses", () => {
         })
     })
 
-    describe("ClassInstanceType", () => {
+    describe("getAllMembers", () => {
+        test("merges inherited members and keeps subclass overrides", () => {
+            const base = new ClassType("Base", null)
+            const sub = new ClassType("Sub", base)
+
+            base.setMember("baseOnly", "class variable", 1)
+            base.setMember("shared", "class variable", "base")
+            sub.setMember("shared", "class variable", "sub")
+            sub.setMember("subOnly", "class variable", 2)
+
+            const [, , , , , variables] = sub.getAllMembers()
+            assert.deepStrictEqual({ ...variables }, {
+                baseOnly: 1,
+                shared: "sub",
+                subOnly: 2,
+            })
+            assert.strictEqual(sub.getClassVariable("baseOnly"), 1)
+        })
+    })
+
+    describe("setMember", () => {
+        test("rejects incompatible redefinitions with the same name", () => {
+            const cls = new ClassType("C", null)
+            cls.setMember("thing", "instance method", { tag: "method" })
+            assertThrows(() => cls.setMember("thing", "class variable", 99), "same name")
+        })
+    })
+
+    describe("createInstance", () => {
+        test("executes init and returns an instance", () => {
+            const cls = new ClassType("Widget", null)
+            cls.setMember(
+                CONFIG.INIT_METHOD_NAME,
+                "instance method",
+                new MethodType(
+                    CONFIG.INIT_METHOD_NAME,
+                    function* (thread) {
+                        const stack = ThreadUtil.getCurrentStack(thread)
+                        const self = stack.getSelfOrThrow()
+                        self.attributes.label = stack.getScopeVar("label")
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return Nothing
+                    },
+                    new ScopeStack(),
+                    { argNames: ["label"], argDefaults: [] }
+                )
+            )
+
+            const instance = runGenerator(cls.createInstance({}, ["hello"]))
+            assert.ok(instance instanceof ClassInstanceType)
+            assert.strictEqual(instance.attributes.label, "hello")
+        })
+    })
+
+    describe("executeStaticMethod", () => {
+        test("calls the stored static function", () => {
+            const cls = new ClassType("Toolbox", null)
+            cls.setMember(
+                "make",
+                "static method",
+                new FunctionType(
+                    "make",
+                    function* (thread) {
+                        const value = ThreadUtil.getCurrentStack(thread).getScopeVar("x")
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return value * 2
+                    },
+                    new ScopeStack(),
+                    { argNames: ["x"], argDefaults: [] }
+                )
+            )
+
+            const output = runGenerator(cls.executeStaticMethod({}, "make", [21]))
+            assert.strictEqual(output, 42)
+        })
+    })
+})
+
+describe("ClassInstanceType", () => {
+    describe("constructor / toString", () => {
         test("requires a ClassType and exposes readable string form", () => {
             assertThrows(() => new ClassInstanceType(null), "no class")
             const cls = new ClassType("Item", null)
             const instance = new ClassInstanceType(cls)
             assert.equal(instance.toString(), "<Instance of 'Item'>")
         })
+    })
 
-        test("setAttribute/getAttribute work for plain attributes", () => {
+    describe("getAttribute", () => {
+        test("works for plain attributes", () => {
             const cls = new ClassType("Item", null)
             const instance = new ClassInstanceType(cls)
             runGenerator(instance.setAttribute({}, "x", 5))
             const value = runGenerator(instance.getAttribute({}, "x"))
             assert.equal(value, 5)
         })
+
+        test("executes getter methods", () => {
+            const cls = new ClassType("Item", null)
+            cls.setMember(
+                "name",
+                "getter method",
+                new GetterMethodType(
+                    "name",
+                    function* (thread) {
+                        const self = ThreadUtil.getCurrentStack(thread).getSelfOrThrow()
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return `value:${self.attributes.raw}`
+                    },
+                    new ScopeStack(),
+                    { argNames: [], argDefaults: [] }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+            instance.attributes.raw = "secret"
+
+            const value = runGenerator(instance.getAttribute({}, "name"))
+            assert.strictEqual(value, "value:secret")
+        })
     })
 
-    describe("NothingType", () => {
+    describe("setAttribute", () => {
+        test("delegates to setter methods", () => {
+            const cls = new ClassType("Item", null)
+            cls.setMember(
+                "name",
+                "setter method",
+                new SetterMethodType(
+                    "name",
+                    function* (thread) {
+                        const stack = ThreadUtil.getCurrentStack(thread)
+                        const self = stack.getSelfOrThrow()
+                        self.attributes.saved = stack.getSetterValueOrThrow()
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return Nothing
+                    },
+                    new ScopeStack(),
+                    { argNames: [], argDefaults: [] }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+
+            runGenerator(instance.setAttribute({}, "name", 42))
+            assert.strictEqual(instance.attributes.saved, 42)
+        })
+
+        test("throws when an attribute only has a getter", () => {
+            const cls = new ClassType("ReadOnly", null)
+            cls.setMember(
+                "value",
+                "getter method",
+                new GetterMethodType(
+                    "value",
+                    function* (thread) {
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return 1
+                    },
+                    new ScopeStack(),
+                    { argNames: [], argDefaults: [] }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+
+            assertGeneratorThrows(instance.setAttribute({}, "value", 10), "only has a getter")
+        })
+    })
+
+    describe("executeSuperMethod", () => {
+        test("calls the superclass implementation", () => {
+            const base = new ClassType("Base", null)
+            const sub = new ClassType("Sub", base)
+            base.setMember(
+                "speak",
+                "instance method",
+                new MethodType(
+                    "speak",
+                    function* (thread) {
+                        const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return `base:${word}`
+                    },
+                    new ScopeStack(),
+                    { argNames: ["word"], argDefaults: [] }
+                )
+            )
+            sub.setMember(
+                "speak",
+                "instance method",
+                new MethodType(
+                    "speak",
+                    function* (thread) {
+                        const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return `sub:${word}`
+                    },
+                    new ScopeStack(),
+                    { argNames: ["word"], argDefaults: [] }
+                )
+            )
+            const instance = new ClassInstanceType(sub)
+
+            assert.strictEqual(runGenerator(instance.executeInstanceMethod({}, "speak", ["hi"])), "sub:hi")
+            assert.strictEqual(runGenerator(instance.executeSuperMethod({}, "speak", ["hi"])), "base:hi")
+        })
+    })
+
+    describe("executeOperatorMethod / hasOperatorMethod", () => {
+        test("use the public operator name mapping", () => {
+            const cls = new ClassType("Counter", null)
+            cls.setMember(
+                CONFIG.INTERNAL_OP_NAMES["left add"],
+                "operator method",
+                new OperatorMethodType(
+                    CONFIG.INTERNAL_OP_NAMES["left add"],
+                    function* (thread) {
+                        const stack = ThreadUtil.getCurrentStack(thread)
+                        const self = stack.getSelfOrThrow()
+                        const other = stack.getOtherValueOrThrow()
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return self.attributes.base + other
+                    },
+                    new ScopeStack(),
+                    { argNames: [], argDefaults: [] }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+            instance.attributes.base = 5
+
+            assert.strictEqual(runGenerator(instance.hasOperatorMethod("left add")), true)
+            assert.strictEqual(runGenerator(instance.hasOperatorMethod("right add")), false)
+            assert.strictEqual(runGenerator(instance.executeOperatorMethod({}, "left add", 7)), 12)
+        })
+    })
+})
+
+describe("NothingType", () => {
+    describe("toString / toJSON", () => {
         test("has stable textual and JSON representation", () => {
             const n = new NothingType()
             assert.equal(n.toString(), "<Nothing>")
             assert.equal(n.toJSON(), "<Nothing>")
         })
+    })
 
-        test("exported Nothing is an instance of NothingType", () => {
+    describe("Nothing instance", () => {
+        test("exports Nothing as an instance of NothingType", () => {
             assert.ok(Nothing instanceof NothingType)
             assert.equal(Nothing.toString(), "<Nothing>")
         })

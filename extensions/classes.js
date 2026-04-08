@@ -15,7 +15,11 @@
 
 (function(Scratch) {
 "use strict"
-const isRuntimeEnv = !Scratch.extensions.isTestingEnv // Allow importing this file in a non-Scratch testing environment
+/**
+ * Allow importing this file in a non-Scratch testing environment.
+ * When the extension is imported in PenguinMod this is always true
+ */
+const isRuntimeEnv = !Scratch.extensions.isTestingEnv
 if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
     throw new Error("Classes Extension must run unsandboxed.")
 }
@@ -426,7 +430,7 @@ class ScopeStack {
     insertScope(scope) {
         this.scopes.splice(0, 0, scope)
     }
-    enterClassDef(cls) { // TODO: test and/or rework
+    enterClassDefScope(cls) { // TODO: test and/or rework
         this.insertScope({
             type: ScopeStack.CLASS_DEF,
             supportsCls: true,
@@ -522,7 +526,14 @@ class ScopeStack {
     }
 
     // Function Arguments
-    setNextFuncConfig(config = {argNames: [], argDefaults: []}) {
+    /**
+     * @param {?{argNames: string[], argDefaults: any[]}} config 
+     */
+    setNextFuncConfig(config) {
+        config = config || this.getDefaultFuncConfig()
+        if (config.argDefaults.length > config.argNames.length) {
+            throw new Error("There can only be as many default values as argument names.")
+        }
         this.nextFuncConfig = config
     }
     getAndResetNextFuncConfig() {
@@ -543,11 +554,14 @@ class ScopeStack {
             innermost.vars.set(name, value)
         }
     }
-    _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0) {
+    _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0, throwOnNotFound = true) {
         for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
             const scope = this.scopes[i]
             if (!scope.supportsVars) continue
             if (scope.vars.has(name)) return scope
+        }
+        if (!throwOnNotFound) {
+            return null
         }
         // trick to raise:
         (new VariableManager()).get(name)
@@ -557,7 +571,8 @@ class ScopeStack {
         return varScope.vars.get(name)
     }
     safeGetScopeVar(name) {
-        const varScope = this._getScopeOfVar(name)
+        const varScope = this._getScopeOfVar(name, 0, 0, false)
+        if (!varScope) return [false, undefined]
         return varScope.vars.safeGet(name)
     }
     deleteScopeVar(name) {
@@ -613,12 +628,7 @@ class ScopeStack {
             if (!globalScope.supportsVars) throwInternal("toic-panda")
             return globalScope.vars.has(name)
         }
-        try {
-            this._getScopeOfVar(name)
-            return true
-        } catch {
-            return false
-        }
+        return this._getScopeOfVar(name, 0, 0, false) !== null
     }
     /**
      * Return an array with all variable names visible in the current thread environment.
@@ -684,6 +694,7 @@ const CONFIG = {
 })
 
 
+// TODO: add project tests
 class TypeChecker {
     // All custom types one can get from a reporter in PM
     // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
@@ -807,11 +818,20 @@ class TypeChecker {
 }
 
 
+// TODO: add project tests
 class Cast extends Scratch.Cast {
     static _assertRuntimeEnv() {
         if (!isRuntimeEnv) {
             throw new Error("Casting to extension types is not available in a non-runtime environment.")
         }
+    }
+
+    /**
+     * Hint to avoid confusion: Cast.toString converts a Scratch value to a string, it does NOT stringify a Cast instance.
+     * @returns {string}
+     */
+    static toString(value) {
+        return super.toString(value)
     }
 
     // Foreign
@@ -829,53 +849,61 @@ class Cast extends Scratch.Cast {
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
     }
 
+    // Helpers
+    /**
+     * @param {string} name
+     * @param {?Thread} thread
+     * @returns {[boolean, any]}
+     */
+    static _safeGetNamedValue(name, thread = null) {
+        if (thread) {
+            return ThreadUtil.getCurrentStack(thread).safeGetScopeVar(name)
+        }
+        return extensionClassInstance.globalVariables.safeGet(name)
+    }
+
+    /**
+     * @param {any} value
+     * @param {?Thread} thread
+     * @param {typeof CustomType} expectedType
+     * @param {string} expectedDescription
+     * @returns {any}
+     */
+    static _toTypeFromValueOrVariable(value, thread, expectedType, expectedDescription) {
+        if (value instanceof expectedType) return value
+        if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
+            throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.string_typeof(value)}.`)
+        }
+        const name = Cast.toString(value)
+        const [found, varValue] = Cast._safeGetNamedValue(name, thread)
+        if (found) {
+            if (varValue instanceof expectedType) return varValue
+            throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
+        }
+        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
+    }
+
     // Own
     /**
-     * @param {?ScopeStack} currentStack
+     * @param {?Thread} thread
      * @returns {ClassType} **/
-    static toClass(value, currentStack = null) {
-        if (value instanceof ClassType) return value
-        if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
-            throw new Error(`Expected a class or class variable name not a ${TypeChecker.string_typeof(value)}.`)
-        }
-        let found = null; let varValue = null
-        if (currentStack) {
-            [found, varValue] = currentStack.safeGetScopeVar(Cast.toString(value))
-        } else {
-            [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
-        }
-        if (found) {
-            if (varValue instanceof ClassType) return varValue
-            else throw new Error(`Expected a class or class variable name, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
-        }
-        else throw new Error(`Expected a class or class variable name, but variable ${quote(value)} is not defined.`)
-    }
-
-    /** @returns {ClassInstanceType} */
-    static toClassInstance(value) {
-        if (value instanceof ClassInstanceType) return value
-        else throw new Error(`Expected a class instance not a ${TypeChecker.string_typeof(value)}.`)
+    static toClass(value, thread = null) {
+        return Cast._toTypeFromValueOrVariable(value, thread, ClassType, "class or class variable name")
     }
 
     /**
-     * @param {?ScopeStack} currentStack
+     * @param {?Thread} thread
+     * @returns {ClassInstanceType}
+     */
+    static toClassInstance(value, thread = null) {
+        return Cast._toTypeFromValueOrVariable(value, thread, ClassInstanceType, "class instance or class instance variable name")
+    }
+
+    /**
+     * @param {?Thread} thread
      * @returns {FunctionType} **/
-    static toFunction(value, currentStack = null) {
-        if (value instanceof FunctionType) return value
-        if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
-            throw new Error(`Expected a function or function variable name not a ${TypeChecker.string_typeof(value)}.`)
-        }
-        let found = null; let varValue = null
-        if (currentStack) {
-            [found, varValue] = currentStack.safeGetScopeVar(Cast.toString(value))
-        } else {
-            [found, varValue] = extensionClassInstance.globalVariables.safeGet(Cast.toString(value))
-        }
-        if (found) {
-            if (varValue instanceof FunctionType) return varValue
-            else throw new Error(`Expected a function or function variable name, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
-        }
-        else throw new Error(`Expected a function or function variable name, but variable ${quote(value)} is not defined.`)
+    static toFunction(value, thread = null) {
+        return Cast._toTypeFromValueOrVariable(value, thread, FunctionType, "function or function variable name")
     }
 }
 
@@ -1097,7 +1125,7 @@ class ClassType extends CustomType {
 
     /**
      * @param {string} name
-     * @param {ClassType} superCls
+     * @param {?ClassType} superCls
      */
     constructor(name, superCls) {
         super()
@@ -2115,12 +2143,12 @@ class GCEClassBlocks {
         const createClassCore = (node, compiler, setVariable, superClsCode = null) => {
             const nameCode = compiler.descendInput(node.NAME).asString()
             const clsLocal = compiler.localVariables.next()
-            const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode}, ${CURRENT_STACK})`: `${ENV_PREFIX}.commonSuperClass`
+            const superClass = superClsCode ? `${CAST_PREFIX}.toClass(${superClsCode}, thread)`: `${ENV_PREFIX}.commonSuperClass`
 
             return {
                 setup: `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
                     (setVariable ? `${CURRENT_STACK}.setScopeVar(${clsLocal}.name, ${clsLocal});` : "") +
-                    `${CURRENT_STACK}.enterClassDef(${clsLocal});`,
+                    `${CURRENT_STACK}.enterClassDefScope(${clsLocal});`,
                 cleanup: `${CURRENT_STACK}.exitClassDefScope();`,
                 clsLocal
             }
@@ -2293,7 +2321,7 @@ class GCEClassBlocks {
                 createInstance: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.CLASS).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", [classCode, CURRENT_STACK], "createInstance", posArgsCode)
+                    const generatedCode = createCallCode("toClass", [classCode, "thread"], "createInstance", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2302,12 +2330,12 @@ class GCEClassBlocks {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const valueCode = compiler.descendInput(node.VALUE).asUnknown()
-                    compiler.source += createCallCode("toClassInstance", [instanceCode], "setAttribute", nameCode, valueCode) + ";\n"
+                    compiler.source += createCallCode("toClassInstance", [instanceCode, "thread"], "setAttribute", nameCode, valueCode) + ";\n"
                 },
                 getAttribute: (node, compiler, imports) => {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "getAttribute", nameCode)
+                    const generatedCode = createCallCode("toClassInstance", [instanceCode, "thread"], "getAttribute", nameCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2316,14 +2344,14 @@ class GCEClassBlocks {
                     const instanceCode = compiler.descendInput(node.INSTANCE).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClassInstance", [instanceCode], "executeInstanceMethod", nameCode, posArgsCode)
+                    const generatedCode = createCallCode("toClassInstance", [instanceCode, "thread"], "executeInstanceMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 callStaticMethod: (node, compiler, imports) => {
                     const classCode = compiler.descendInput(node.CLASS).asUnknown()
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toClass", [classCode, CURRENT_STACK], "executeStaticMethod", nameCode, posArgsCode)
+                    const generatedCode = createCallCode("toClass", [classCode, "thread"], "executeStaticMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2367,7 +2395,7 @@ class GCEClassBlocks {
                 callFunction: (node, compiler, imports) => {
                     const funcCode = compiler.descendInput(node.FUNC).asUnknown()
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
-                    const generatedCode = createCallCode("toFunction", [funcCode, CURRENT_STACK], "execute", posArgsCode)
+                    const generatedCode = createCallCode("toFunction", [funcCode, "thread"], "execute", posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
 
@@ -2512,8 +2540,8 @@ class GCEClassBlocks {
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
     onClass(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
-        ThreadUtil.getCurrentStack(util.thread).enterClassDef(cls)
+        const cls = Cast.toClass(args.CLASS, util.thread)
+        ThreadUtil.getCurrentStack(util.thread).enterClassDefScope(cls)
         util.startBranch(1, false, () => {
             ThreadUtil.getCurrentStack(util.thread).exitClassDefScope()
         })
@@ -2524,12 +2552,12 @@ class GCEClassBlocks {
 
     // Use Classes
     isSubclass(args, util) {
-        const subCls = Cast.toClass(args.SUBCLASS, ThreadUtil.getCurrentStack(util.thread))
-        const superCls = Cast.toClass(args.SUPERCLASS, ThreadUtil.getCurrentStack(util.thread))
+        const subCls = Cast.toClass(args.SUBCLASS, util.thread)
+        const superCls = Cast.toClass(args.SUPERCLASS, util.thread)
         return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
     getSuperclass(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         return cls.superCls ?? Nothing
     }
 
@@ -2559,25 +2587,25 @@ class GCEClassBlocks {
 
     // Define Static Methods & Class Variables
     setClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
         cls.variables[name] = value
     }
     getClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         return cls.getClassVariable(name)
     }
     deleteClassVariable(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         delete cls.variables[name]
     }
     defineStaticMethod = this._isACompiledBlock
     propertyNamesOfClass(args, util) {
         const property = args.PROPERTY
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
         if (property === "instance method") values = instanceMethods
@@ -2605,12 +2633,12 @@ class GCEClassBlocks {
     // Create & Inspect
     createInstance = this._isACompiledBlock
     isInstance(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
+        const cls = Cast.toClass(args.CLASS, util.thread)
         return Cast.toBoolean(instance.cls.isSubclassOf(cls))
     }
     getClassOfInstance(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
+        const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         return instance.cls
     }
 
@@ -2618,7 +2646,7 @@ class GCEClassBlocks {
     setAttribute = this._isACompiledBlock
     getAttribute = this._isACompiledBlock
     getAllAttributes(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE)
+        const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         return Cast.toObject(instance.attributes)
     }
 
@@ -2626,7 +2654,7 @@ class GCEClassBlocks {
     callMethod = this._isACompiledBlock
     callStaticMethod = this._isACompiledBlock
     getStaticMethodFunc(args, util) {
-        const cls = Cast.toClass(args.CLASS, ThreadUtil.getCurrentStack(util.thread))
+        const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         return cls.getStaticMethod(name)
     }
@@ -2637,9 +2665,6 @@ class GCEClassBlocks {
     configureNextFunctionArgs(args, util) {
         const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
         const argDefaults = Cast.toArray(args.ARGDEFAULTS).array
-        if (argDefaults.length > argNames.length) {
-            throw new Error("There can only be as many default values as argument names.")
-        }
         ThreadUtil.getCurrentStack(util.thread).setNextFuncConfig({argNames, argDefaults})
     }
 
@@ -2689,7 +2714,7 @@ class GCEClassBlocks {
             method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
         } catch {}
         if (!method) return object.toString()
-        const output = yield* method.execute(thread, object, [])
+        const output = yield* method.execute(thread, object, []) // FOUND
         if (typeof output !== "string") throw new Error(`As String methods must always return a string.`)
         return output
     }
@@ -2725,7 +2750,7 @@ class GCEClassBlocks {
             foundMethod = true
             output = yield* right.executeOperatorMethod(thread, oppositeMethod, left)
         }
-        if (foundMethod) {
+        if (foundMethod) { // FOUND
             if (typeof output !== "boolean") throw new Error(`Comparison Operator methods must always return a boolean.`)
             return output
         }
@@ -2772,9 +2797,12 @@ if (!isRuntimeEnv) {
  * - name of class/function block
  * - reorganize block cagegories
  * - optional future todo: investigate why inputs are not supported in shadow blocks
+ * - add "all current variable names" or similar block to function definitions
  * - possibly make "self" available as a variable in methods
  * - inline todos
  * - optional future todo: implement translations
+ * - add more parameter and return types (maybe even typedef's)
+ * - reconsider "set function arguments" block
  *
  * ON RELEASE:
  * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
