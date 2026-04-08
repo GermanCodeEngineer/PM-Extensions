@@ -1074,6 +1074,7 @@ class BaseCallableType extends CustomType {
 }
 
 class FunctionType extends BaseCallableType {
+    customId = "gceFunction"
     className = "Function"
 
     enterContext(thread, posArgs) {
@@ -1084,6 +1085,7 @@ class FunctionType extends BaseCallableType {
 }
 
 class MethodType extends BaseCallableType {
+    customId = "gceMethod"
     className = "Method"
 
     enterContext(thread, instance, posArgs = []) {
@@ -1094,6 +1096,7 @@ class MethodType extends BaseCallableType {
 }
 
 class GetterMethodType extends MethodType {
+    customId = "gceGetterMethod"
     className = "Getter Method"
 
     enterContext(thread, instance) {
@@ -1101,6 +1104,7 @@ class GetterMethodType extends MethodType {
     }
 }
 class SetterMethodType extends MethodType {
+    customId = "gceSetterMethod"
     className = "Setter Method"
 
     enterContext(thread, instance, value) {
@@ -1113,6 +1117,7 @@ class SetterMethodType extends MethodType {
 }
 
 class OperatorMethodType extends MethodType {
+    customId = "gceOperatorMethod"
     className = "Operator Method"
 
     enterContext(thread, instance, other) {
@@ -1221,7 +1226,7 @@ class ClassType extends CustomType {
             ((currentMemberType === "getter method") && (newMemberType === "setter method")) ||
             ((currentMemberType === "setter method") && (newMemberType === "getter method"))
         )) {
-            throw new Error(`Can not assign ${newMemberType}: ${currentMemberType} alredy exists with the same name ${quote(name)}.`)
+            throw new Error(`Can not assign ${newMemberType}: ${currentMemberType} already exists with the same name ${quote(name)}.`)
         }
         if (newMemberType === "instance method") this.instanceMethods[name] = value
         else if (newMemberType === "static method") this.staticMethods[name] = value
@@ -1284,7 +1289,6 @@ class ClassInstanceType extends CustomType {
      */
     constructor(cls) {
         super()
-        if (!(cls instanceof ClassType)) throw new Error("Cannot create class instance with no class given.")
         this.cls = cls
         this.attributes = {}
     }
@@ -2798,9 +2802,10 @@ if (!isRuntimeEnv) {
  * - reorganize block cagegories
  * - optional future todo: investigate why inputs are not supported in shadow blocks
  * - add "all current variable names" or similar block to function definitions
- * - possibly make "self" available as a variable in methods
+ * - possibly make "self", "other" and "value" available as a variable in methods
  * - inline todos
  * - optional future todo: implement translations
+ * - optional future todo: change font of blocks and inputs?
  * - add more parameter and return types (maybe even typedef's)
  * - reconsider "set function arguments" block
  *

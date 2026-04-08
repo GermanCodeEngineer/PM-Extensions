@@ -82,6 +82,30 @@ function assertGeneratorThrows(gen, messageContains = null) {
 let __varCounter = 0
 function v(base = "v") { return `${base}_${++__varCounter}` }
 
+function noArgsConfig() {
+    return { argNames: [], argDefaults: [] }
+}
+
+function makeFunctionType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
+    return new FunctionType(name, body, new ScopeStack(), config)
+}
+
+function makeMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
+    return new MethodType(name, body, new ScopeStack(), config)
+}
+
+function makeGetterMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
+    return new GetterMethodType(name, body, new ScopeStack(), config)
+}
+
+function makeSetterMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
+    return new SetterMethodType(name, body, new ScopeStack(), config)
+}
+
+function makeOperatorMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
+    return new OperatorMethodType(name, body, new ScopeStack(), config)
+}
+
 describe("VariableManager", () => {
     describe("constructor", () => {
         test("starts empty", () => {
@@ -1095,11 +1119,9 @@ describe("Cast", () => {
             const thread = {}
             const s = ThreadUtil.getCurrentStack(thread)
             const name = v("shared_resolver")
-            const fn = new FunctionType(
+            const fn = makeFunctionType(
                 "sharedFn",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             s.setScopeVar(name, fn)
 
@@ -1161,11 +1183,9 @@ describe("Cast", () => {
         test("accepts function values and resolves named function variables", () => {
             const thread = {}
             const s = ThreadUtil.getCurrentStack(thread)
-            const fn = new FunctionType(
+            const fn = makeFunctionType(
                 "directFn",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             const name = v("fn_lookup")
 
@@ -1216,16 +1236,14 @@ describe("BaseCallableType", () => {
 
         test("trims interrupted inner scopes when the callable throws", () => {
             const thread = {}
-            const callable = new FunctionType(
+            const callable = makeFunctionType(
                 "broken",
                 function* (thread) {
                     const stack = ThreadUtil.getCurrentStack(thread)
                     stack.enterUserScope()
                     stack.setScopeVar("temp", 1)
                     throw new Error("boom")
-                },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                }
             )
 
             assertGeneratorThrows(callable.execute(thread, []), "boom")
@@ -1320,11 +1338,9 @@ describe("MethodType", () => {
 describe("GetterMethodType", () => {
     describe("className", () => {
         test("uses the expected className", () => {
-            const method = new GetterMethodType(
+            const method = makeGetterMethodType(
                 "g",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             assert.equal(method.className, "Getter Method")
         })
@@ -1334,11 +1350,9 @@ describe("GetterMethodType", () => {
 describe("SetterMethodType", () => {
     describe("className", () => {
         test("uses the expected className", () => {
-            const method = new SetterMethodType(
+            const method = makeSetterMethodType(
                 "s",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             assert.equal(method.className, "Setter Method")
         })
@@ -1346,11 +1360,9 @@ describe("SetterMethodType", () => {
 
     describe("checkOutputValue", () => {
         test("enforces Nothing return", () => {
-            const setter = new SetterMethodType(
+            const setter = makeSetterMethodType(
                 "setX",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             assertDoesNotThrow(() => setter.checkOutputValue(Nothing))
             assertThrows(() => setter.checkOutputValue("not-nothing"), "must return")
@@ -1361,11 +1373,9 @@ describe("SetterMethodType", () => {
 describe("OperatorMethodType", () => {
     describe("className", () => {
         test("uses the expected className", () => {
-            const method = new OperatorMethodType(
+            const method = makeOperatorMethodType(
                 "o",
-                function* () { return Nothing },
-                new ScopeStack(),
-                { argNames: [], argDefaults: [] }
+                function* () { return Nothing }
             )
             assert.equal(method.className, "Operator Method")
         })
@@ -1382,13 +1392,80 @@ describe("ClassType", () => {
         })
     })
 
-    describe("isSubclassOf", () => {
-        test("reflects inheritance chain", () => {
+    describe("getMember", () => {
+        test("resolves local members by precedence order", () => {
+            const cls = new ClassType("Thing", null)
+            cls.setMember("i", "instance method", { kind: "instance" })
+            cls.setMember("s", "static method", { kind: "static" })
+            cls.setMember("p", "class variable", { kind: "var" })
+
+            const i = cls.getMember("i", false, false)
+            const s = cls.getMember("s", false, false)
+            const p = cls.getMember("p", false, false)
+
+            assert.strictEqual(i.type, "instance method")
+            assert.deepStrictEqual(i.value, { kind: "instance" })
+            assert.strictEqual(s.type, "static method")
+            assert.deepStrictEqual(s.value, { kind: "static" })
+            assert.strictEqual(p.type, "class variable")
+            assert.deepStrictEqual(p.value, { kind: "var" })
+        })
+
+        test("honors preferSetter when both getter and setter exist", () => {
+            const cls = new ClassType("Thing", null)
+            const getter = makeGetterMethodType(
+                "value",
+                function* () { return 1 }
+            )
+            const setter = makeSetterMethodType(
+                "value",
+                function* () { return Nothing }
+            )
+            cls.setMember("value", "getter method", getter)
+            cls.setMember("value", "setter method", setter)
+
+            const preferGetter = cls.getMember("value", false, false)
+            const preferSetter = cls.getMember("value", false, true)
+
+            assert.strictEqual(preferGetter.type, "getter method")
+            assert.strictEqual(preferGetter.value, getter)
+            assert.strictEqual(preferSetter.type, "setter method")
+            assert.strictEqual(preferSetter.value, setter)
+        })
+
+        test("resolves inherited members only when recursive=true", () => {
             const base = new ClassType("Base", null)
-            const mid = new ClassType("Mid", base)
-            const sub = new ClassType("Sub", mid)
-            assert.equal(sub.isSubclassOf(base), true)
-            assert.equal(base.isSubclassOf(sub), false)
+            const sub = new ClassType("Sub", base)
+            base.setMember("baseOnly", "class variable", 7)
+
+            assert.strictEqual(sub.getMember("baseOnly", false, false).type, null)
+            const recursive = sub.getMember("baseOnly", true, false)
+            assert.strictEqual(recursive.type, "class variable")
+            assert.strictEqual(recursive.value, 7)
+        })
+    })
+
+    describe("getMemberOfType", () => {
+        test("returns the member when type matches", () => {
+            const cls = new ClassType("Thing", null)
+            const fn = makeFunctionType(
+                "make",
+                function* () { return Nothing }
+            )
+            cls.setMember("make", "static method", fn)
+
+            assert.strictEqual(cls.getMemberOfType("make", "static method"), fn)
+        })
+
+        test("throws for missing members of expected type", () => {
+            const cls = new ClassType("Thing", null)
+            assertThrows(() => cls.getMemberOfType("missing", "static method"), "Undefined static method")
+        })
+
+        test("throws when a member exists but with the wrong type", () => {
+            const cls = new ClassType("Thing", null)
+            cls.setMember("x", "class variable", 1)
+            assertThrows(() => cls.getMemberOfType("x", "instance method"), "is not a instance method")
         })
     })
 
@@ -1418,6 +1495,61 @@ describe("ClassType", () => {
             cls.setMember("thing", "instance method", { tag: "method" })
             assertThrows(() => cls.setMember("thing", "class variable", 99), "same name")
         })
+
+        test("allows getter/setter pair under the same name", () => {
+            const cls = new ClassType("C", null)
+            const getter = makeGetterMethodType(
+                "prop",
+                function* () { return 1 }
+            )
+            const setter = makeSetterMethodType(
+                "prop",
+                function* () { return Nothing }
+            )
+
+            assertDoesNotThrow(() => cls.setMember("prop", "getter method", getter))
+            assertDoesNotThrow(() => cls.setMember("prop", "setter method", setter))
+            assert.strictEqual(cls.getMember("prop", false, false).value, getter)
+            assert.strictEqual(cls.getMember("prop", false, true).value, setter)
+        })
+
+        test("stores values in the correct internal member maps", () => {
+            const cls = new ClassType("C", null)
+            const instanceMethod = makeMethodType(
+                "im",
+                function* () { return Nothing }
+            )
+            const staticMethod = makeFunctionType(
+                "sm",
+                function* () { return Nothing }
+            )
+            const getterMethod = makeGetterMethodType(
+                "gm",
+                function* () { return 1 }
+            )
+            const setterMethod = makeSetterMethodType(
+                "stm",
+                function* () { return Nothing }
+            )
+            const operatorMethod = makeOperatorMethodType(
+                "om",
+                function* () { return 2 }
+            )
+
+            cls.setMember("im", "instance method", instanceMethod)
+            cls.setMember("sm", "static method", staticMethod)
+            cls.setMember("gm", "getter method", getterMethod)
+            cls.setMember("stm", "setter method", setterMethod)
+            cls.setMember("om", "operator method", operatorMethod)
+            cls.setMember("cv", "class variable", 123)
+
+            assert.strictEqual(cls.instanceMethods.im, instanceMethod)
+            assert.strictEqual(cls.staticMethods.sm, staticMethod)
+            assert.strictEqual(cls.getters.gm, getterMethod)
+            assert.strictEqual(cls.setters.stm, setterMethod)
+            assert.strictEqual(cls.operatorMethods.om, operatorMethod)
+            assert.strictEqual(cls.variables.cv, 123)
+        })
     })
 
     describe("createInstance", () => {
@@ -1444,6 +1576,25 @@ describe("ClassType", () => {
             assert.ok(instance instanceof ClassInstanceType)
             assert.strictEqual(instance.attributes.label, "hello")
         })
+
+        test("rejects init methods that return a non-Nothing value", () => {
+            const cls = new ClassType("Widget", null)
+            cls.setMember(
+                CONFIG.INIT_METHOD_NAME,
+                "instance method",
+                new MethodType(
+                    CONFIG.INIT_METHOD_NAME,
+                    function* (thread) {
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return "bad"
+                    },
+                    new ScopeStack(),
+                    noArgsConfig()
+                )
+            )
+
+            assertGeneratorThrows(cls.createInstance({}, []), "must return")
+        })
     })
 
     describe("executeStaticMethod", () => {
@@ -1468,94 +1619,100 @@ describe("ClassType", () => {
             assert.strictEqual(output, 42)
         })
     })
+
+    describe("getClassVariable", () => {
+        test("returns inherited class variables", () => {
+            const base = new ClassType("Base", null)
+            const sub = new ClassType("Sub", base)
+            base.setMember("answer", "class variable", 42)
+            assert.strictEqual(sub.getClassVariable("answer"), 42)
+        })
+
+        test("throws when member is missing or not a class variable", () => {
+            const cls = new ClassType("C", null)
+            cls.setMember(
+                "make",
+                "static method",
+                makeFunctionType(
+                    "make",
+                    function* () { return Nothing }
+                )
+            )
+
+            assertThrows(() => cls.getClassVariable("missing"), "Undefined class variable")
+            assertThrows(() => cls.getClassVariable("make"), "Undefined class variable")
+        })
+    })
+
+    describe("getStaticMethod", () => {
+        test("returns inherited static methods", () => {
+            const base = new ClassType("Base", null)
+            const sub = new ClassType("Sub", base)
+            const fn = makeFunctionType(
+                "make",
+                function* () { return Nothing }
+            )
+            base.setMember("make", "static method", fn)
+
+            assert.strictEqual(sub.getStaticMethod("make"), fn)
+        })
+
+        test("throws when member is missing or not a static method", () => {
+            const cls = new ClassType("C", null)
+            cls.setMember("value", "class variable", 1)
+            assertThrows(() => cls.getStaticMethod("missing"), "Undefined static method")
+            assertThrows(() => cls.getStaticMethod("value"), "is not a static method")
+        })
+    })
+
+    describe("isSubclassOf", () => {
+        test("reflects inheritance chain", () => {
+            const base = new ClassType("Base", null)
+            const mid = new ClassType("Mid", base)
+            const sub = new ClassType("Sub", mid)
+            assert.equal(sub.isSubclassOf(base), true)
+            assert.equal(base.isSubclassOf(sub), false)
+        })
+    })
 })
 
 describe("ClassInstanceType", () => {
     describe("constructor / toString", () => {
-        test("requires a ClassType and exposes readable string form", () => {
-            assertThrows(() => new ClassInstanceType(null), "no class")
+        test("creates instance and exposes readable string form", () => {
             const cls = new ClassType("Item", null)
             const instance = new ClassInstanceType(cls)
             assert.equal(instance.toString(), "<Instance of 'Item'>")
         })
     })
 
-    describe("getAttribute", () => {
-        test("works for plain attributes", () => {
-            const cls = new ClassType("Item", null)
-            const instance = new ClassInstanceType(cls)
-            runGenerator(instance.setAttribute({}, "x", 5))
-            const value = runGenerator(instance.getAttribute({}, "x"))
-            assert.equal(value, 5)
-        })
-
-        test("executes getter methods", () => {
-            const cls = new ClassType("Item", null)
+    describe("executeInstanceMethod", () => {
+        test("calls the class instance method with evaluated args", () => {
+            const cls = new ClassType("Greeter", null)
             cls.setMember(
-                "name",
-                "getter method",
-                new GetterMethodType(
-                    "name",
-                    function* (thread) {
-                        const self = ThreadUtil.getCurrentStack(thread).getSelfOrThrow()
-                        ThreadUtil.getStackManager(thread).prepareReturn()
-                        return `value:${self.attributes.raw}`
-                    },
-                    new ScopeStack(),
-                    { argNames: [], argDefaults: [] }
-                )
-            )
-            const instance = new ClassInstanceType(cls)
-            instance.attributes.raw = "secret"
-
-            const value = runGenerator(instance.getAttribute({}, "name"))
-            assert.strictEqual(value, "value:secret")
-        })
-    })
-
-    describe("setAttribute", () => {
-        test("delegates to setter methods", () => {
-            const cls = new ClassType("Item", null)
-            cls.setMember(
-                "name",
-                "setter method",
-                new SetterMethodType(
-                    "name",
+                "speak",
+                "instance method",
+                makeMethodType(
+                    "speak",
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
-                        self.attributes.saved = stack.getSetterValueOrThrow()
+                        const word = stack.getScopeVar("word")
                         ThreadUtil.getStackManager(thread).prepareReturn()
-                        return Nothing
+                        return `${self.cls.name}:${word}`
                     },
-                    new ScopeStack(),
-                    { argNames: [], argDefaults: [] }
+                    { argNames: ["word"], argDefaults: [] }
                 )
             )
             const instance = new ClassInstanceType(cls)
 
-            runGenerator(instance.setAttribute({}, "name", 42))
-            assert.strictEqual(instance.attributes.saved, 42)
+            const output = runGenerator(instance.executeInstanceMethod({}, "speak", ["hello"]))
+
+            assert.strictEqual(output, "Greeter:hello")
         })
 
-        test("throws when an attribute only has a getter", () => {
-            const cls = new ClassType("ReadOnly", null)
-            cls.setMember(
-                "value",
-                "getter method",
-                new GetterMethodType(
-                    "value",
-                    function* (thread) {
-                        ThreadUtil.getStackManager(thread).prepareReturn()
-                        return 1
-                    },
-                    new ScopeStack(),
-                    { argNames: [], argDefaults: [] }
-                )
-            )
-            const instance = new ClassInstanceType(cls)
-
-            assertGeneratorThrows(instance.setAttribute({}, "value", 10), "only has a getter")
+        test("throws when the instance method does not exist", () => {
+            const instance = new ClassInstanceType(new ClassType("Plain", null))
+            assertGeneratorThrows(instance.executeInstanceMethod({}, "missing", []), "Undefined instance method")
         })
     })
 
@@ -1596,6 +1753,11 @@ describe("ClassInstanceType", () => {
             assert.strictEqual(runGenerator(instance.executeInstanceMethod({}, "speak", ["hi"])), "sub:hi")
             assert.strictEqual(runGenerator(instance.executeSuperMethod({}, "speak", ["hi"])), "base:hi")
         })
+
+        test("throws when class has no superclass", () => {
+            const instance = new ClassInstanceType(new ClassType("Root", null))
+            assertGeneratorThrows(instance.executeSuperMethod({}, "speak", []), "no superclass")
+        })
     })
 
     describe("executeOperatorMethod / hasOperatorMethod", () => {
@@ -1604,7 +1766,7 @@ describe("ClassInstanceType", () => {
             cls.setMember(
                 CONFIG.INTERNAL_OP_NAMES["left add"],
                 "operator method",
-                new OperatorMethodType(
+                makeOperatorMethodType(
                     CONFIG.INTERNAL_OP_NAMES["left add"],
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
@@ -1612,9 +1774,7 @@ describe("ClassInstanceType", () => {
                         const other = stack.getOtherValueOrThrow()
                         ThreadUtil.getStackManager(thread).prepareReturn()
                         return self.attributes.base + other
-                    },
-                    new ScopeStack(),
-                    { argNames: [], argDefaults: [] }
+                    }
                 )
             )
             const instance = new ClassInstanceType(cls)
@@ -1623,6 +1783,79 @@ describe("ClassInstanceType", () => {
             assert.strictEqual(runGenerator(instance.hasOperatorMethod("left add")), true)
             assert.strictEqual(runGenerator(instance.hasOperatorMethod("right add")), false)
             assert.strictEqual(runGenerator(instance.executeOperatorMethod({}, "left add", 7)), 12)
+        })
+    })
+    
+    describe("getAttribute", () => {
+        test("works for plain attributes", () => {
+            const cls = new ClassType("Item", null)
+            const instance = new ClassInstanceType(cls)
+            runGenerator(instance.setAttribute({}, "x", 5))
+            const value = runGenerator(instance.getAttribute({}, "x"))
+            assert.equal(value, 5)
+        })
+
+        test("executes getter methods", () => {
+            const cls = new ClassType("Item", null)
+            cls.setMember(
+                "name",
+                "getter method",
+                makeGetterMethodType(
+                    "name",
+                    function* (thread) {
+                        const self = ThreadUtil.getCurrentStack(thread).getSelfOrThrow()
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return `value:${self.attributes.raw}`
+                    }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+            instance.attributes.raw = "secret"
+
+            const value = runGenerator(instance.getAttribute({}, "name"))
+            assert.strictEqual(value, "value:secret")
+        })
+    })
+
+    describe("setAttribute", () => {
+        test("delegates to setter methods", () => {
+            const cls = new ClassType("Item", null)
+            cls.setMember(
+                "name",
+                "setter method",
+                makeSetterMethodType(
+                    "name",
+                    function* (thread) {
+                        const stack = ThreadUtil.getCurrentStack(thread)
+                        const self = stack.getSelfOrThrow()
+                        self.attributes.saved = stack.getSetterValueOrThrow()
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return Nothing
+                    }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+
+            runGenerator(instance.setAttribute({}, "name", 42))
+            assert.strictEqual(instance.attributes.saved, 42)
+        })
+
+        test("throws when an attribute only has a getter", () => {
+            const cls = new ClassType("ReadOnly", null)
+            cls.setMember(
+                "value",
+                "getter method",
+                makeGetterMethodType(
+                    "value",
+                    function* (thread) {
+                        ThreadUtil.getStackManager(thread).prepareReturn()
+                        return 1
+                    }
+                )
+            )
+            const instance = new ClassInstanceType(cls)
+
+            assertGeneratorThrows(instance.setAttribute({}, "value", 10), "only has a getter")
         })
     })
 })
