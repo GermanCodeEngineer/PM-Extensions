@@ -13,8 +13,14 @@
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
 //  - https://github.com/SharkPool-SP/SharkPools-Extensions/blob/main/extension-code/Temporary-Variables.js
 
-(function(Scratch) {
+(
+
+/**
+ * @param {ScratchObject} Scratch 
+ */
+function(Scratch) {
 "use strict"
+
 /**
  * Allow importing this file in a non-Scratch testing environment.
  * When the extension is imported in PenguinMod this is always true
@@ -69,11 +75,13 @@ if (isRuntimeEnv) {
     }
 }
 
-
 /************************************************************************************
 *                             Wrapping Some PM Internals                            *
 ************************************************************************************/
 
+/**
+ * @param {ScratchObject} Scratch
+ */
 function applyHacks(Scratch) {
     const {IRGenerator, JSGenerator} = Scratch.vm.exports
     const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
@@ -81,6 +89,11 @@ function applyHacks(Scratch) {
 
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
         if (value instanceof NothingType) return false
         return oldToBoolean(value)
@@ -90,6 +103,10 @@ function applyHacks(Scratch) {
     // notequals, ltorequal and gtorequal compiled blocks (as the other comparison blocks are)
     // CAN BE REMOVED START: IF THIS IS MERGED: https://github.com/PenguinMod/PenguinMod-Vm/pull/188
     const oldDescendTreeGenInput = ScriptTreeGenerator.prototype.descendInput
+
+    /**
+     * @param {Object} block
+     */
     ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
         switch (block.opcode) {
             case "operator_notequal":
@@ -110,6 +127,11 @@ function applyHacks(Scratch) {
 
     // Wrap JSGenerator.descendInput for some operator blocks to allow classes to define custom handling
     const oldDescendJSGenInput = JSGenerator.prototype.descendInput
+
+    /**
+     * @param {Object} node
+     * @param {boolean} visualReport
+     */
     JSGenerator.prototype.descendInput = function modifiedDescendInput (node, visualReport = false) {
         let left, right, leftMethod, rightMethod
         switch (node.kind) {
@@ -161,6 +183,11 @@ function applyHacks(Scratch) {
 
     // Wrap Runtime._convertBlockForScratchBlocks to implement hover tooltips
     const oldConvertBlock = Scratch.vm.runtime._convertBlockForScratchBlocks.bind(Scratch.vm.runtime);
+
+    /**
+     * @param {Object} blockInfo
+     * @param {Object} categoryInfo
+     */
     Scratch.vm.runtime._convertBlockForScratchBlocks = function(blockInfo, categoryInfo) {
         const result = oldConvertBlock(blockInfo, categoryInfo);
         if (blockInfo.tooltip) {
@@ -174,11 +201,20 @@ function applyHacks(Scratch) {
 *                            Internal Types and Constants                           *
 ************************************************************************************/
 
+/**
+ * @param {string} s
+ * @returns {string}
+ */
 function quote(s) {
     if (typeof s !== "string") s = String(s)
     s = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
     return `'${s}'`
 }
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function escapeHTML(text) {
     return text
         .replace(/&/g, "&amp;")
@@ -187,6 +223,11 @@ function escapeHTML(text) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;")
 }
+
+/**
+ * @param {string} text
+ * @returns {HTMLSpanElement}
+ */
 function span(text) {
     let element = document.createElement("span")
     element.innerHTML = escapeHTML(text)
@@ -196,6 +237,11 @@ function span(text) {
     return element
 }
 
+/**
+ * @param {string} code
+ * @param {string} additionalMsg
+ * @returns {never}
+ */
 function throwInternal(code, additionalMsg = "") {
     throw new Error(
         `An internal error occured in the classes extension. `+
@@ -211,6 +257,9 @@ class VariableManager {
      * Implements a value storage, that can be set from multiple locations.
      */
     ValueHolder = class {
+        /**
+         * @param {*} value
+         */
         constructor(value) {
             this.value = value
             this.isDeleted = false
@@ -218,7 +267,7 @@ class VariableManager {
     }
 
     /**
-     * @param {?Object<string, any>} startVars
+     * @param {?Object<string, *>} startVars
      */
     constructor(startVars = null) {
         this.reset()
@@ -234,6 +283,11 @@ class VariableManager {
         }
         this._variables = {}
     }
+
+    /**
+     * @param {string} name
+     * @param {*} value
+     */
     set(name, value) {
         if (this.has(name)) {
             this._variables[name].value = value
@@ -241,12 +295,22 @@ class VariableManager {
             this._variables[name] = new this.ValueHolder(value)
         }
     }
+
+    /**
+     * @param {string} name
+     * @param {VariableManager.ValueHolder} holder
+     */
     setHolder(name, holder) {
         if (this.has(name)) {
             throw new Error(`Variable ${quote(name)} already exists in the current scope, can not bind variable with the same name.`)
         }
         this._variables[name] = holder
     }
+
+    /**
+     * @param {string} name
+     * @param {boolean} throwOnNotFound
+     */
     delete(name, throwOnNotFound = true) {
         if (this.has(name)) {
             this._variables[name].isDeleted = true // Mark the variable deleted for all scopes
@@ -255,9 +319,19 @@ class VariableManager {
             throw new Error(`Variable ${quote(name)} is not defined.`)
         }
     }
+
+    /**
+     * @param {string} name
+     * @returns {boolean}
+     */
     has(name) {
         return (name in this._variables) && (!this._variables[name].isDeleted)
     }
+
+    /**
+     * @param {string} name
+     * @param {boolean} throwOnNotFound
+     */
     get(name, throwOnNotFound = true) {
         if (!this.has(name)) {
             if (!throwOnNotFound) return undefined
@@ -265,8 +339,9 @@ class VariableManager {
         }
         return this._variables[name].value
     }
+
     /**
-     * @returns {Object<string, any>}
+     * @returns {Object<string, *>}
      */
     getAll() {
         const result = {}
@@ -275,6 +350,7 @@ class VariableManager {
         })
         return result
     }
+
     /**
      * @param {string} name
      * @returns {VariableManager.ValueHolder}
@@ -285,6 +361,7 @@ class VariableManager {
         }
         return this._variables[name]
     }
+
     /**
      * @returns {Array<string>} 
      */
@@ -295,6 +372,7 @@ class VariableManager {
 
 class ThreadUtil {
     /**
+     * @param {Thread} thread
      * @returns {ScopeStackManager}
      */
     static getStackManager(thread) {
@@ -303,14 +381,24 @@ class ThreadUtil {
     }
 
     /**
+     * @param {Thread} thread
      * @returns {ScopeStack}
      */
     static getCurrentStack(thread) {
         return ThreadUtil.getStackManager(thread).getCurrentStackFromManager()
     }
+
+    /**
+     * @param {Thread} thread
+     * @param {ScopeStack} stack
+     */
     static pushStack(thread, stack) {
         ThreadUtil.getStackManager(thread).pushStackToManager(stack)
     }
+
+    /**
+     * @param {Thread} thread
+     */
     static popStack(thread) {
         return ThreadUtil.getStackManager(thread).popStackFromManager()
     }
@@ -319,14 +407,27 @@ class ThreadUtil {
 // System to switch between multiple ScopeStack's (e.g. for different scopes in function calls)
 class ScopeStackManager {
     constructor() {
+        /** @type {Array<ScopeStack>} */
         this.stacks = [new ScopeStack()]; // Live default stack
     }
+
+    /**
+     * @returns {ScopeStack}
+     */
     getCurrentStackFromManager() {
         return this.stacks[this.stacks.length - 1]
     }
+
+    /**
+     * @param {ScopeStack} stack
+     */
     pushStackToManager(stack) {
         this.stacks.push(stack)
     }
+
+    /**
+     * @returns {ScopeStack}
+     */
     popStackFromManager() {
         if (this.stacks.length <= 1) {
             throwInternal("stoic-penguin")
@@ -335,15 +436,21 @@ class ScopeStackManager {
     }
 
     // Enter Scopes
+
     /**
      * @param {BaseCallableType} callable
-     * @param {Object} scope
+     * @param {ContextScope} scope
      */
     insertScopeAndPushStack(callable, scope) {
         const callableStack = callable.stack.shallowCopy()
         callableStack.insertScope(scope)
         this.pushStackToManager(callableStack)
     }
+
+    /**
+     * @param {BaseCallableType} callable
+     * @param {Object<string, *>} args
+     */
     enterFunctionCall(callable, args) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.FUNCTION,
@@ -351,7 +458,12 @@ class ScopeStackManager {
             vars: new VariableManager(args),
         })
     }
-    // Untraslated code
+
+    /**
+     * @param {BaseCallableType} callable
+     * @param {ClassInstanceType} self
+     * @param {Object<string, *>} args
+     */
     enterMethodCall(callable, self, args) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.METHOD,
@@ -360,6 +472,11 @@ class ScopeStackManager {
             self, vars: new VariableManager(args),
         })
     }
+
+    /**
+     * @param {BaseCallableType} callable
+     * @param {ClassInstanceType} self
+     */
     enterGetterMethodCall(callable, self) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.GETTER_METHOD,
@@ -368,6 +485,12 @@ class ScopeStackManager {
             self, vars: new VariableManager(),
         })
     }
+
+    /**
+     * @param {BaseCallableType} callable
+     * @param {ClassInstanceType} self
+     * @param {*} setterValue
+     */
     enterSetterMethodCall(callable, self, setterValue) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.SETTER_METHOD,
@@ -376,6 +499,12 @@ class ScopeStackManager {
             self, setterValue, vars: new VariableManager(),
         })
     }
+
+    /**
+     * @param {BaseCallableType} callable
+     * @param {ClassInstanceType} self
+     * @param {*} other
+     */
     enterOperatorMethodCall(callable, self, other) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.OPERATOR_METHOD,
@@ -392,10 +521,17 @@ class ScopeStackManager {
     }
 
     // Measure Scopes
+
+    /**
+     * @returns {number}
+     */
     getSize() {
         return this.stacks.length
     }
 
+    /**
+     * @param {number} size
+     */
     trimSize(size) {
         if (size < 0) size = 0
         if (this.stacks.length <= size) return
@@ -415,26 +551,8 @@ class ScopeStack {
     static USER_SCOPE = "USER_SCOPE"
 
     constructor() {
-        /**
-         * @type {Array<
-         *   {
-         *     type: string,
-         *     isGlobalScope?: boolean,
-         *     isUserScope?: boolean,
-         *     isCallable?: boolean,
-         *     supportsVars?: boolean,
-         *     supportsSelf?: boolean,
-         *     supportsSetterValue?: boolean,
-         *     supportsOtherValue?: boolean,
-         *     supportsCls?: boolean,
-         *     vars?: VariableManager,
-         *     self?: ClassInstanceType,
-         *     setterValue?: any,
-         *     other?: any,
-         *     cls?: ClassType,
-         *   }
-         * >}
-         */
+
+        /** @type {Array<ContextScope>} */
         this.scopes = [{
             type: ScopeStack.GLOBALS,
             isGlobalScope: true, supportsVars: true,
@@ -444,6 +562,9 @@ class ScopeStack {
         this.setNextFuncConfig()
     }
 
+    /**
+     * @returns {ScopeStack}
+     */
     shallowCopy() { // Keep the same scope instances, but within a new array
         const newStack = new ScopeStack()
         newStack.scopes = [...this.scopes]
@@ -451,9 +572,17 @@ class ScopeStack {
     }
 
     // Enter Scopes
+
+    /**
+     * @param {ContextScope} scope
+     */
     insertScope(scope) {
         this.scopes.splice(0, 0, scope)
     }
+
+    /**
+     * @param {ClassType} cls
+     */
     enterClassDefScope(cls) {
         this.insertScope({
             type: ScopeStack.CLASS_DEF,
@@ -471,6 +600,11 @@ class ScopeStack {
     }
 
     // Get Scope
+
+    /**
+     * @param {function(ContextScope): boolean} qualified_fn
+     * @returns {?ContextScope}
+     */
     _getQualifiedScope(qualified_fn) {
         for (let i = 0; i < this.scopes.length; i++) {
             if (qualified_fn(this.scopes[i])) {
@@ -479,6 +613,10 @@ class ScopeStack {
         }
         return null
     }
+
+    /**
+     * @returns {ContextScope}
+     */
     _getInnermostScope() {
         const scope = this.scopes[0]
         if (!scope) {
@@ -487,6 +625,9 @@ class ScopeStack {
         return scope
     }
 
+    /**
+     * @returns {ClassInstanceType}
+     */
     getSelfOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsSelf)
         if (!scope) {
@@ -494,6 +635,10 @@ class ScopeStack {
         }
         return scope.self
     }
+
+    /**
+     * @returns {*}
+     */
     getSetterValueOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsSetterValue)
         if (!scope) {
@@ -501,6 +646,10 @@ class ScopeStack {
         }
         return scope.setterValue
     }
+
+    /**
+     * @returns {*}
+     */
     getOtherValueOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsOtherValue)
         if (!scope) {
@@ -508,6 +657,11 @@ class ScopeStack {
         }
         return scope.other
     }
+
+    /**
+     * @param {string} blockText
+     * @returns {ClassType}
+     */
     getClsOrThrow(blockText) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsCls) {
@@ -539,10 +693,17 @@ class ScopeStack {
     }
 
     // Measure Scopes
+
+    /**
+     * @returns {number} 
+     */
     getSize() {
         return this.scopes.length
     }
 
+    /**
+     * @param {number} size
+     */
     trimSize(size) {
         if (size < 0) size = 0
         if (this.scopes.length <= size) return
@@ -550,8 +711,9 @@ class ScopeStack {
     }
 
     // Function Arguments
+
     /**
-     * @param {?{argNames: Array<string>, argDefaults: Array<any>}} config 
+     * @param {?FunctionArgConfig} config
      */
     setNextFuncConfig(config) {
         config = config || ScopeStack.getDefaultFuncConfig()
@@ -560,16 +722,29 @@ class ScopeStack {
         }
         this.nextFuncConfig = config
     }
+
+    /**
+     * @returns {FunctionArgConfig}
+     */
     getAndResetNextFuncConfig() {
         const config = this.nextFuncConfig
         this.setNextFuncConfig()
         return config
     }
+
+    /**
+     * @returns {FunctionArgConfig}
+     */
     static getDefaultFuncConfig() {
         return {argNames: [], argDefaults: []}
     }
 
     // Access Scoped Variables
+
+    /**
+     * @param {string} name
+     * @param {*} value
+     */
     setScopeVar(name, value) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
@@ -577,6 +752,14 @@ class ScopeStack {
         }
         innermost.vars.set(name, value)
     }
+
+    /**
+     * @param {string} name
+     * @param {number} startIndex
+     * @param {number} excludeLastIndecies
+     * @param {boolean} throwOnNotFound
+     * @returns {?ContextScope}
+     */
     _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0, throwOnNotFound = true) {
         for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
             const scope = this.scopes[i]
@@ -589,11 +772,21 @@ class ScopeStack {
         // trick to raise:
         (new VariableManager()).get(name, true)
     }
+
+    /**
+     * @param {string} name
+     * @param {boolean} throwOnNotFound
+     * @returns {*}
+     */
     getScopeVar(name, throwOnNotFound = true) {
         const varScope = this._getScopeOfVar(name, 0, 0, throwOnNotFound)
         if (!varScope) return undefined
         return varScope.vars.get(name, throwOnNotFound)
     }
+
+    /**
+     * @param {string} name
+     */
     deleteScopeVar(name) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
@@ -601,6 +794,10 @@ class ScopeStack {
         }
         innermost.vars.delete(name)
     }
+
+    /**
+     * @param {string} name
+     */
     bindScopeVarGlobal(name) {
         const globalScope = this._getQualifiedScope(scope => scope.isGlobalScope)
         if (!globalScope) {
@@ -616,6 +813,10 @@ class ScopeStack {
         }
         innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
     }
+
+    /**
+     * @param {string} name
+     */
     bindScopeVarNonlocal(name) {
         let varScope
         try { // skip innermost(current) and global scope, as nonlocal variables can not be in either
@@ -630,10 +831,11 @@ class ScopeStack {
         }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
+
     /**
      * @param {boolean} onlyCurrentScope - if true, return names only from the innermost scope
      * @param {boolean} onlyGlobalScope - if true, return names only from the global scope
-     * @returns {Array<string>}
+    * @returns {boolean}
      */
     hasScopeVar(name, onlyCurrentScope = false, onlyGlobalScope = false) {
         if (onlyCurrentScope && onlyGlobalScope) {
@@ -652,6 +854,7 @@ class ScopeStack {
         }
         return this._getScopeOfVar(name, 0, 0, false) !== null
     }
+
     /**
      * Return an array with all variable names visible in the current thread environment.
      * Iterates from outermost to innermost so inner-scope variables override outer ones.
@@ -735,62 +938,102 @@ class TypeChecker {
         }
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isArray(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
         return value instanceof Scratch.vm.jwArray.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isObject(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
         return value instanceof Scratch.vm.dogeiscutObject.Type
     }
 
-    static isDate(value) { // There are three date extension
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isDate(value) { // There are three date extensions
         TypeChecker._assertRuntimeEnv()
         if (Scratch.vm.jwDate && (value instanceof Scratch.vm.jwDate.Type)) return true
         if (runtime.ext_ddeDateFormat) {
-            const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
-            if (value instanceof dateType) return true
+            try {
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
+                if (value instanceof dateType) return true
+            } catch {}
         }
         if (runtime.ext_ddeDateFormatV2) {
-            const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
-            if (value instanceof dateType) return true
+            try {
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
+                if (value instanceof dateType) return true
+            } catch {}
         }
         return false
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isSet(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutSet) return false
         return value instanceof Scratch.vm.dogeiscutSet.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isLambda(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwLambda) return false
         return value instanceof Scratch.vm.jwLambda.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isColor(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwColor) return false
         return value instanceof Scratch.vm.jwColor.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isUnlimitedNum(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwNum) return false
         return value instanceof Scratch.vm.jwNum.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isTarget(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwTargets) return false
         return value instanceof Scratch.vm.jwTargets.Type
     }
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isXML(value) {
         TypeChecker._assertRuntimeEnv()
         if (!Scratch.vm.jwXML) return false
@@ -798,11 +1041,19 @@ class TypeChecker {
     }
 
 
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isClassicScratchValue(value) {
         return ((value === undefined) || (value === null) ||
         (typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
     }
 
+    /**
+     * @param {*} value
+     * @returns {string}
+     */
     static string_typeof(value) {
         // My Types
         if (value instanceof BaseCallableType) return value.className // respect subclass names
@@ -846,16 +1097,12 @@ class Cast extends Scratch.Cast {
         }
     }
 
-    /**
-     * Hint to avoid confusion: Cast.toString converts a Scratch value to a string, it does NOT stringify a Cast instance.
-     * @returns {string}
-     */
-    static toString(value) {
-        return super.toString(value)
-    }
-
     // Foreign
-    /** @returns {Scratch.vm.jwArray.Type} */
+
+    /**
+     * @param {*} value
+     * @returns {Scratch.vm.jwArray.Type}
+     */
     static toArray(value) {
         Cast._assertRuntimeEnv()
         if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
@@ -863,6 +1110,12 @@ class Cast extends Scratch.Cast {
     }
 
     /** @returns {Scratch.vm.dogeiscutObject.Type} */
+
+    /**
+     * @param {*} value
+     * @param {boolean} copy
+     * @returns {Scratch.vm.dogeiscutObject.Type}
+     */
     static toObject(value, copy = false) {
         Cast._assertRuntimeEnv()
         if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
@@ -870,11 +1123,12 @@ class Cast extends Scratch.Cast {
     }
 
     // Helpers
+
     /**
      * @param {string} name
      * @param {?Thread} thread
      * @param {boolean} throwOnNotFound
-     * @returns {any}
+     * @returns {*}
      */
     static _getNamedValue(name, thread = null) {
         if (thread) {
@@ -884,11 +1138,11 @@ class Cast extends Scratch.Cast {
     }
 
     /**
-     * @param {any} value
+     * @param {*} value
      * @param {?Thread} thread
      * @param {typeof CustomType} expectedType
      * @param {string} expectedDescription
-     * @returns {any}
+     * @returns {*}
      */
     static _toTypeFromValueOrVariable(value, thread, expectedType, expectedDescription) {
         if (value instanceof expectedType) return value
@@ -907,14 +1161,18 @@ class Cast extends Scratch.Cast {
     }
 
     // Own
+
     /**
+     * @param {*} value
      * @param {?Thread} thread
-     * @returns {ClassType} **/
+     * @returns {ClassType}
+     */
     static toClass(value, thread = null) {
         return Cast._toTypeFromValueOrVariable(value, thread, ClassType, "class or class variable name")
     }
 
     /**
+     * @param {*} value
      * @param {?Thread} thread
      * @returns {ClassInstanceType}
      */
@@ -923,8 +1181,10 @@ class Cast extends Scratch.Cast {
     }
 
     /**
+     * @param {*} value
      * @param {?Thread} thread
-     * @returns {FunctionType} **/
+     * @returns {FunctionType}
+     */
     static toFunction(value, thread = null) {
         return Cast._toTypeFromValueOrVariable(value, thread, FunctionType, "function or function variable name")
     }
@@ -995,33 +1255,39 @@ class BaseCallableType extends CustomType {
      * @param {string} name
      * @param {Function} jsFunc
      * @param {ScopeStack} stack
-     * @param {Array<string>} argNames
-     * @param {Array<string>} argDefaults
+     * @param {FunctionArgConfig} config
      */
-    constructor(name, jsFunc, stack, {argNames, argDefaults}) {
+    constructor(name, jsFunc, stack, config) {
         super()
         this.name = name
         this.jsFunc = jsFunc
         this.stack = stack.shallowCopy()
-        this.argNames = argNames
-        this.argDefaults = argDefaults
+        this.argNames = config.argNames
+        this.argDefaults = config.argDefaults
     }
 
+    /**
+     * @returns {string}
+     */
     toString() {
         return `<${this.className} ${quote(this.name)}>`
     }
+
+    /**
+     * @returns {string}
+     */
     toJSON() {
         return `${this.className}s can not be serialized.`
     }
 
     /**
      * @param {Thread} thread
-     * @param {...any} args - class instance and other shadow values from the block (e.g., instance, posArgs, setter value, other operand)
-     * @returns {any} the return value of the method
+     * @param {...*} paramsForEnterContext - class instance and other shadow values from the block (e.g., instance, posArgs, setter value, other operand)
+     * @returns {*} the return value of the method
      */
-    *execute(thread, ...args) {
+    *execute(thread, ...paramsForEnterContext) {
         const sizeBefore = ThreadUtil.getCurrentStack(thread).getSize()
-        this.enterContext(thread, ...args)
+        this.enterContext(thread, ...paramsForEnterContext)
 
         let output
         let finished = false
@@ -1043,10 +1309,16 @@ class BaseCallableType extends CustomType {
         return output
     }
 
+    /**
+     * @param {Thread} thread
+     */
     enterContext(thread) {
         // Allow better subclassing
     }
 
+    /**
+     * @param {*} output
+     */
     checkOutputValue(output) {
         // Allow better subclassing
     }
@@ -1054,7 +1326,7 @@ class BaseCallableType extends CustomType {
 
     /**
      * @param {Array} posArgs
-     * @returns {Object}
+     * @returns {Object<string, *>}
      */
     evaluateArgs(posArgs) {
         const args = {}
@@ -1100,6 +1372,10 @@ class FunctionType extends BaseCallableType {
     customId = "gceFunction"
     className = "Function"
 
+    /**
+     * @param {Thread} thread
+     * @param {PositionalFunctionArgs} posArgs
+     */
     enterContext(thread, posArgs) {
         // Allow better subclassing
         const args = this.evaluateArgs(posArgs)
@@ -1111,7 +1387,12 @@ class MethodType extends BaseCallableType {
     customId = "gceMethod"
     className = "Method"
 
-    enterContext(thread, instance, posArgs = []) {
+    /**
+     * @param {Thread} thread
+     * @param {ClassInstanceType} instance
+     * @param {PositionalFunctionArgs} posArgs
+     */
+    enterContext(thread, instance, posArgs) {
         // Allow better subclassing
         const args = this.evaluateArgs(posArgs)
         ThreadUtil.getStackManager(thread).enterMethodCall(this, instance, args)
@@ -1122,6 +1403,10 @@ class GetterMethodType extends MethodType {
     customId = "gceGetterMethod"
     className = "Getter Method"
 
+    /**
+     * @param {Thread} thread
+     * @param {ClassInstanceType} instance
+     */
     enterContext(thread, instance) {
         ThreadUtil.getStackManager(thread).enterGetterMethodCall(this, instance)
     }
@@ -1130,10 +1415,18 @@ class SetterMethodType extends MethodType {
     customId = "gceSetterMethod"
     className = "Setter Method"
 
+    /**
+     * @param {Thread} thread
+     * @param {ClassInstanceType} instance
+     * @param {*} value
+     */
     enterContext(thread, instance, value) {
         ThreadUtil.getStackManager(thread).enterSetterMethodCall(this, instance, value)
     }
 
+    /**
+     * @param {*} output
+     */
     checkOutputValue(output) {
         if (output !== Nothing) throw new Error(`Setter methods must return ${Nothing}.`)
     }
@@ -1143,6 +1436,11 @@ class OperatorMethodType extends MethodType {
     customId = "gceOperatorMethod"
     className = "Operator Method"
 
+    /**
+     * @param {Thread} thread
+     * @param {ClassInstanceType} instance
+     * @param {*} other
+     */
     enterContext(thread, instance, other) {
         ThreadUtil.getStackManager(thread).enterOperatorMethodCall(this, instance, other)
     }
@@ -1166,10 +1464,18 @@ class ClassType extends CustomType {
         this.operatorMethods = {}
         this.clsVariables = new VariableManager()
     }
+
+    /**
+     * @returns string
+     */
     toString() {
         const suffix = this.superCls ? `(super ${quote(this.superCls.name)})` : ""
         return `<Class ${quote(this.name)}${suffix}>`
     }
+
+    /**
+     * @returns string
+     */
     toJSON() {
         return "Classes can not be serialized."
     }
@@ -1178,7 +1484,7 @@ class ClassType extends CustomType {
      * @param {string} name
      * @param {boolean} recursive
      * @param {boolean} preferSetter
-     * @returns {{type: ?string, value: any}}
+     * @returns {{type: ?string, value: *}}
      */
     getMember(name, recursive, preferSetter) {
         if (name in this.instanceMethods) return {type: "instance method", value: this.instanceMethods[name]}
@@ -1202,7 +1508,7 @@ class ClassType extends CustomType {
     /**
      * @param {string} name
      * @param {string} expectedMemberType
-     * @returns {any}
+     * @returns {*}
      */
     getMemberOfType(name, expectedMemberType) {
         const {type, value} = this.getMember(name, true, expectedMemberType === "setter method")
@@ -1212,7 +1518,7 @@ class ClassType extends CustomType {
     }
 
     /**
-     * @returns {Array<Object>}
+     * @returns {Array<Object<string, *>>}
      */
     getAllMembers() {
         let currentCls = this
@@ -1242,7 +1548,7 @@ class ClassType extends CustomType {
     /**
      * @param {string} name
      * @param {string} newMemberType
-     * @param {any} method
+     * @param {*} value
      */
     setMember(name, newMemberType, value) {
         const currentMemberType = this.getMember(name, false, false).type // preference does not matter
@@ -1290,7 +1596,7 @@ class ClassType extends CustomType {
 
     /**
      * @param {Thread} thread
-     * @param {array} posArgs
+     * @param {PositionalFunctionArgs} posArgs
      * @returns {ClassInstanceType} the instance
      */
     *createInstance(thread, posArgs) {
@@ -1299,8 +1605,14 @@ class ClassType extends CustomType {
         if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
         return instance
     }
+
+    /**
+     * @param {Thread} thread
+     * @param {string} name
+     * @param {PositionalFunctionArgs} posArgs
+     * @returns {*}
+     */
     *executeStaticMethod(thread, name, posArgs) {
-        /** @type {FunctionType} */
         const methodFunc = this.getStaticMethod(name)
         return yield* methodFunc.execute(thread, posArgs)
     }
@@ -1349,8 +1661,8 @@ class ClassInstanceType extends CustomType {
     /**
      * @param {Thread} thread
      * @param {string} name
-     * @param {array} posArgs
-     * @returns {any} the return value of the method
+     * @param {PositionalFunctionArgs} posArgs
+     * @returns {*} the return value of the method
      */
     *executeInstanceMethod(thread, name, posArgs) {
         /** @type {MethodType} */
@@ -1361,11 +1673,12 @@ class ClassInstanceType extends CustomType {
     /**
      * @param {Thread} thread
      * @param {string} name
-     * @param {array} posArgs
-     * @returns {any} the return value of the method
+     * @param {PositionalFunctionArgs} posArgs
+     * @returns {*} the return value of the method
      */
     *executeSuperMethod(thread, name, posArgs) {
         if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
+
         /** @type {MethodType} */
         const method = this.cls.superCls.getMemberOfType(name, "instance method")
         return yield* method.execute(thread, this, posArgs)
@@ -1374,8 +1687,8 @@ class ClassInstanceType extends CustomType {
     /**
      * @param {Thread} thread
      * @param {string} name
-     * @param {array} posArgs
-     * @returns {any} the return value of the method
+     * @param {PositionalFunctionArgs} posArgs
+     * @returns {*} the return value of the method
      */
     *executeSuperInitMethod(thread, name, posArgs) {
         const output = yield* this.executeSuperMethod(thread, name, posArgs)
@@ -1386,8 +1699,8 @@ class ClassInstanceType extends CustomType {
     /**
      * @param {Thread} thread
      * @param {string} name public operator method name
-     * @param {any} other
-     * @returns {any} the return value of the operator method
+     * @param {*} other
+     * @returns {*} the return value of the operator method
      */
     *executeOperatorMethod(thread, name, other) {
         /** @type {OperatorMethodType} */
@@ -1398,7 +1711,7 @@ class ClassInstanceType extends CustomType {
     /**
      * @param {Thread} thread
      * @param {string} name
-     * @returns {any} the attribute value or return value of getter method
+     * @returns {*} the attribute value or return value of getter method
      */
     *getAttribute(thread, name) {
         const {type, value} = this.cls.getMember(name, true, false)
@@ -2156,7 +2469,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "executeExpression",
                     text: "execute expression [EXPR]",
-                    tooltip: "Evaluates the input expression without performing any additional action.",
+                    tooltip: "Evaluates the input expression without performing * additional action.",
                     arguments: {
                         EXPR: commonArguments.allowAnything,
                     },
@@ -2217,6 +2530,9 @@ class GCEClassBlocks {
         return info
     }
 
+    /**
+     * @returns {object} compilation information and implementation for some blocks 
+     */
     getCompileInfo() {
         const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => ((generator, block) => {
             if (yieldRequired) generator.script.yields = true
@@ -2543,6 +2859,7 @@ class GCEClassBlocks {
 
         this.globalVariables = new VariableManager()
     }
+
     setup() {
         if (!isRuntimeEnv) return
 
@@ -2564,20 +2881,38 @@ class GCEClassBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     logStacks(args, util) {
         console.log("Current thread stacks:", JSON.stringify([...ThreadUtil.getStackManager(util.thread).stacks], null, 2))
     }
 
     /******************** Scoped Variables ********************/
 
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     setScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
         ThreadUtil.getCurrentStack(util.thread).setScopeVar(name, args.VALUE)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
         return ThreadUtil.getCurrentStack(util.thread).getScopeVar(name)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     hasScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
         const currentStack = ThreadUtil.getCurrentStack(util.thread)
@@ -2595,10 +2930,20 @@ class GCEClassBlocks {
         }
         return Cast.toBoolean(hasVar)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     deleteScopeVar(args, util) {
         const name = Cast.toString(args.NAME)
         ThreadUtil.getCurrentStack(util.thread).deleteScopeVar(name)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     allVariables(args, util) {
         const currentStack = ThreadUtil.getCurrentStack(util.thread)
         let varNames
@@ -2615,12 +2960,22 @@ class GCEClassBlocks {
         }
         return Cast.toArray(varNames)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     createVarScope(args, util) {
         ThreadUtil.getCurrentStack(util.thread).enterUserScope()
         util.startBranch(1, false, () => {
             ThreadUtil.getCurrentStack(util.thread).exitUserScope()
         })
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     bindVarToScope(args, util) {
         const name = Cast.toString(args.NAME)
         switch (args.KIND) {
@@ -2640,6 +2995,11 @@ class GCEClassBlocks {
     createSubclassAt = this._isACompiledBlock
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     onClass(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         ThreadUtil.getCurrentStack(util.thread).enterClassDefScope(cls)
@@ -2647,16 +3007,31 @@ class GCEClassBlocks {
             ThreadUtil.getCurrentStack(util.thread).exitClassDefScope()
         })
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     classBeingCreated(args, util) {
         return ThreadUtil.getCurrentStack(util.thread).getClsOrThrow("class being created")
     }
 
     // Use Classes
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     isSubclass(args, util) {
         const subCls = Cast.toClass(args.SUBCLASS, util.thread)
         const superCls = Cast.toClass(args.SUPERCLASS, util.thread)
         return Cast.toBoolean(subCls.isSubclassOf(superCls))
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getSuperclass(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         return cls.superCls ?? Nothing
@@ -2667,6 +3042,11 @@ class GCEClassBlocks {
     // Define Instance Methods
     defineInstanceMethod = this._isACompiledBlock
     defineSpecialMethod = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     self(args, util) {
         return ThreadUtil.getCurrentStack(util.thread).getSelfOrThrow()
     }
@@ -2676,34 +3056,64 @@ class GCEClassBlocks {
     // Define Getters & Setters
     defineGetter = this._isACompiledBlock
     defineSetter = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     defineSetterValue(args, util) {
         return ThreadUtil.getCurrentStack(util.thread).getSetterValueOrThrow()
     }
 
     // Define Operator Methods
     defineOperatorMethod = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     operatorOtherValue(args, util) {
         return ThreadUtil.getCurrentStack(util.thread).getOtherValueOrThrow()
     }
 
     // Define Static Methods & Class Variables
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     setClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
         cls.setMember(name, value, "class variable")
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         return cls.getMemberOfType(name, "class variable")
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     deleteClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         cls.deleteMemberOfType(name, "class variable")
     }
     defineStaticMethod = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     propertyNamesOfClass(args, util) {
         const property = args.PROPERTY
         const cls = Cast.toClass(args.CLASS, util.thread)
@@ -2733,11 +3143,21 @@ class GCEClassBlocks {
 
     // Create & Inspect
     createInstance = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     isInstance(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         const cls = Cast.toClass(args.CLASS, util.thread)
         return Cast.toBoolean(instance.cls.isSubclassOf(cls))
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getClassOfInstance(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         return instance.cls
@@ -2746,6 +3166,11 @@ class GCEClassBlocks {
     // Attributes
     setAttribute = this._isACompiledBlock
     getAttribute = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getAllAttributes(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         return Cast.toObject(instance.attributes)
@@ -2754,6 +3179,11 @@ class GCEClassBlocks {
     // Call Methods
     callMethod = this._isACompiledBlock
     callStaticMethod = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     getStaticMethodFunc(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
@@ -2763,6 +3193,11 @@ class GCEClassBlocks {
     /******************** Functions ********************/
 
     // Configure Before Define
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     configureNextFunctionArgs(args, util) {
         const argNames = Cast.toArray(args.ARGNAMES).array.map(name => Cast.toString(name))
         const argDefaults = Cast.toArray(args.ARGDEFAULTS).array
@@ -2786,15 +3221,35 @@ class GCEClassBlocks {
 
     /******************** Utilities ********************/
     objectAsString = this._isACompiledBlock
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     typeof(args, util) {
         return TypeChecker.string_typeof(args.VALUE)
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     checkIdentity(args, util) {
         return Cast.toBoolean(Object.is(args.VALUE1, args.VALUE2))
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     nothing(args, util) {
         return Nothing
     }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     executeExpression(args, util) {
         // do nothing
     }
@@ -2802,8 +3257,9 @@ class GCEClassBlocks {
     /************************************************************************************
     *                        Implementation (Helpers) for Blocks                        *
     ************************************************************************************/
+
     /**
-     * @param {any} object
+     * @param {*} object
      * @param {Thread} thread
      * @returns {string} the return value of the as string method
      */
@@ -2820,6 +3276,15 @@ class GCEClassBlocks {
         return output
     }
 
+    /**
+     * @param {Thread} thread
+     * @param {*} left
+     * @param {*} right
+     * @param {string} leftMethod
+     * @param {string} rightMethod
+     * @param {string} nodeKind
+     * @returns {*}
+     */
     *_binaryOperator(thread, left, right, leftMethod, rightMethod, nodeKind) {
         if ((left instanceof ClassInstanceType) && left.hasOperatorMethod(leftMethod)) {
             return yield* left.executeOperatorMethod(thread, leftMethod, right)
@@ -2841,6 +3306,15 @@ class GCEClassBlocks {
         return null
     }
 
+    /**
+     * @param {Thread} thread
+     * @param {*} left
+     * @param {*} right
+     * @param {string} method
+     * @param {string} oppositeMethod
+     * @param {string} nodeKind
+     * @returns {boolean|null}
+     */
     *_comparisonOperator(thread, left, right, method, oppositeMethod, nodeKind) {
         let foundMethod = false
         let output = undefined
@@ -2885,13 +3359,136 @@ if (!isRuntimeEnv) {
 }
 })(Scratch)
 
+/************************************************************************************
+*                                 Type Definitions                                  *
+************************************************************************************/
+
+/**
+ * A thread is a running stack context and all the metadata needed.
+ * @typedef {Object} Thread
+ * @property {ScopeStackManager} [gceSSM]
+ */
+
+/**
+ * @typedef {Object} ExtensionManager
+ * @property {function(string): boolean} isExtensionLoaded
+ * @property {function(string): void} loadExtensionIdSync
+ * @property {function(string): void} loadExtensionURL
+ */
+
+/**
+ * @typedef {Object} jwStyleExtensionType
+ * @property {Object} Type
+ */
+
+/**
+ * @typedef {Object} VirtualMachine
+ * @property {Object} exports
+ * @property {Runtime} runtime
+ * @property {ExtensionManager} extensionManager
+ * 
+ * @property {jwStyleExtensionType} dogeiscutObject - Object Type from extension
+ * @property {jwStyleExtensionType} dogeiscutSet - Set Type from extension
+ * @property {jwStyleExtensionType} jwArray - Array Type from extension
+ * @property {jwStyleExtensionType} jwColor - Color Type from extension
+ * @property {jwStyleExtensionType} jwDate - One possible Date Type from extension
+ * @property {jwStyleExtensionType} jwLambda - Lambda Type from extension
+ * @property {jwStyleExtensionType} jwNum - UnlimitedNum Type from extension
+ * @property {jwStyleExtensionType} jwTargets - Target Type (not internal one) from extension
+ * @property {jwStyleExtensionType} jwXML - XML Type from extension
+ */
+
+/**
+ * @typedef {Object} Runtime
+ * @property {function(object, object): object} _convertBlockForScratchBlocks
+ * @property {function(string, object): void} registerCompiledExtensionBlocks
+ * @property {function(string, Function, Function): void} registerSerializer
+ * 
+ * @property {Object} ext_ddeDateFormat
+ * @property {Object} ext_ddeDateFormatV2
+ * @property {GCEClassBlocks} ext_gceClassesOOP
+ */
+
+/**
+ * @typedef {Object} ScratchExtensions
+ * @property {boolean} unsandboxed
+ * @property {Function} register
+ * @property {boolean} isPenguinMod
+ * @property {boolean} [isTestingEnv]
+ */
+
+/**
+ * @typedef {Object} ScratchCast
+ * @property {function(*): number} toNumber
+ * @property {function(*): boolean} toBoolean
+ * @property {function(*): string} toString - Hint to avoid confusion: Cast.toString converts a Scratch value to a string, it does NOT stringify a Cast instance.
+ * @property {function(*): Array.<number>} toRgbColorList
+ * @property {function(*): {r: number, g: number, b: number, a: number}} toRgbColorObject
+ * @property {function(*, number, boolean): (number|string)} toListIndex
+ * @property {function(*, *): number} compare
+ */
+
+/**
+ * @typedef {Object} ScratchObject
+ * @property {Object<string, string>} ArgumentType
+ * @property {Object<string, ?string>} ArgumentAlignment
+ * @property {Object<string, string>} BlockType
+ * @property {Object<string, number>} BlockShape
+ * @property {Object<string, string>} NotchShape
+ * @property {Object<string, string>} TargetType
+ * @property {ScratchExtensions} extensions
+ * @property {Function} translate
+ * @property {VirtualMachine} vm
+ * @property {ScratchCast} Cast
+ * @property {Object} Clone
+ * @property {Object} Color
+ */
+
+/**
+ * @typedef {Object} ContextScope
+ * @property {string} type
+ * @property {boolean} [isGlobalScope]
+ * @property {boolean} [isUserScope]
+ * @property {boolean} [isCallable]
+ * @property {boolean} [supportsVars]
+ * @property {boolean} [supportsSelf]
+ * @property {boolean} [supportsSetterValue]
+ * @property {boolean} [supportsOtherValue]
+ * @property {boolean} [supportsCls]
+ * @property {VariableManager} [vars]
+ * @property {ClassInstanceType} [self]
+ * @property {*} [setterValue]
+ * @property {*} [other]
+ * @property {ClassType} [cls]
+ */
+
+/**
+ * @typedef {Object} FunctionArgConfig
+ * @property {Array<string>} argNames
+ * @property {PositionalFunctionArgs} argDefaults
+ */
+
+/**
+ * @typedef {Array<*>} PositionalFunctionArgs
+ */
+
+/**
+ * @typedef {Object<string, *>} BlockArgs
+ */
+
+/**
+ * @typedef {Object} BlockUtil
+ * @property {Thread} thread
+ * @property {function(number, boolean, function(): void): void} startBranch
+ */
+
+
 /**
  * TODO
  *
  * + HIGH PRIORITY
  * + - finish new scope sytem
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
- * + - add more parameter and return types (maybe even typedef's)
  *
  * + MID PRIORITY
  * + - maybe reorganize block cagegories
