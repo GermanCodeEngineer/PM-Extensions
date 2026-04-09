@@ -242,7 +242,6 @@ if (require.main === module) { // like if __name__ == "__main__"
 module.exports = {
     vmEnvironment,
     defaultStubValue,
-    runScript: importExtensionByCode,
     importExtensionByCode,
     importExtensionByPath,
 }

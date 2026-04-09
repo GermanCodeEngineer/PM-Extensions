@@ -1619,7 +1619,7 @@ class GCEClassBlocks {
         const info = {
             id: "gceClassesOOP",
             name: "Classes",
-            color1: "#428af5ff",
+            color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
                 {
@@ -1735,8 +1735,8 @@ class GCEClassBlocks {
                     tooltip: "Creates and returns a new subclass with the given superclass.",
                     branchCount: 1,
                     arguments: {
-                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass", tooltip: "argument one"},
-                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName, tooltip: "argument two"},
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
+                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName},
                         SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
@@ -2555,7 +2555,7 @@ class GCEClassBlocks {
                 return Nothing
             },
             new ScopeStack(),
-            
+            ScopeStack.getDefaultFuncConfig(),
         )
         this.environment.commonSuperClass = commonSuperClass
     }

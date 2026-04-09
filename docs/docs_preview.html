@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>classes.md preview</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0d1117;
+            --panel: #161b22;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --border: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, Segoe UI, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        pre:not(.blocks) {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: Consolas, 'Courier New', monospace;
+        }
+
+        .scratchblocks {
+            margin: 12px 0;
+        }
+
+        .error {
+            color: #ff7b72;
+            white-space: pre-wrap;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+    <script src="../scratchblocks.min.js"></script>
+</head>
+<body>
+    <main id="preview">Loading preview...</main>
+
+    <script>
+        const preview = document.getElementById('preview');
+
+        const md = window.markdownit({
+            html: true,
+            linkify: true,
+            breaks: true,
+        });
+
+        md.renderer.rules.fence = function (tokens, idx) {
+            const token = tokens[idx];
+            const info = token.info.trim();
+
+            if (info === 'scratch') {
+                return `<pre class="blocks">${md.utils.escapeHtml(token.content)}</pre>`;
+            }
+
+            const cls = info ? ` class="language-${md.utils.escapeHtml(info)}"` : '';
+            return `<pre${cls}><code>${md.utils.escapeHtml(token.content)}</code></pre>`;
+        };
+
+        async function renderPreview() {
+            const response = await fetch(`./classes.md?t=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`Failed to load classes.md (${response.status})`);
+            }
+
+            const source = await response.text();
+            const cleaned = source.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+            preview.innerHTML = md.render(cleaned);
+            scratchblocks.renderMatching('pre.blocks', { style: 'scratch3' });
+        }
+
+        renderPreview().catch((error) => {
+            preview.innerHTML = `<div class="error">${error.stack || error.message}</div>`;
+            console.error(error);
+        });
+    </script>
+</body>
+</html>

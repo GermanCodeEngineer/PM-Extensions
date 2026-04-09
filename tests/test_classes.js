@@ -2,12 +2,12 @@
 const fs = require("fs")
 const path = require("path")
 const assert = require("assert")
-const { runScript: importExtension } = require("./extension_cli_vm.js")
+const { importExtensionByCode } = require("./extension_cli_vm.js")
 
 // ---------- Load extension ----------
 
 const code = fs.readFileSync(path.resolve(__dirname, "../extensions/classes.js"), "utf-8")
-const ext = importExtension(code, path.resolve(__dirname, "../extensions/classes.js"))
+const ext = importExtensionByCode(code, path.resolve(__dirname, "../extensions/classes.js"))
 
 if (!ext) {
     console.error("Failed to load extension - nothing was registered")
