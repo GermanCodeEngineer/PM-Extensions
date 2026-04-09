@@ -13,12 +13,7 @@
 //  - https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/VeryGoodScratcher42/More-Types.js
 //  - https://github.com/SharkPool-SP/SharkPools-Extensions/blob/main/extension-code/Temporary-Variables.js
 
-(
-
-/**
- * @param {ScratchObject} Scratch 
- */
-function(Scratch) {
+(/** @param {ScratchObject} Scratch */ function(Scratch) {
 "use strict"
 
 /**
@@ -1961,7 +1956,7 @@ class GCEClassBlocks {
                 },
                 {
                     ...commonBlocks.returnsBoolean,
-                    opcode: "hasScopeVar",
+                    opcode: "scopeVarExists",
                     text: "var [NAME] exists in [KIND]?",
                     tooltip: "Checks whether a variable exists in the selected scope range.",
                     arguments: {
@@ -2913,7 +2908,7 @@ class GCEClassBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
-    hasScopeVar(args, util) {
+    scopeVarExists(args, util) {
         const name = Cast.toString(args.NAME)
         const currentStack = ThreadUtil.getCurrentStack(util.thread)
         let hasVar
@@ -3489,6 +3484,8 @@ if (!isRuntimeEnv) {
  * + HIGH PRIORITY
  * + - finish new scope sytem
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
+ * + - ~ ensure no blocks missing
+ * + - ~ add inner example blocks
  *
  * + MID PRIORITY
  * + - maybe reorganize block cagegories
