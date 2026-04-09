@@ -88,6 +88,7 @@ function applyHacks(Scratch) {
 
     // Wrap ScriptTreeGenerator.descendInput to make
     // notequals, ltorequal and gtorequal compiled blocks (as the other comparison blocks are)
+    // CAN BE REMOVED START: IF THIS IS MERGED: https://github.com/PenguinMod/PenguinMod-Vm/pull/188
     const oldDescendTreeGenInput = ScriptTreeGenerator.prototype.descendInput
     ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
         switch (block.opcode) {
@@ -105,6 +106,7 @@ function applyHacks(Scratch) {
         }
         return oldDescendTreeGenInput.call(this, block)
     }
+    // CAN BE REMOVED END
 
     // Wrap JSGenerator.descendInput for some operator blocks to allow classes to define custom handling
     const oldDescendJSGenInput = JSGenerator.prototype.descendInput
@@ -157,6 +159,15 @@ function applyHacks(Scratch) {
         return oldDescendJSGenInput.call(this, node, visualReport)
     }
 
+    // Wrap Runtime._convertBlockForScratchBlocks to implement hover tooltips
+    const oldConvertBlock = Scratch.vm.runtime._convertBlockForScratchBlocks.bind(Scratch.vm.runtime);
+    Scratch.vm.runtime._convertBlockForScratchBlocks = function(blockInfo, categoryInfo) {
+        const result = oldConvertBlock(blockInfo, categoryInfo);
+        if (blockInfo.tooltip) {
+            result.json.tooltip = blockInfo.tooltip
+        }
+        return result;
+    }
 }
 
 /************************************************************************************
@@ -218,38 +229,40 @@ class VariableManager {
         }
     }
     reset() {
-        if (this.variables !== undefined) {
-            this.getNames().forEach((name) => this.delete(name))
+        if (this._variables !== undefined) {
+            this.getNames().forEach((name) => this.delete(name, false))
         }
-        this.variables = {}
+        this._variables = {}
     }
     set(name, value) {
         if (this.has(name)) {
-            this.variables[name].value = value
+            this._variables[name].value = value
         } else {
-            this.variables[name] = new this.ValueHolder(value)
+            this._variables[name] = new this.ValueHolder(value)
         }
     }
     setHolder(name, holder) {
         if (this.has(name)) {
             throw new Error(`Variable ${quote(name)} already exists in the current scope, can not bind variable with the same name.`)
         }
-        this.variables[name] = holder
+        this._variables[name] = holder
     }
-    delete(name) {
+    delete(name, throwOnNotFound = true) {
         if (this.has(name)) {
-            this.variables[name].isDeleted = true // Mark the variable deleted for all scopes
-            delete this.variables[name]
+            this._variables[name].isDeleted = true // Mark the variable deleted for all scopes
+            delete this._variables[name]
+        } else if (throwOnNotFound) {
+            throw new Error(`Variable ${quote(name)} is not defined.`)
         }
     }
     has(name) {
-        return (name in this.variables) && (!this.variables[name].isDeleted)
+        return (name in this._variables) && (!this._variables[name].isDeleted)
     }
     get(name) {
         if (!this.has(name)) {
             throw new Error(`Variable ${quote(name)} is not defined.`)
         }
-        return this.variables[name].value
+        return this._variables[name].value
     }
     safeGet(name) {
         try {
@@ -258,14 +271,31 @@ class VariableManager {
             return [false, undefined]
         }
     }
+    /**
+     * @returns {Object<string, any>}
+     */
+    getAll() {
+        const result = {}
+        this.getNames().forEach((name) => {
+            result[name] = this.get(name)
+        })
+        return result
+    }
+    /**
+     * @param {string} name
+     * @returns {VariableManager.ValueHolder}
+     */
     getHolder(name) {
         if (!this.has(name)) {
             throw new Error(`Variable ${quote(name)} is not defined.`)
         }
-        return this.variables[name]
+        return this._variables[name]
     }
+    /**
+     * @returns {Array<string>} 
+     */
     getNames() {
-        return Object.keys(this.variables)
+        return Object.keys(this._variables).filter(name => this.has(name))
     }
 }
 
@@ -415,7 +445,7 @@ class ScopeStack {
             type: ScopeStack.GLOBALS,
             isGlobalScope: true, supportsVars: true,
             vars: extensionClassInstance.globalVariables,
-        }] // Item 0 is innermost // TODO: reconsider to standardize
+        }] // Item 0 is innermost
         // Use the global variables manager for all global scopes
         this.setNextFuncConfig()
     }
@@ -430,7 +460,7 @@ class ScopeStack {
     insertScope(scope) {
         this.scopes.splice(0, 0, scope)
     }
-    enterClassDefScope(cls) { // TODO: test and/or rework
+    enterClassDefScope(cls) {
         this.insertScope({
             type: ScopeStack.CLASS_DEF,
             supportsCls: true,
@@ -527,10 +557,10 @@ class ScopeStack {
 
     // Function Arguments
     /**
-     * @param {?{argNames: string[], argDefaults: any[]}} config 
+     * @param {?{argNames: Array<string>, argDefaults: Array<any>}} config 
      */
     setNextFuncConfig(config) {
-        config = config || this.getDefaultFuncConfig()
+        config = config || ScopeStack.getDefaultFuncConfig()
         if (config.argDefaults.length > config.argNames.length) {
             throw new Error("There can only be as many default values as argument names.")
         }
@@ -541,18 +571,17 @@ class ScopeStack {
         this.setNextFuncConfig()
         return config
     }
-    getDefaultFuncConfig() {
+    static getDefaultFuncConfig() {
         return {argNames: [], argDefaults: []}
     }
 
     // Access Scoped Variables
     setScopeVar(name, value) {
         const innermost = this._getInnermostScope()
-        if (innermost.supportsCls) {
-            innermost.cls.variables[name] = value
-        } else {
-            innermost.vars.set(name, value)
+        if (!innermost.supportsVars) {
+            throw new Error("Can not set a variable in a scope, which does not support variables (e.g. a class definition).")
         }
+        innermost.vars.set(name, value)
     }
     _getScopeOfVar(name, startIndex = 0, excludeLastIndecies = 0, throwOnNotFound = true) {
         for (let i = startIndex; i < (this.scopes.length - excludeLastIndecies); i++) {
@@ -576,8 +605,11 @@ class ScopeStack {
         return varScope.vars.safeGet(name)
     }
     deleteScopeVar(name) {
-        const varScope = this._getScopeOfVar(name)
-        varScope.vars.delete(name)
+        const innermost = this._getInnermostScope()
+        if (!innermost.supportsVars) {
+            throw new Error("Can not delete a variable in a scope, which does not support variables(e.g. a class definition).")
+        }
+        innermost.vars.delete(name)
     }
     bindScopeVarGlobal(name) {
         const globalScope = this._getQualifiedScope(scope => scope.isGlobalScope)
@@ -590,7 +622,7 @@ class ScopeStack {
 
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error(`Can not bind a variable to a scope, which does not support variables(e.g. a class definition).`)
+            throw new Error("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
         }
         innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
     }
@@ -604,7 +636,7 @@ class ScopeStack {
 
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error(`Can not bind a variable to a scope, which does not support variables(e.g. a class definition).`)
+            throw new Error("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
         }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
@@ -694,7 +726,6 @@ const CONFIG = {
 })
 
 
-// TODO: add project tests
 class TypeChecker {
     // All custom types one can get from a reporter in PM
     // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
@@ -818,7 +849,6 @@ class TypeChecker {
 }
 
 
-// TODO: add project tests
 class Cast extends Scratch.Cast {
     static _assertRuntimeEnv() {
         if (!isRuntimeEnv) {
@@ -1034,7 +1064,7 @@ class BaseCallableType extends CustomType {
      * @returns {Object}
      */
     evaluateArgs(posArgs) {
-        const args = Object.create(null)
+        const args = {}
         let name
         let prefix
 
@@ -1141,7 +1171,7 @@ class ClassType extends CustomType {
         this.getters = {}
         this.setters = {}
         this.operatorMethods = {}
-        this.variables = {}
+        this.clsVariables = new VariableManager()
     }
     toString() {
         const suffix = this.superCls ? `(super ${quote(this.superCls.name)})` : ""
@@ -1167,7 +1197,7 @@ class ClassType extends CustomType {
         else if (name in this.getters) return {type: "getter method", value: this.getters[name]}
         else if (name in this.setters) return {type: "setter method", value: this.setters[name]}
         else if (name in this.operatorMethods) return {type: "operator method", value: this.operatorMethods[name]}
-        else if (name in this.variables) return {type: "class variable", value: this.variables[name]}
+        else if (this.clsVariables.has(name)) return {type: "class variable", value: this.clsVariables.get(name)}
         if (recursive) {
             if (!this.superCls) return {type: null}
             return this.superCls.getMember(name, recursive, preferSetter)
@@ -1193,6 +1223,7 @@ class ClassType extends CustomType {
      */
     getAllMembers() {
         let currentCls = this
+        /** @type {Array<ClassType>} */
         const classChain = [] // From top superclass to subclass
         while (currentCls) {
             classChain.splice(0, 0, currentCls)
@@ -1203,16 +1234,16 @@ class ClassType extends CustomType {
         const getterMethods = {}
         const setterMethods = {}
         const operatorMethods = {}
-        const variables = {}
+        const clsVariables = {}
         classChain.forEach((cls) => {
             Object.assign(instanceMethods, cls.instanceMethods)
             Object.assign(staticMethods, cls.staticMethods)
             Object.assign(getterMethods, cls.getters)
             Object.assign(setterMethods, cls.setters)
             Object.assign(operatorMethods, cls.operatorMethods)
-            Object.assign(variables, cls.variables)
+            Object.assign(clsVariables, cls.clsVariables.getAll())
         })
-        return [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, variables]
+        return [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, clsVariables]
     }
 
     /**
@@ -1233,8 +1264,36 @@ class ClassType extends CustomType {
         else if (newMemberType === "getter method") this.getters[name] = value
         else if (newMemberType === "setter method") this.setters[name] = value
         else if (newMemberType === "operator method") this.operatorMethods[name] = value
-        else if (newMemberType === "class variable") this.variables[name] = value
+        else if (newMemberType === "class variable") this.clsVariables.set(name, value)
     }
+
+    /**
+     * @param {string} name 
+     * @param {string} memberType 
+     */
+    deleteMemberOfType(name, memberType) {
+        this.getMemberOfType(name, memberType) // check if member exists and is of the right type, will throw an error if not
+        switch (memberType) {
+            case "instance method":
+                delete this.instanceMethods[name]
+                break
+            case "static method":
+                delete this.staticMethods[name]
+                break
+            case "getter method":
+                delete this.getters[name]
+                break
+            case "setter method":
+                delete this.setters[name]
+                break
+            case "operator method":
+                delete this.operatorMethods[name]
+                break
+            case "class variable":
+                this.clsVariables.delete(name)
+                break
+        }
+    }    
 
     /**
      * @param {Thread} thread
@@ -1253,16 +1312,11 @@ class ClassType extends CustomType {
         return yield* methodFunc.execute(thread, posArgs)
     }
 
-    getClassVariable(name) {
-        const member = this.getMember(name, true, false) // preference does not matter
-        if (!member || member.type !== "class variable") {
-            throw new Error(`Undefined class variable ${quote(name)}.`)
-        }
-        return member.value
-    }
-
+    /**
+     * @param {string} name 
+     * @returns {FunctionType}
+     */
     getStaticMethod(name) {
-        /** @type {FunctionType} */
         return this.getMemberOfType(name, "static method")
     }
 
@@ -1298,7 +1352,6 @@ class ClassInstanceType extends CustomType {
     toJSON() {
         return "Class Instances can not be serialized."
     }
-    // OPTIONAL FUTURE TODO: define toReporterContent for better visualization
 
     /**
      * @param {Thread} thread
@@ -1569,14 +1622,13 @@ class GCEClassBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
-        const temporaryHide = {hideFromPalette: true} // TODO: remove temporary hide
+        const temporaryHide = {hideFromPalette: true}
         const info = {
             id: "gceClassesOOP",
             name: "Classes",
             color1: "#428af5ff",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
-                // TODO: remove temporary block
                 {
                     ...commonBlocks.command,
                     opcode: "logStacks",
@@ -1586,6 +1638,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "setScopeVar",
                     text: "set var [NAME] to [VALUE] in current scope",
+                    tooltip: "Creates or updates a variable in the current scope.",
                     arguments: {
                         NAME: commonArguments.variableName,
                         VALUE: commonArguments.allowAnything,
@@ -1595,6 +1648,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "getScopeVar",
                     text: "get var [NAME]",
+                    tooltip: "Gets the value of a variable visible from the current or outer scopes.",
                     arguments: {
                         NAME: commonArguments.variableName,
                     },
@@ -1603,6 +1657,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "hasScopeVar",
                     text: "var [NAME] exists in [KIND]?",
+                    tooltip: "Checks whether a variable exists in the selected scope range.",
                     arguments: {
                         NAME: commonArguments.variableName,
                         KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
@@ -1612,6 +1667,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "deleteScopeVar",
                     text: "delete var [NAME] in current scope",
+                    tooltip: "Deletes a variable from the current scope.",
                     arguments: {
                         NAME: commonArguments.variableName,
                     },
@@ -1620,6 +1676,7 @@ class GCEClassBlocks {
                     ...jwArrayStub.Block,
                     opcode: "allVariables",
                     text: "all variables in [KIND]",
+                    tooltip: "Returns all variable names visible in the selected scope range as an array.",
                     arguments: {
                         KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
                     },
@@ -1629,11 +1686,13 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createVarScope",
                     text: ["create local variable scope"],
+                    tooltip: "Runs the enclosed blocks inside a new local variable scope.",
                 },
                 {
                     ...commonBlocks.command,
                     opcode: "bindVarToScope",
                     text: "bind [KIND] variable [NAME] to current scope",
+                    tooltip: "Links a global or non-local variable into the current scope.",
                     arguments: {
                         KIND: {type: ArgumentType.STRING, menu: "bindVarOriginKind"},
                         NAME: commonArguments.variableName,
@@ -1645,6 +1704,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createClassAt",
                     text: ["create class at var [NAME] [SHADOW]"],
+                    tooltip: "Creates a new class, stores it in the chosen variable.",
                     arguments: {
                         NAME: commonArguments.classVarName,
                         SHADOW: {fillIn: "classBeingCreated"},
@@ -1655,6 +1715,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
                     text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    tooltip: "Creates a subclass with the given superclass, stores it in a variable.",
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1666,6 +1727,7 @@ class GCEClassBlocks {
                     ...gceClass.Block,
                     opcode: "createClassNamed",
                     text: ["create class named [NAME] [SHADOW]"],
+                    tooltip: "Creates and returns a new class with the given name.",
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
@@ -1673,14 +1735,15 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
+                    //...temporaryHide,
                     ...gceClass.Block,
                     opcode: "createSubclassNamed",
                     text: ["create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]"],
+                    tooltip: "Creates and returns a new subclass with the given superclass.",
                     branchCount: 1,
                     arguments: {
-                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
-                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
+                        NAME: {...commonArguments.classVarName, defaultValue: "MySubclass", tooltip: "argument one"},
+                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName, tooltip: "argument two"},
                         SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
@@ -1689,6 +1752,8 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
                     text: ["on class [CLASS] [SHADOW]"],
+                    tooltip: "Runs the enclosed blocks as if they were inside the selected class definition. "+
+                      "This allows you to e.g. add methods to already defined classes.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         SHADOW: {fillIn: "classBeingCreated"},
@@ -1698,6 +1763,7 @@ class GCEClassBlocks {
                     ...gceClass.Block,
                     opcode: "classBeingCreated",
                     text: "class being created",
+                    tooltip: "Returns the class currently being defined.",
                     canDragDuplicate: true,
                     hideFromPalette: true,
                 },
@@ -1707,6 +1773,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "isSubclass",
                     text: "is [SUBCLASS] a subclass of [SUPERCLASS] ?",
+                    tooltip: "Checks whether one class inherits from another.",
                     arguments: {
                         SUBCLASS: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -1716,6 +1783,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "getSuperclass",
                     text: "get superclass of [CLASS]",
+                    tooltip: "Returns the superclass of a class, or Nothing if it has none.",
                     arguments: {
                         CLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySubclass"},
                     },
@@ -1729,6 +1797,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineInstanceMethod",
                     text: ["define instance method [NAME] [SHADOW]"],
+                    tooltip: "Defines an instance method on the current class.",
                     arguments: {
                         NAME: commonArguments.methodName,
                         SHADOW: {fillIn: "self"},
@@ -1738,7 +1807,8 @@ class GCEClassBlocks {
                     ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
-                    text: ["define [SPECIAL_METHOD] method [SHADOW]"],
+                    text: ["define [SPECIAL_METHOD] instance method [SHADOW]"],
+                    tooltip: "Defines a special instance method.",
                     arguments: {
                         SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
                         SHADOW: {fillIn: "self"},
@@ -1748,6 +1818,7 @@ class GCEClassBlocks {
                     ...gceClassInstance.Block,
                     opcode: "self",
                     text: "self",
+                    tooltip: "Reports the current instance inside a method.",
                     canDragDuplicate: true,
                 },
                 {
@@ -1755,6 +1826,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callSuperMethod",
                     text: "call super method [NAME] with positional args [POSARGS]",
+                    tooltip: "Calls an instance method from the superclass of the current object.",
                     arguments: {
                         NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
@@ -1765,6 +1837,7 @@ class GCEClassBlocks {
                     ...gceNothing.Block,
                     opcode: "callSuperInitMethod",
                     text: "call super init method with positional args [POSARGS]",
+                    tooltip: "Calls the superclass init method for the current object.",
                     arguments: {
                         POSARGS: jwArrayStub.Argument,
                     },
@@ -1776,6 +1849,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineGetter",
                     text: ["define getter [NAME] [SHADOW]"],
+                    tooltip: "Defines a getter method for an attribute on the current class.",
                     arguments: {
                         NAME: commonArguments.attributeName,
                         SHADOW: {fillIn: "self"},
@@ -1786,6 +1860,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSetter",
                     text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
+                    tooltip: "Defines a setter method for an attribute on the current class.",
                     arguments: {
                         NAME: commonArguments.attributeName,
                         SHADOW1: {fillIn: "self"},
@@ -1797,6 +1872,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "defineSetterValue",
                     text: "value",
+                    tooltip: "Reports the incoming value inside a setter method.",
                     hideFromPalette: true,
                     canDragDuplicate: true,
                 },
@@ -1807,6 +1883,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineOperatorMethod",
                     text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
+                    tooltip: "Defines custom behavior for an operator on instances of the current class.",
                     arguments: {
                         OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
                         SHADOW: {fillIn: "operatorOtherValue"},
@@ -1817,6 +1894,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "operatorOtherValue",
                     text: "other value",
+                    tooltip: "Reports the other operand inside an operator method.",
                     hideFromPalette: true,
                     canDragDuplicate: true,
                 },
@@ -1827,6 +1905,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "setClassVariable",
                     text: "on [CLASS] set class variable [NAME] to [VALUE]",
+                    tooltip: "Sets a class variable on the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.classVariableName,
@@ -1838,6 +1917,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "getClassVariable",
                     text: "get class variable [NAME] of [CLASS]",
+                    tooltip: "Gets a class variable from the selected class.",
                     arguments: {
                         NAME: commonArguments.classVariableName,
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -1848,6 +1928,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "deleteClassVariable",
                     text: "on [CLASS] delete class variable [NAME]",
+                    tooltip: "Deletes a class variable from the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.classVariableName,
@@ -1858,6 +1939,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineStaticMethod",
                     text: ["define static method [NAME]"],
+                    tooltip: "Defines a static method on the current class.",
                     arguments: {
                         NAME: commonArguments.methodName,
                     },
@@ -1867,6 +1949,7 @@ class GCEClassBlocks {
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
+                    tooltip: "Returns the names of members of the selected type for a class.",
                     arguments: {
                         PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -1881,6 +1964,7 @@ class GCEClassBlocks {
                     ...gceClassInstance.Block,
                     opcode: "createInstance",
                     text: "create instance of class [CLASS] with positional args [POSARGS]",
+                    tooltip: "Creates an instance of a class and passes the given positional arguments to its init method.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         POSARGS: jwArrayStub.Argument,
@@ -1890,6 +1974,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "isInstance",
                     text: "is [INSTANCE] an instance of [CLASS] ?",
+                    tooltip: "Checks whether an instance belongs to a class or one of its subclasses.",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -1899,6 +1984,7 @@ class GCEClassBlocks {
                     ...gceClass.Block,
                     opcode: "getClassOfInstance",
                     text: "get class of [INSTANCE]",
+                    tooltip: "Returns the class that created an instance.",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                     },
@@ -1909,6 +1995,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "setAttribute",
                     text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
+                    tooltip: "Sets an attribute on an instance or calls its setter if one exists.",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: commonArguments.attributeName,
@@ -1919,6 +2006,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "getAttribute",
                     text: "attribute [NAME] of [INSTANCE]",
+                    tooltip: "Gets an attribute from an instance or calls its getter if one exists.",
                     arguments: {
                         NAME: commonArguments.attributeName,
                         INSTANCE: gceClassInstance.Argument,
@@ -1928,6 +2016,7 @@ class GCEClassBlocks {
                     ...dogeiscutObjectStub.Block,
                     opcode: "getAllAttributes",
                     text: "all attributes of [INSTANCE]",
+                    tooltip: "Returns all direct instance attributes as an object.",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                     },
@@ -1938,6 +2027,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callMethod",
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
+                    tooltip: "Calls an instance method on an object with positional arguments.",
                     arguments: {
                         INSTANCE: gceClassInstance.Argument,
                         NAME: commonArguments.methodName,
@@ -1948,6 +2038,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callStaticMethod",
                     text: "on [CLASS] call static method [NAME] with positional args [POSARGS]",
+                    tooltip: "Calls a static method on a class with positional arguments.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
                         NAME: commonArguments.methodName,
@@ -1958,6 +2049,7 @@ class GCEClassBlocks {
                     ...gceFunction.Block,
                     opcode: "getStaticMethodFunc",
                     text: "get static method [NAME] of [CLASS] as function",
+                    tooltip: "Returns a static method from a class as a callable function value.",
                     arguments: {
                         NAME: commonArguments.methodName,
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -1972,6 +2064,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "configureNextFunctionArgs",
                     text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
+                    tooltip: "Configures the argument names and default values used by the next function or method definition.",
                     arguments: {
                         ARGNAMES: commonArguments.argNames,
                         ARGDEFAULTS: commonArguments.argDefaults,
@@ -1983,6 +2076,7 @@ class GCEClassBlocks {
                     ...commonBlocks.commandWithBranch,
                     opcode: "createFunctionAt",
                     text: ["create function at var [NAME]"],
+                    tooltip: "Creates a function and stores it in the chosen variable.",
                     arguments: {
                         NAME: commonArguments.funcName,
                     },
@@ -1992,6 +2086,7 @@ class GCEClassBlocks {
                     ...gceFunction.Block,
                     opcode: "createFunctionNamed",
                     text: ["create function named [NAME]"],
+                    tooltip: "Creates and returns a function with the given name.",
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.funcName,
@@ -2003,6 +2098,7 @@ class GCEClassBlocks {
                     ...commonBlocks.command,
                     opcode: "return",
                     text: "return [VALUE]",
+                    tooltip: "Returns a value from the current function or method and exits it.",
                     isTerminal: true,
                     arguments: {
                         VALUE: commonArguments.allowAnything,
@@ -2011,6 +2107,7 @@ class GCEClassBlocks {
                 { // BUTTON
                     opcode: "addTempVars",
                     text: "add temporary variables extension",
+                    tooltip: "Loads the Temporary Variables extension if it is not already available.",
                     blockType: BlockType.BUTTON,
                 },
                 "---",
@@ -2019,6 +2116,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callFunction",
                     text: "call function [FUNC] with positional args [POSARGS]",
+                    tooltip: "Calls a function value with positional arguments.",
                     arguments: {
                         FUNC: gceFunction.ArgumentFunctionOrVarName,
                         POSARGS: jwArrayStub.Argument,
@@ -2031,6 +2129,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnString,
                     opcode: "objectAsString",
                     text: "[VALUE] as string",
+                    tooltip: "Converts a value to its string form, using a class's special as string method when available.",
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     }
@@ -2039,6 +2138,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnString,
                     opcode: "typeof",
                     text: "typeof [VALUE]",
+                    tooltip: "Returns a readable type name for a value.",
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     },
@@ -2047,6 +2147,7 @@ class GCEClassBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "checkIdentity",
                     text: "[VALUE1] is [VALUE2] ?",
+                    tooltip: "Checks whether two values are exactly the same value (the same instance).",
                     arguments: {
                         VALUE1: commonArguments.allowAnything,
                         VALUE2: commonArguments.allowAnything,
@@ -2056,11 +2157,13 @@ class GCEClassBlocks {
                     ...gceNothing.Block,
                     opcode: "nothing",
                     text: "Nothing",
+                    tooltip: "Returns the special Nothing value.",
                 },
                 {
                     ...commonBlocks.command,
                     opcode: "executeExpression",
                     text: "execute expression [EXPR]",
+                    tooltip: "Evaluates the input expression without performing any additional action.",
                     arguments: {
                         EXPR: commonArguments.allowAnything,
                     },
@@ -2108,6 +2211,7 @@ class GCEClassBlocks {
                 }
             },
         }
+
         if (CONFIG.HIDE_ARGUMENT_DEFAULTS) {
             info.blocks.forEach((blockInfo) => {
                 if (blockInfo.arguments) {
@@ -2177,7 +2281,7 @@ class GCEClassBlocks {
                 // Nothing is indepedent of function context, so we can exit context before
                 `return ${ENV_PREFIX}.Nothing;` +
                 `}, ${CURRENT_STACK}, ` +
-                `${CURRENT_STACK}.` + (disableFuncConfig ? "getDefaultFuncConfig()" : "getAndResetNextFuncConfig()") + "));\n"
+                `${CURRENT_STACK}.` + (disableFuncConfig ? "constructor.getDefaultFuncConfig()" : "getAndResetNextFuncConfig()") + "));\n"
         }
 
         const createCallCode = (castMethod, castArgs, m, ...args) => {
@@ -2458,7 +2562,7 @@ class GCEClassBlocks {
                 return Nothing
             },
             new ScopeStack(),
-            {argNames: [], argDefaults: []}
+            
         )
         this.environment.commonSuperClass = commonSuperClass
     }
@@ -2594,17 +2698,17 @@ class GCEClassBlocks {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
-        cls.variables[name] = value
+        cls.setMember(name, value, "class variable")
     }
     getClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        return cls.getClassVariable(name)
+        return cls.getMemberOfType(name, "class variable")
     }
     deleteClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        delete cls.variables[name]
+        cls.deleteMemberOfType(name, "class variable")
     }
     defineStaticMethod = this._isACompiledBlock
     propertyNamesOfClass(args, util) {
@@ -2622,7 +2726,7 @@ class GCEClassBlocks {
         if (property == "instance method") {
             let index
             index = names.indexOf(CONFIG.INIT_METHOD_NAME)
-            if (index !== -1) names[index] = "[special] init" // TODO: test ma,es
+            if (index !== -1) names[index] = "[special] init"
             index = names.indexOf(CONFIG.AS_STRING_METHOD_NAME)
             if (index !== -1) names[index] = "[special] as string"
         }
@@ -2718,7 +2822,7 @@ class GCEClassBlocks {
             method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
         } catch {}
         if (!method) return object.toString()
-        const output = yield* method.execute(thread, object, []) // FOUND
+        const output = yield* method.execute(thread, object, [])
         if (typeof output !== "string") throw new Error(`As String methods must always return a string.`)
         return output
     }
@@ -2754,7 +2858,7 @@ class GCEClassBlocks {
             foundMethod = true
             output = yield* right.executeOperatorMethod(thread, oppositeMethod, left)
         }
-        if (foundMethod) { // FOUND
+        if (foundMethod) {
             if (typeof output !== "boolean") throw new Error(`Comparison Operator methods must always return a boolean.`)
             return output
         }
@@ -2789,26 +2893,47 @@ if (!isRuntimeEnv) {
 })(Scratch)
 
 /**
- * TODO:
- * - finish new scope sytem
- * - also update commented blocks
- * - make as string work for arrays, objects too
- * - create docs(e.g. members or configure args, explain roles of internal classes)
- * - option to exclude super classes when asking for members
- * - implement hover tooltips
- * - implement right-click switch options for similar blocks
- * - optional: "all variables that are classes/functions" block
- * - name of class/function block
- * - reorganize block cagegories
- * - optional future todo: investigate why inputs are not supported in shadow blocks
- * - add "all current variable names" or similar block to function definitions
- * - possibly make "self", "other" and "value" available as a variable in methods
- * - inline todos
- * - optional future todo: implement translations
- * - optional future todo: change font of blocks and inputs?
- * - add more parameter and return types (maybe even typedef's)
- * - reconsider "set function arguments" block
+ * TODO
  *
- * ON RELEASE:
- * - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
+ * + HIGH PRIORITY
+ * + - finish new scope sytem
+ * + - create docs(e.g. members or configure args, explain roles of internal classes)
+ * + - add more parameter and return types (maybe even typedef's)
+ *
+ * + MID PRIORITY
+ * + - maybe reorganize block cagegories
+ * + - option to exclude super classes when asking for members
+ * + - implement right-click switch options for similar blocks
+ * + - name of class/function block
+ * + - add "all current variable names" or similar block to function definitions
+ * + - possibly make "self", "other" and "value" available as a variable in methods
+ * + - "delete member of class" block
+ * + - reconsider to standardize stacks and scopes index order style
+ *
+ * + LOW PRIORITY (optional in future)
+ * + - button on blocks that opens a section in the documentation about that block
+ * + - implement translations
+ * + - change font of blocks and inputs?
+ * + - define toReporterContent e.g. on ClassInstanceType for better visualization
+ * + - investigate why inputs are not supported in shadow blocks
+ * + - make as string work for arrays, objects too
+ * + - "all variables that are classes/functions" block
+ * 
+ * + QUICK TASKS
+ * + - use get with a parameter in VariableManager instead of safeGet
+ *
+ * + DURING TESTING (do not forget):
+ * + - test and/or rework enterClassDefScope
+ * + - add project tests for TypeChecker, Cast
+ * + - specially test special cases of propertyNamesOfClass
+
+ * + ON RELEASE / AFTER TESTING:
+ * + - remove temporary hide setting for some blocks
+ * + - remove temporary logStacks block
+ * + - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
+ *
+ * + DOC NOTES TO REMEMBER:
+ * + - class variables specially supported
+ * + - “This extension uses runtime scope resolution. To modify or delete outer variables, explicitly bind them first.”
+ * + - Variable context limited to PM Script
  */

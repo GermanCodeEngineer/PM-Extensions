@@ -189,9 +189,14 @@ describe("VariableManager", () => {
             assert.equal(vm.has("x"), false)
         })
 
-        test("is a no-op for non-existent variables", () => {
+        test("throws for non-existent variables by default", () => {
             const vm = new VariableManager()
-            assertDoesNotThrow(() => vm.delete("nope"))
+            assertThrows(() => vm.delete("nope"), "'nope' is not defined")
+        })
+
+        test("is a no-op when throwOnNotFound is false", () => {
+            const vm = new VariableManager()
+            assertDoesNotThrow(() => vm.delete("nope", false))
         })
     })
 
@@ -229,6 +234,16 @@ describe("VariableManager", () => {
             const [found, val] = vm.safeGet("missing")
             assert.equal(found, false)
             assert.equal(val, undefined)
+        })
+    })
+
+    describe("getAll", () => {
+        test("returns a plain object with all live variables", () => {
+            const vm = new VariableManager()
+            vm.set("a", 1)
+            vm.set("b", 2)
+            vm.delete("a")
+            assert.deepEqual(vm.getAll(), { b: 2 })
         })
     })
 
@@ -788,8 +803,7 @@ describe("ScopeStack", () => {
 
     describe("getDefaultFuncConfig", () => {
         test("always returns empty argNames and argDefaults", () => {
-            const s = new ScopeStack()
-            const config = s.getDefaultFuncConfig()
+            const config = ScopeStack.getDefaultFuncConfig()
             assert.deepEqual(config.argNames, [])
             assert.deepEqual(config.argDefaults, [])
         })
@@ -804,12 +818,14 @@ describe("ScopeStack", () => {
                 assert.equal(s.getScopeVar(name), 42)
             })
 
-            test("writes directly to cls.variables inside a class def scope", () => {
+            test("throws inside a class def scope because it does not support variables", () => {
                 const s = new ScopeStack()
                 const cls = { name: "X", variables: {} }
                 s.enterClassDefScope(cls)
-                s.setScopeVar("myProp", "value")
-                assert.equal(cls.variables["myProp"], "value")
+                assertThrows(
+                    () => s.setScopeVar("myProp", "value"),
+                    "does not support variables"
+                )
                 s.exitClassDefScope()
             })
         })
@@ -918,6 +934,13 @@ describe("ScopeStack", () => {
             s.setScopeVar(name, 1)
             s.deleteScopeVar(name)
             assert.equal(s.hasScopeVar(name), false)
+        })
+
+        test("throws inside a class def scope because it does not support variables", () => {
+            const s = new ScopeStack()
+            s.enterClassDefScope({ name: "X" })
+            assertThrows(() => s.deleteScopeVar("x"), "does not support variables")
+            s.exitClassDefScope()
         })
     })
 
@@ -1444,7 +1467,6 @@ describe("ClassType", () => {
             assert.strictEqual(recursive.value, 7)
         })
     })
-
     describe("getMemberOfType", () => {
         test("returns the member when type matches", () => {
             const cls = new ClassType("Thing", null)
@@ -1485,7 +1507,7 @@ describe("ClassType", () => {
                 shared: "sub",
                 subOnly: 2,
             })
-            assert.strictEqual(sub.getClassVariable("baseOnly"), 1)
+            assert.strictEqual(sub.getMemberOfType("baseOnly", "class variable"), 1)
         })
     })
 
@@ -1548,7 +1570,42 @@ describe("ClassType", () => {
             assert.strictEqual(cls.getters.gm, getterMethod)
             assert.strictEqual(cls.setters.stm, setterMethod)
             assert.strictEqual(cls.operatorMethods.om, operatorMethod)
-            assert.strictEqual(cls.variables.cv, 123)
+            assert.ok(cls.clsVariables instanceof VariableManager)
+            assert.strictEqual(cls.clsVariables.get("cv"), 123)
+        })
+    })
+
+    describe("deleteMemberOfType", () => {
+        test("removes members from the correct internal storage", () => {
+            const cls = new ClassType("C", null)
+            const fn = makeFunctionType(
+                "sm",
+                function* () { return Nothing }
+            )
+
+            cls.setMember("sm", "static method", fn)
+            cls.setMember("cv", "class variable", 123)
+
+            cls.deleteMemberOfType("sm", "static method")
+            cls.deleteMemberOfType("cv", "class variable")
+
+            assert.strictEqual(cls.getMember("sm", false, false).type, null)
+            assert.strictEqual(cls.clsVariables.has("cv"), false)
+        })
+
+        test("throws when the member is missing or has the wrong type", () => {
+            const cls = new ClassType("C", null)
+            cls.setMember(
+                "make",
+                "static method",
+                makeFunctionType(
+                    "make",
+                    function* () { return Nothing }
+                )
+            )
+
+            assertThrows(() => cls.deleteMemberOfType("missing", "class variable"), "Undefined class variable")
+            assertThrows(() => cls.deleteMemberOfType("make", "class variable"), "not a class variable")
         })
     })
 
@@ -1620,29 +1677,6 @@ describe("ClassType", () => {
         })
     })
 
-    describe("getClassVariable", () => {
-        test("returns inherited class variables", () => {
-            const base = new ClassType("Base", null)
-            const sub = new ClassType("Sub", base)
-            base.setMember("answer", "class variable", 42)
-            assert.strictEqual(sub.getClassVariable("answer"), 42)
-        })
-
-        test("throws when member is missing or not a class variable", () => {
-            const cls = new ClassType("C", null)
-            cls.setMember(
-                "make",
-                "static method",
-                makeFunctionType(
-                    "make",
-                    function* () { return Nothing }
-                )
-            )
-
-            assertThrows(() => cls.getClassVariable("missing"), "Undefined class variable")
-            assertThrows(() => cls.getClassVariable("make"), "Undefined class variable")
-        })
-    })
 
     describe("getStaticMethod", () => {
         test("returns inherited static methods", () => {
