@@ -258,18 +258,12 @@ class VariableManager {
     has(name) {
         return (name in this._variables) && (!this._variables[name].isDeleted)
     }
-    get(name) {
+    get(name, throwOnNotFound = true) {
         if (!this.has(name)) {
+            if (!throwOnNotFound) return undefined
             throw new Error(`Variable ${quote(name)} is not defined.`)
         }
         return this._variables[name].value
-    }
-    safeGet(name) {
-        try {
-            return [true, this.get(name)]
-        } catch (e) {
-            return [false, undefined]
-        }
     }
     /**
      * @returns {Object<string, any>}
@@ -277,7 +271,7 @@ class VariableManager {
     getAll() {
         const result = {}
         this.getNames().forEach((name) => {
-            result[name] = this.get(name)
+            result[name] = this.get(name, true)
         })
         return result
     }
@@ -593,16 +587,12 @@ class ScopeStack {
             return null
         }
         // trick to raise:
-        (new VariableManager()).get(name)
+        (new VariableManager()).get(name, true)
     }
-    getScopeVar(name) {
-        const varScope = this._getScopeOfVar(name)
-        return varScope.vars.get(name)
-    }
-    safeGetScopeVar(name) {
-        const varScope = this._getScopeOfVar(name, 0, 0, false)
-        if (!varScope) return [false, undefined]
-        return varScope.vars.safeGet(name)
+    getScopeVar(name, throwOnNotFound = true) {
+        const varScope = this._getScopeOfVar(name, 0, 0, throwOnNotFound)
+        if (!varScope) return undefined
+        return varScope.vars.get(name, throwOnNotFound)
     }
     deleteScopeVar(name) {
         const innermost = this._getInnermostScope()
@@ -883,13 +873,14 @@ class Cast extends Scratch.Cast {
     /**
      * @param {string} name
      * @param {?Thread} thread
-     * @returns {[boolean, any]}
+     * @param {boolean} throwOnNotFound
+     * @returns {any}
      */
-    static _safeGetNamedValue(name, thread = null) {
+    static _getNamedValue(name, thread = null) {
         if (thread) {
-            return ThreadUtil.getCurrentStack(thread).safeGetScopeVar(name)
+            return ThreadUtil.getCurrentStack(thread).getScopeVar(name, true)
         }
-        return extensionClassInstance.globalVariables.safeGet(name)
+        return extensionClassInstance.globalVariables.get(name, true)
     }
 
     /**
@@ -905,12 +896,14 @@ class Cast extends Scratch.Cast {
             throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.string_typeof(value)}.`)
         }
         const name = Cast.toString(value)
-        const [found, varValue] = Cast._safeGetNamedValue(name, thread)
-        if (found) {
-            if (varValue instanceof expectedType) return varValue
-            throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
+        let varValue
+        try {
+            varValue = Cast._getNamedValue(name, thread)
+        } catch {
+            throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
         }
-        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
+        if (varValue instanceof expectedType) return varValue
+        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
     }
 
     // Own
@@ -2920,7 +2913,6 @@ if (!isRuntimeEnv) {
  * + - "all variables that are classes/functions" block
  * 
  * + QUICK TASKS
- * + - use get with a parameter in VariableManager instead of safeGet
  *
  * + DURING TESTING (do not forget):
  * + - test and/or rework enterClassDefScope

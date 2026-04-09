@@ -218,22 +218,16 @@ describe("VariableManager", () => {
             const vm = new VariableManager()
             assertThrows(() => vm.get("missing"), "'missing' is not defined")
         })
-    })
 
-    describe("safeGet", () => {
-        test("returns [true, value] for existing variable", () => {
+        test("returns the stored value when the variable exists", () => {
             const vm = new VariableManager()
             vm.set("x", 99)
-            const [found, val] = vm.safeGet("x")
-            assert.equal(found, true)
-            assert.equal(val, 99)
+            assert.equal(vm.get("x", false), 99)
         })
 
-        test("returns [false, undefined] for missing variable", () => {
+        test("returns undefined for missing variables when throwOnNotFound is false", () => {
             const vm = new VariableManager()
-            const [found, val] = vm.safeGet("missing")
-            assert.equal(found, false)
-            assert.equal(val, undefined)
+            assert.equal(vm.get("missing", false), undefined)
         })
     })
 
@@ -907,23 +901,17 @@ describe("ScopeStack", () => {
                 assertThrows(() => s.getScopeVar("__definitely_not_set__"), "is not defined")
             })
         })
-    })
 
-    describe("safeGetScopeVar", () => {
-        test("returns [true, value] for existing variable", () => {
+        test("returns the stored value for existing variables", () => {
             const s = new ScopeStack()
             const name = v("safe")
             s.setScopeVar(name, 77)
-            const [found, value] = s.safeGetScopeVar(name)
-            assert.equal(found, true)
-            assert.equal(value, 77)
+            assert.equal(s.getScopeVar(name, false), 77)
         })
 
-        test("returns [false, undefined] for a missing variable", () => {
+        test("returns undefined for a missing variable when throwOnNotFound is false", () => {
             const s = new ScopeStack()
-            const [found, value] = s.safeGetScopeVar("__missing_safe_scope_var__")
-            assert.equal(found, false)
-            assert.equal(value, undefined)
+            assert.equal(s.getScopeVar("__missing_safe_scope_var__", false), undefined)
         })
     })
 
@@ -1094,7 +1082,7 @@ describe("ScopeStack", () => {
 })
 
 describe("Cast", () => {
-    describe("_safeGetNamedValue", () => {
+    describe("_getNamedValue", () => {
         test("reads the innermost named value from the current thread", () => {
             const thread = {}
             const s = ThreadUtil.getCurrentStack(thread)
@@ -1104,9 +1092,8 @@ describe("Cast", () => {
             s.enterUserScope()
             s.setScopeVar(name, "local")
 
-            const [found, value] = Cast._safeGetNamedValue(name, thread)
+            const value = Cast._getNamedValue(name, thread)
 
-            assert.strictEqual(found, true)
             assert.strictEqual(value, "local")
             s.exitUserScope()
         })
@@ -1116,16 +1103,13 @@ describe("Cast", () => {
             const globalStack = new ScopeStack()
             globalStack.setScopeVar(name, 42)
 
-            const [found, value] = Cast._safeGetNamedValue(name)
+            const value = Cast._getNamedValue(name)
 
-            assert.strictEqual(found, true)
             assert.strictEqual(value, 42)
         })
 
-        test("returns [false, undefined] for missing names", () => {
-            const [found, value] = Cast._safeGetNamedValue("__missing_named_value__", {})
-            assert.strictEqual(found, false)
-            assert.strictEqual(value, undefined)
+        test("throws for missing names", () => {
+            assertThrows(() => Cast._getNamedValue("__missing_named_value__", {}), "is not defined")
         })
     })
 
