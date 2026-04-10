@@ -8,6 +8,10 @@
         "/^node tests/test_classes\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python python/tools/create_test\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

@@ -1778,7 +1778,7 @@ const gceFunction = {
     },
     ArgumentFunctionOrVarName: {
         type: ArgumentType.STRING,
-        defaultValue: "Function1",
+        defaultValue: "myFunction",
         exemptFromNormalization: true,
     },
 }
@@ -1872,7 +1872,7 @@ const commonArguments = {
     },
     funcName: {
         type: ArgumentType.STRING,
-        defaultValue: "Function1",
+        defaultValue: "myFunction",
     },
     attributeName: {
         type: ArgumentType.STRING,
@@ -1923,7 +1923,6 @@ class GCEClassBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
-        const temporaryHide = {hideFromPalette: true}
         const info = {
             id: "gceClassesOOP",
             name: "Classes",
@@ -2012,7 +2011,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "createSubclassAt",
                     text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
@@ -2024,7 +2022,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...gceClass.Block,
                     opcode: "createClassNamed",
                     text: ["create class named [NAME] [SHADOW]"],
@@ -2036,7 +2033,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    //...temporaryHide,
                     ...gceClass.Block,
                     opcode: "createSubclassNamed",
                     text: ["create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]"],
@@ -2044,12 +2040,11 @@ class GCEClassBlocks {
                     branchCount: 1,
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
-                        SUPERCLASS: {...gceClass.ArgumentClassOrVarName},
+                        SUPERCLASS: gceClass.ArgumentClassOrVarName,
                         SHADOW: {fillIn: "classBeingCreated"},
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "onClass",
                     text: ["on class [CLASS] [SHADOW]"],
@@ -2091,7 +2086,7 @@ class GCEClassBlocks {
                 },
                 "---",
                 "---",
-                makeLabel("Class Members (use within class)"),
+                makeLabel("Class Members"),
                 "---",
                 makeLabel("Define Instance Methods"),
                 {
@@ -2105,7 +2100,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
                     text: ["define [SPECIAL_METHOD] instance method [SHADOW]"],
@@ -2123,7 +2117,6 @@ class GCEClassBlocks {
                     canDragDuplicate: true,
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.returnsAnything,
                     opcode: "callSuperMethod",
                     text: "call super method [NAME] with positional args [POSARGS]",
@@ -2134,7 +2127,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...gceNothing.Block,
                     opcode: "callSuperInitMethod",
                     text: "call super init method with positional args [POSARGS]",
@@ -2146,7 +2138,6 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Define Getters & Setters"),
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineGetter",
                     text: ["define getter [NAME] [SHADOW]"],
@@ -2157,7 +2148,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSetter",
                     text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
@@ -2169,7 +2159,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.returnsAnything,
                     opcode: "defineSetterValue",
                     text: "value",
@@ -2180,7 +2169,6 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Define Operator Methods"),
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineOperatorMethod",
                     text: ["define operator method [OPERATOR_KIND] [SHADOW]"],
@@ -2191,7 +2179,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.returnsAnything,
                     opcode: "operatorOtherValue",
                     text: "other value",
@@ -2202,7 +2189,6 @@ class GCEClassBlocks {
                 "---",
                 makeLabel("Define Static Methods & Class Variables"),
                 {
-                    ...temporaryHide,
                     ...commonBlocks.command,
                     opcode: "setClassVariable",
                     text: "on [CLASS] set class variable [NAME] to [VALUE]",
@@ -2214,7 +2200,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.returnsAnything,
                     opcode: "getClassVariable",
                     text: "get class variable [NAME] of [CLASS]",
@@ -2225,7 +2210,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.command,
                     opcode: "deleteClassVariable",
                     text: "on [CLASS] delete class variable [NAME]",
@@ -2236,7 +2220,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineStaticMethod",
                     text: ["define static method [NAME]"],
@@ -2246,7 +2229,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
@@ -2383,7 +2365,6 @@ class GCEClassBlocks {
                     },
                 },
                 {
-                    ...temporaryHide,
                     ...gceFunction.Block,
                     opcode: "createFunctionNamed",
                     text: ["create function named [NAME]"],
@@ -2404,12 +2385,6 @@ class GCEClassBlocks {
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                     },
-                },
-                { // BUTTON
-                    opcode: "addTempVars",
-                    text: "add temporary variables extension",
-                    tooltip: "Loads the Temporary Variables extension if it is not already available.",
-                    blockType: BlockType.BUTTON,
                 },
                 "---",
                 makeLabel("Use Functions"),
@@ -2458,13 +2433,13 @@ class GCEClassBlocks {
                     ...gceNothing.Block,
                     opcode: "nothing",
                     text: "Nothing",
-                    tooltip: "Returns the special Nothing value.",
+                    tooltip: "Returns the cool Nothing value like None in python.",
                 },
                 {
                     ...commonBlocks.command,
                     opcode: "executeExpression",
                     text: "execute expression [EXPR]",
-                    tooltip: "Evaluates the input expression without performing * additional action.",
+                    tooltip: "Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.",
                     arguments: {
                         EXPR: commonArguments.allowAnything,
                     },
@@ -3205,11 +3180,6 @@ class GCEClassBlocks {
 
     // Inside Functions & Methods
     return = this._isACompiledBlock
-    addTempVars() { // BUTTON
-        if (!Scratch.vm.extensionManager.isExtensionLoaded("tempVars")) {
-            Scratch.vm.extensionManager.loadExtensionIdSync("tempVars")
-        }
-    }
 
     // Use Functions
     callFunction = this._isACompiledBlock
@@ -3484,7 +3454,6 @@ if (!isRuntimeEnv) {
  * + HIGH PRIORITY
  * + - finish new scope sytem
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
- * + - ~ ensure no blocks missing
  * + - ~ add inner example blocks
  *
  * + MID PRIORITY
@@ -3496,6 +3465,7 @@ if (!isRuntimeEnv) {
  * + - possibly make "self", "other" and "value" available as a variable in methods
  * + - "delete member of class" block
  * + - reconsider to standardize stacks and scopes index order style
+ * + - convert call super init method to call super special method
  *
  * + LOW PRIORITY (optional in future)
  * + - button on blocks that opens a section in the documentation about that block
@@ -3514,11 +3484,13 @@ if (!isRuntimeEnv) {
  * + - specially test special cases of propertyNamesOfClass
 
  * + ON RELEASE / AFTER TESTING:
- * + - remove temporary hide setting for some blocks
  * + - remove temporary logStacks block
  * + - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
  *
  * + DOC NOTES TO REMEMBER:
+ * + - explain that inputs allow either class, class instance or function values or variable names
+ * + - replace arg ids with defaults in docs
+ * + - explain block shapes -> indicate return types
  * + - class variables specially supported
  * + - “This extension uses runtime scope resolution. To modify or delete outer variables, explicitly bind them first.”
  * + - Variable context limited to PM Script
