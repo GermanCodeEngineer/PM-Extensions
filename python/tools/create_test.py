@@ -4,7 +4,7 @@ sys.path.append(
     str(Path(__file__).parent.parent)
 )
 
-from helpers.gceClassesOOP import gceClassesOOP as c
+from python.helpers.gceOOP import gceOOP as c
 
 from gceutils import AbstractTreePath, grepr_dataclass
 import pmp_manip as p
@@ -285,7 +285,7 @@ EXAMPLE_CASES: list[ExampleCase] = [
 
 
 def print_example_descriptions() -> None:
-    print("\n" + 50 * "=" + " Classes Example Catalog " + 50 * "=")
+    print("\n" + 50 * "=" + " Example Catalog " + 50 * "=")
     for idx, case in enumerate(EXAMPLE_CASES, start=1):
         print(f"\n{idx}. {case.key} - {case.title}")
         print(f"   {case.description}")
@@ -299,9 +299,9 @@ def create_test() -> None:
     project = p.SRProject.create_empty()
     project.stage.scripts = [case.build_script() for case in EXAMPLE_CASES]
     project.extensions = [p.SRCustomExtension(
-        id="gceClassesOOP",
+        id="gceOOP",
         url=("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"+
-        "refs/heads/main/extensions/classes.js"),
+        "refs/heads/main/extensions/gceOOP.js"),
     )]
 
     print(50*"=", "Created Project", 50*"=")

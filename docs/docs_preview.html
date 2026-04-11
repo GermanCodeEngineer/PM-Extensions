@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>classes.md preview</title>
+    <title>Extension Docs Preview</title>
     <style>
         :root {
             color-scheme: dark;
@@ -81,9 +81,9 @@
         };
 
         async function renderPreview() {
-            const response = await fetch(`./classes.md?t=${Date.now()}`, { cache: 'no-store' });
+            const response = await fetch(`./gceOOP.md?t=${Date.now()}`, { cache: 'no-store' });
             if (!response.ok) {
-                throw new Error(`Failed to load classes.md (${response.status})`);
+                throw new Error(`Failed to load gceOOP.md (${response.status})`);
             }
 
             const source = await response.text();

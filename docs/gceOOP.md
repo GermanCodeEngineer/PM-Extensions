@@ -1,6 +1,6 @@
-# Classes Extension
+# OOP Extension
 
-**The classes extension** by [GermanCodeEngineer](https://github.com/GermanCodeEngineer/) provides Python-like object-oriented programming features in PenguinMod blocks.
+**The OOP extension** by [GermanCodeEngineer](https://github.com/GermanCodeEngineer/) provides Python-like object-oriented programming features in PenguinMod blocks.
 > Highlights: **scoped variables**, **functions with defaults**, **classes and inheritance**, **getters/setters**, **operator methods**, **static methods**, **introspection**, and the special **`Nothing`** value.
 
 Contents:
@@ -11,7 +11,7 @@ Thanks to [jwklong](https://github.com/jwklong), [DogeisCut](https://github.com/
 
 # Features
 
-The Classes extension brings structured **object-oriented programming** and **scope-aware functions** into block-based projects.
+The OOP extension brings structured **object-oriented programming** and **scope-aware functions** into block-based projects.
 
 ## Quick Notes
 - **Flexible inputs:** When a block expects a **class**, **instance**, or **function**, you can usually give either the value itself or the **name of a variable** that stores it.

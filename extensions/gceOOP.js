@@ -1,5 +1,5 @@
-// Name: Classes
-// ID: gceClassesOOP
+// Name: OOP
+// ID: gceOOP
 // Description: Python-like classes and many features of Object Orientated Programming
 // By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
 // License: MIT
@@ -22,7 +22,7 @@
  */
 const isRuntimeEnv = !Scratch.extensions.isTestingEnv
 if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
-    throw new Error("Classes Extension must run unsandboxed.")
+    throw new Error("OOP Extension must run unsandboxed.")
 }
 
 /************************************************************************************
@@ -66,7 +66,7 @@ if (isRuntimeEnv) {
         },
     }
     } catch (error) {
-        console.error("[Classes Extension] Failed to create custom shape", error)
+        console.error("[OOP Extension] Failed to create custom shape", error)
     }
 }
 
@@ -143,7 +143,7 @@ function applyHacks(Scratch) {
 
                 if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
 
-                return new TypedInput(`(yield* runtime.ext_gceClassesOOP._binaryOperator(thread, ${left}, ${right}, `+
+                return new TypedInput(`(yield* runtime.ext_gceOOP._binaryOperator(thread, ${left}, ${right}, `+
                     `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
 
             case "op.equals":
@@ -170,7 +170,7 @@ function applyHacks(Scratch) {
                     "less or equal": "greater or equal",
                 }[leftMethod]
                 // I cannot really use optimizations here
-                return new TypedInput(`(yield* runtime.ext_gceClassesOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
+                return new TypedInput(`(yield* runtime.ext_gceOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
                     `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
         }
         return oldDescendJSGenInput.call(this, node, visualReport)
@@ -239,7 +239,7 @@ function span(text) {
  */
 function throwInternal(code, additionalMsg = "") {
     throw new Error(
-        `An internal error occured in the classes extension. `+
+        `An internal error occured in the OOP extension. `+
         `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
     )
 }
@@ -1819,12 +1819,12 @@ const gceClassInstance = {
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: "gceClassesOOP-doublePlus",
+        blockShape: "gceOOP-doublePlus",
         forceOutputType: "gceClassInstance",
         disableMonitor: true,
     },
     Argument: {
-        shape: "gceClassesOOP-doublePlus",
+        shape: "gceOOP-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance", "dogeiscutObject"],
     },
@@ -1924,8 +1924,8 @@ class GCEClassBlocks {
     getInfo() {
         const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
         const info = {
-            id: "gceClassesOOP",
-            name: "Classes",
+            id: "gceOOP",
+            name: "OOP",
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
@@ -2520,7 +2520,7 @@ class GCEClassBlocks {
             return result
         })
 
-        const EXTENSION_PREFIX = "runtime.ext_gceClassesOOP"
+        const EXTENSION_PREFIX = "runtime.ext_gceOOP"
         const ENV_PREFIX = `${EXTENSION_PREFIX}.environment`
         const THREAD_UTIL_PREFIX = `${EXTENSION_PREFIX}.ThreadUtil`
         const CURRENT_STACK = `${THREAD_UTIL_PREFIX}.getCurrentStack(thread)`
@@ -2814,14 +2814,14 @@ class GCEClassBlocks {
         }
         
         if (isRuntimeEnv) {
-            runtime.registerCompiledExtensionBlocks("gceClassesOOP", this.getCompileInfo())
+            runtime.registerCompiledExtensionBlocks("gceOOP", this.getCompileInfo())
             runtime.registerSerializer(
                 "gceNothing",
                 v => (v instanceof NothingType ? v.toJSON() : null),
                 v => Nothing,
             )
             Scratch.gui.getBlockly().then(ScratchBlocks => {
-                ScratchBlocks.BlockSvg.registerCustomShape("gceClassesOOP-doublePlus", CUSTOM_SHAPE)
+                ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
             })
             
             applyHacks(Scratch)
@@ -3320,7 +3320,7 @@ const extensionClassInstance = new GCEClassBlocks()
 extensionClassInstance.setup()
 Scratch.extensions.register(extensionClassInstance)
 if (!isRuntimeEnv) {
-    console.log("Imported classes extension in non-runtime environment")
+    console.log("Imported OOP extension in non-runtime environment")
 }
 })(Scratch)
 
@@ -3371,7 +3371,7 @@ if (!isRuntimeEnv) {
  * 
  * @property {Object} ext_ddeDateFormat
  * @property {Object} ext_ddeDateFormatV2
- * @property {GCEClassBlocks} ext_gceClassesOOP
+ * @property {GCEClassBlocks} ext_gceOOP
  */
 
 /**

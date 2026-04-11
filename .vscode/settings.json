@@ -5,7 +5,7 @@
         "source.fixAll.eslint": "never"
     },
     "chat.tools.terminal.autoApprove": {
-        "/^node tests/test_classes\\.js$/": {
+        "/^node tests/test_gceOOP\\.js$/": {
             "approve": true,
             "matchCommandLine": true
         },
