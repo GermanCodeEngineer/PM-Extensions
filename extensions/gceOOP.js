@@ -892,7 +892,6 @@ const runtime = Scratch.vm.runtime
 const CONFIG = {
     INIT_METHOD_NAME: "__special_init__",
     AS_STRING_METHOD_NAME: "__special_as_string__",
-    HIDE_ARGUMENT_DEFAULTS: false,
     INTERNAL_OP_NAMES: {}, // see below
     PUBLIC_OP_NAMES: {}, // see below
 };
@@ -1190,6 +1189,11 @@ class Cast extends Scratch.Cast {
 ************************************************************************************/
 
 if (isRuntimeEnv &&!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
+if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
+    Scratch.vm.extensionManager.loadExtensionURL(
+        "http://localhost:5173/extensions/gceFuncsScopes.js",
+    )
+}
 if (isRuntimeEnv &&!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
     "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
 )
@@ -1850,10 +1854,6 @@ const gceNothing = {
 
 
 const commonArguments = {
-    variableName: {
-        type: ArgumentType.STRING,
-        defaultValue: "myVar",
-    },
     classVarName: {
         type: ArgumentType.STRING,
         defaultValue: "MyClass",
@@ -1862,31 +1862,13 @@ const commonArguments = {
         type: ArgumentType.STRING,
         defaultValue: "myMethod",
     },
-    argumentName: {
-        type: ArgumentType.STRING,
-        defaultValue: "myArg",
-    },
     classVariableName: {
         type: ArgumentType.STRING,
         defaultValue: "myVariable",
     },
-    funcName: {
-        type: ArgumentType.STRING,
-        defaultValue: "myFunction",
-    },
     attributeName: {
         type: ArgumentType.STRING,
         defaultValue: "myAttr",
-    },
-    argNames: {
-        type: ArgumentType.STRING,
-        exemptFromNormalization: true,
-        defaultValue: '["name"]',
-    },
-    argDefaults: {
-        type: ArgumentType.STRING,
-        exemptFromNormalization: true,
-        defaultValue: "[]",
     },
     allowAnything: {
         type: ArgumentType.STRING,
@@ -1917,88 +1899,28 @@ const commonBlocks = {
 *                                  Extension Class                                  *
 ************************************************************************************/
 
-class GCEClassBlocks {
+class GCEOOPBlocks {
     /**
      * @returns {object} metadata for this extension and its blocks.
      */
     getInfo() {
-        const makeLabel = (text) => ({blockType: Scratch.BlockType.LABEL, text: text})
+        const makeLabel = (text) => ({blockType: BlockType.LABEL, text: text})
         const info = {
             id: "gceOOP",
             name: "OOP",
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
+                makeLabel("Missing Functions & Scopes Extension?"),
+                { // BUTTON
+                    blockType: BlockType.BUTTON,
+                    opcode: "addFuncsScopesExtension",
+                    text: "Add Functions & Scopes Extension"
+                },
                 {
                     ...commonBlocks.command,
                     opcode: "logStacks",
                 },
-                makeLabel("Scoped Variables"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "setScopeVar",
-                    text: "set var [NAME] to [VALUE] in current scope",
-                    tooltip: "Creates or updates a variable in the current scope.",
-                    arguments: {
-                        NAME: commonArguments.variableName,
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "getScopeVar",
-                    text: "get var [NAME]",
-                    tooltip: "Gets the value of a variable visible from the current or outer scopes.",
-                    arguments: {
-                        NAME: commonArguments.variableName,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsBoolean,
-                    opcode: "scopeVarExists",
-                    text: "var [NAME] exists in [KIND]?",
-                    tooltip: "Checks whether a variable exists in the selected scope range.",
-                    arguments: {
-                        NAME: commonArguments.variableName,
-                        KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
-                    },
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "deleteScopeVar",
-                    text: "delete var [NAME] in current scope",
-                    tooltip: "Deletes a variable from the current scope.",
-                    arguments: {
-                        NAME: commonArguments.variableName,
-                    },
-                },
-                {
-                    ...jwArrayStub.Block,
-                    opcode: "allVariables",
-                    text: "all variables in [KIND]",
-                    tooltip: "Returns all variable names visible in the selected scope range as an array.",
-                    arguments: {
-                        KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
-                    },
-
-                },
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "createVarScope",
-                    text: ["create local variable scope"],
-                    tooltip: "Runs the enclosed blocks inside a new local variable scope.",
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "bindVarToScope",
-                    text: "bind [KIND] variable [NAME] to current scope",
-                    tooltip: "Links a global or non-local variable into the current scope.",
-                    arguments: {
-                        KIND: {type: ArgumentType.STRING, menu: "bindVarOriginKind"},
-                        NAME: commonArguments.variableName,
-                    },
-                },
-                "---",
                 makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
@@ -2084,7 +2006,6 @@ class GCEClassBlocks {
                         CLASS: {...gceClass.ArgumentClassOrVarName, defaultValue: "MySubclass"},
                     },
                 },
-                "---",
                 "---",
                 makeLabel("Class Members"),
                 "---",
@@ -2239,7 +2160,6 @@ class GCEClassBlocks {
                     },
                 },
                 "---",
-                "---",
                 makeLabel("Working with Instances"),
                 "---",
                 makeLabel("Create & Inspect"),
@@ -2338,129 +2258,8 @@ class GCEClassBlocks {
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
-                "---",
-                "---",
-                makeLabel("Functions"),
-                "---",
-                makeLabel("Configure Before Define"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "configureNextFunctionArgs",
-                    text: "configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]",
-                    tooltip: "Configures the argument names and default values used by the next function or method definition.",
-                    arguments: {
-                        ARGNAMES: commonArguments.argNames,
-                        ARGDEFAULTS: commonArguments.argDefaults,
-                    },
-                },
-                "---",
-                makeLabel("Define"),
-                {
-                    ...commonBlocks.commandWithBranch,
-                    opcode: "createFunctionAt",
-                    text: ["create function at var [NAME]"],
-                    tooltip: "Creates a function and stores it in the chosen variable.",
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                {
-                    ...gceFunction.Block,
-                    opcode: "createFunctionNamed",
-                    text: ["create function named [NAME]"],
-                    tooltip: "Creates and returns a function with the given name.",
-                    branchCount: 1,
-                    arguments: {
-                        NAME: commonArguments.funcName,
-                    },
-                },
-                "---",
-                makeLabel("Inside Functions & Methods"),
-                {
-                    ...commonBlocks.command,
-                    opcode: "return",
-                    text: "return [VALUE]",
-                    tooltip: "Returns a value from the current function or method and exits it.",
-                    isTerminal: true,
-                    arguments: {
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                "---",
-                makeLabel("Use Functions"),
-                {
-                    ...commonBlocks.returnsAnything,
-                    opcode: "callFunction",
-                    text: "call function [FUNC] with positional args [POSARGS]",
-                    tooltip: "Calls a function value with positional arguments.",
-                    arguments: {
-                        FUNC: gceFunction.ArgumentFunctionOrVarName,
-                        POSARGS: jwArrayStub.Argument,
-                    },
-                },
-                "---",
-                "---",
-                makeLabel("Utilities"),
-                {
-                    ...commonBlocks.returnString,
-                    opcode: "objectAsString",
-                    text: "[VALUE] as string",
-                    tooltip: "Converts a value to its string form, using a class's special as string method when available.",
-                    arguments: {
-                        VALUE: commonArguments.allowAnything,
-                    }
-                },
-                {
-                    ...commonBlocks.returnString,
-                    opcode: "typeof",
-                    text: "typeof [VALUE]",
-                    tooltip: "Returns a readable type name for a value.",
-                    arguments: {
-                        VALUE: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...commonBlocks.returnsBoolean,
-                    opcode: "checkIdentity",
-                    text: "[VALUE1] is [VALUE2] ?",
-                    tooltip: "Checks whether two values are exactly the same value (the same instance).",
-                    arguments: {
-                        VALUE1: commonArguments.allowAnything,
-                        VALUE2: commonArguments.allowAnything,
-                    },
-                },
-                {
-                    ...gceNothing.Block,
-                    opcode: "nothing",
-                    text: "Nothing",
-                    tooltip: "Returns the cool Nothing value like None in python.",
-                },
-                {
-                    ...commonBlocks.command,
-                    opcode: "executeExpression",
-                    text: "execute expression [EXPR]",
-                    tooltip: "Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.",
-                    arguments: {
-                        EXPR: commonArguments.allowAnything,
-                    },
-                },
             ],
             menus: {
-                variableAvailableKind: {
-                    acceptReporters: false,
-                    items: [
-                        "all scopes",
-                        "local scope",
-                        "global scope",
-                    ],
-                },
-                bindVarOriginKind: {
-                    acceptReporters: false,
-                    items: [
-                        "non-local",
-                        "global",
-                    ],
-                },
                 classProperty: {
                     acceptReporters: false,
                     items: [
@@ -2487,23 +2286,15 @@ class GCEClassBlocks {
                 }
             },
         }
-
-        if (CONFIG.HIDE_ARGUMENT_DEFAULTS) {
-            info.blocks.forEach((blockInfo) => {
-                if (blockInfo.arguments) {
-                    Object.keys(blockInfo.arguments).forEach((argumentName) => {
-                        delete blockInfo.arguments[argumentName]["defaultValue"]
-                    })
-                }
-            })
-        }
         return info
     }
 
     /**
-     * @returns {object} compilation information and implementation for some blocks 
+     * @param {boolean} includeOOPBlocks
+     * @param {boolean} includeFuncScopesBlocks
+     * @returns {object} compilation information and implementation for some blocks of the selected extensions
      */
-    getCompileInfo() {
+    getCompileInfo(includeOOPBlocks = true, includeFuncScopesBlocks = true) {
         const createIRGenerator = (kind, inputs, fields, yieldRequired = false) => ((generator, block) => {
             if (yieldRequired) generator.script.yields = true
             const result = { kind }
@@ -2580,8 +2371,11 @@ class GCEClassBlocks {
             return substackCode
         }
 
-        return {
-            ir: {
+        let irInfo = {}
+        let jsInfo = {}
+
+        if (includeOOPBlocks) {
+            Object.assign(irInfo, {
                 // Define Classes
                 createClassAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], [], true),
                 createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
@@ -2615,23 +2409,8 @@ class GCEClassBlocks {
                 // Call Methods
                 callMethod: createIRGenerator("input", ["INSTANCE", "NAME", "POSARGS"], [], true),
                 callStaticMethod: createIRGenerator("input", ["CLASS", "NAME", "POSARGS"], [], true),
-
-
-                // Define
-                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
-
-                // Inside Functions & Methods
-                return: createIRGenerator("stack", ["VALUE"], []),
-
-                // Use Functions
-                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
-
-
-                // Utilities
-                objectAsString: createIRGenerator("input", ["VALUE"], [], true),
-            },
-            js: {
+            })
+            Object.assign(jsInfo, {
                 // Define Classes
                 createClassAt: (node, compiler, imports) => {
                     const { setup, cleanup } = createClassCore(node, compiler, true)
@@ -2741,8 +2520,26 @@ class GCEClassBlocks {
                     const generatedCode = createCallCode("toClass", [classCode, "thread"], "executeStaticMethod", nameCode, posArgsCode)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
+            })
+        }
+        
+        if (includeFuncScopesBlocks) {
+            Object.assign(irInfo, {
+                // Define
+                createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
+                createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
+
+                // Inside Functions & Methods
+                returnValue: createIRGenerator("stack", ["VALUE"], []),
+
+                // Use Functions
+                callFunction: createIRGenerator("input", ["FUNC", "POSARGS"], [], true),
 
 
+                // Utilities
+                objectAsString: createIRGenerator("input", ["VALUE"], [], true),
+            })
+            Object.assign(jsInfo, {
                 // Define
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
@@ -2770,7 +2567,7 @@ class GCEClassBlocks {
                 },
 
                 // Inside Functions & Methods
-                return: (node, compiler, imports) => {
+                returnValue: (node, compiler, imports) => {
                     const returnValueLocal = compiler.localVariables.next()
                     // We need to cache the return value before exiting context, as it might depend on it
                     compiler.source += `const ${returnValueLocal} = ${compiler.descendInput(node.VALUE).asUnknown()};` +
@@ -2793,8 +2590,10 @@ class GCEClassBlocks {
                     const generatedCode = `(yield* ${EXTENSION_PREFIX}._objectAsString(${objectCode}, thread))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
-            },
+            })
         }
+
+        return {ir: irInfo, js: jsInfo}
     }
 
     constructor() {
@@ -2814,7 +2613,6 @@ class GCEClassBlocks {
         }
         
         if (isRuntimeEnv) {
-            runtime.registerCompiledExtensionBlocks("gceOOP", this.getCompileInfo())
             runtime.registerSerializer(
                 "gceNothing",
                 v => (v instanceof NothingType ? v.toJSON() : null),
@@ -2850,6 +2648,14 @@ class GCEClassBlocks {
     /************************************************************************************
     *                                       Blocks                                      *
     ************************************************************************************/
+
+    addFuncsScopesExtension() {
+        if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
+            Scratch.vm.extensionManager.loadExtensionURL(
+                "http://localhost:5173/extensions/gceFuncsScopes.js",
+            )
+        }
+    }
 
     /**
      * @param {BlockArgs} args
@@ -3179,7 +2985,7 @@ class GCEClassBlocks {
     createFunctionNamed = this._isACompiledBlock
 
     // Inside Functions & Methods
-    return = this._isACompiledBlock
+    returnValue = this._isACompiledBlock
 
     // Use Functions
     callFunction = this._isACompiledBlock
@@ -3191,7 +2997,7 @@ class GCEClassBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
-    typeof(args, util) {
+    typeofValue(args, util) {
         return TypeChecker.string_typeof(args.VALUE)
     }
 
@@ -3316,9 +3122,13 @@ class GCEClassBlocks {
     }
 }
 
-const extensionClassInstance = new GCEClassBlocks()
+const extensionClassInstance = new GCEOOPBlocks()
 extensionClassInstance.setup()
 Scratch.extensions.register(extensionClassInstance)
+if (isRuntimeEnv) {
+    Scratch.vm.runtime.registerCompiledExtensionBlocks("gceOOP", extensionClassInstance.getCompileInfo(true, false))
+    Scratch.vm.runtime.registerCompiledExtensionBlocks("gceFuncsScopes", extensionClassInstance.getCompileInfo(false, true))
+}
 if (!isRuntimeEnv) {
     console.log("Imported OOP extension in non-runtime environment")
 }
@@ -3371,7 +3181,8 @@ if (!isRuntimeEnv) {
  * 
  * @property {Object} ext_ddeDateFormat
  * @property {Object} ext_ddeDateFormatV2
- * @property {GCEClassBlocks} ext_gceOOP
+ * @property {GCEOOPBlocks} ext_gceOOP
+ * @property {GCEFuncsScopesBlocks} [ext_gceFuncsScopes]
  */
 
 /**
@@ -3485,7 +3296,7 @@ if (!isRuntimeEnv) {
 
  * + ON RELEASE / AFTER TESTING:
  * + - remove temporary logStacks block
- * + - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
+ * + - change both localhost URLs to extensions.penguinmod URL
  *
  * + DOC NOTES TO REMEMBER
  */

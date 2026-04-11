@@ -150,7 +150,7 @@ def create_inheritance_and_super_test() -> p.SRScript:
             c.setScopeVar("greeter", c.createInstance("FriendlyGreeter", "[]")),
             c.setScopeVar("result", c.callMethod("greeter", "greet", "[]")),
             c.executeExpression(c.objectAsString(c.getScopeVar("greeter"))),
-            c.executeExpression(c.typeof(c.getScopeVar("greeter"))),
+            c.executeExpression(c.typeofValue(c.getScopeVar("greeter"))),
         ],
     )
 

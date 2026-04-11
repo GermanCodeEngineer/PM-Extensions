@@ -326,14 +326,17 @@ def create_helpers() -> None:
     create_category_file(
         output_path=Path("python/helpers/gceOOP.py"),
         category_id="gceOOP",
-        category_source=("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"+
-        "refs/heads/main/extensions/gceOOP.js"),
+        category_source=("http://localhost:5173/extensions/gceOOP.js"),
+    )
+    create_category_file(
+        output_path=Path("python/helpers/gceFuncsScopes.py"),
+        category_id="gceFuncsScopes",
+        category_source=("http://localhost:5173/extensions/gceFuncsScopes.js"),
     )
     create_category_file(
         output_path=Path("python/helpers/gceTestRunner.py"),
         category_id="gceTestRunner",
-        category_source=("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"+
-        "refs/heads/main/extensions/testRunner.js"),
+        category_source=("http://localhost:5173/extensions/testRunner.js"),
     )
 
 def main() -> None:

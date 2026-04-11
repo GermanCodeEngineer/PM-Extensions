@@ -10,67 +10,6 @@ class gceOOP:
         return p.SRBlock(opcode="&gceOOP::logStacks", inputs={}, dropdowns={})
 
     @staticmethod
-    def set_scope_var(name: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::set var (NAME) to (VALUE) in current scope",
-            inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def get_scope_var(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::get var (NAME)",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
-
-    @staticmethod
-    def scope_var_exists(name: INPUT_COMPATIBLE_T, kind: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::var (NAME) exists in [KIND]?",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
-        )
-
-    @staticmethod
-    def delete_scope_var(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::delete var (NAME) in current scope",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
-
-    @staticmethod
-    def all_variables(kind: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::all variables in [KIND]",
-            inputs={},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
-        )
-
-    @staticmethod
-    def create_var_scope(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create local variable scope {SUBSTACK}",
-            inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def bind_var_to_scope(name: INPUT_COMPATIBLE_T, kind: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::bind [KIND] variable (NAME) to current scope",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
-        )
-
-    @staticmethod
     def create_class_at(
         name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
@@ -165,9 +104,7 @@ class gceOOP:
 
     @staticmethod
     def class_being_created() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::class being created", inputs={}, dropdowns={}
-        )
+        return p.SRBlock(opcode="&gceOOP::class being created", inputs={}, dropdowns={})
 
     @staticmethod
     def is_subclass(
@@ -520,135 +457,8 @@ class gceOOP:
         )
 
     @staticmethod
-    def configure_next_function_args(
-        argnames: INPUT_COMPATIBLE_T, argdefaults: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::configure next function: argument names (ARGNAMES) defaults (ARGDEFAULTS)",
-            inputs={
-                "ARGNAMES": InputValue.try_as_input(
-                    argnames, p.SRBlockAndTextInputValue
-                ),
-                "ARGDEFAULTS": InputValue.try_as_input(
-                    argdefaults, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def create_function_at(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create function at var (NAME) {SUBSTACK}",
-            inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def create_function_named(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create function named (NAME) {SUBSTACK}",
-            inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def return_(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::return (VALUE)",
-            inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def call_function(
-        func: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::call function (FUNC) with positional args (POSARGS)",
-            inputs={
-                "FUNC": InputValue.try_as_input(func, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def object_as_string(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::(VALUE) as string",
-            inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def typeof(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::typeof (VALUE)",
-            inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def check_identity(
-        value1: INPUT_COMPATIBLE_T, value2: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::(VALUE1) is (VALUE2) ?",
-            inputs={
-                "VALUE1": InputValue.try_as_input(value1, p.SRBlockAndTextInputValue),
-                "VALUE2": InputValue.try_as_input(value2, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def nothing() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::Nothing", inputs={}, dropdowns={})
-
-    @staticmethod
-    def execute_expression(expr: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::execute expression (EXPR)",
-            inputs={"EXPR": InputValue.try_as_input(expr, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
-
-    @staticmethod
-    def menu_variable_available_kind() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::#menu:variableAvailableKind",
-            inputs={},
-            dropdowns={},
-        )
-
-    @staticmethod
-    def menu_bind_var_origin_kind() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::#menu:bindVarOriginKind", inputs={}, dropdowns={}
-        )
-
-    @staticmethod
     def menu_class_property() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={}
-        )
+        return p.SRBlock(opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={})
 
     @staticmethod
     def menu_operator_method() -> p.SRBlock:
@@ -658,6 +468,4 @@ class gceOOP:
 
     @staticmethod
     def menu_special_method() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={}
-        )
+        return p.SRBlock(opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={})
