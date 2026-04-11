@@ -6,6 +6,7 @@ from typing import Callable
 
 sys.path.append(str(Path(__file__).parent.parent))
 
+import copy
 import pmp_manip as p
 from gceutils import AbstractTreePath, grepr_dataclass
 
@@ -17,7 +18,7 @@ from helpers.gceTestRunner import gceTestRunner as t
 EXTENSION_URL_BASE = (
     #"https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"
     #"refs/heads/main/extensions"
-    "http://localhost:5173/extensions/"
+    "http://localhost:5173/extensions"
 )
 
 
@@ -656,24 +657,36 @@ def create_test() -> None:
     project = p.SRProject.create_empty()
     project.stage.scripts = [case.build_script() for case in EXAMPLE_CASES]
     project.extensions = [
-        p.SRCustomExtension(id="gceOOP", url=extension_url("gceOOP.js")),
+        p.SRCustomExtension(
+            id="gceOOP",
+             url=extension_url("gceOOP.js"),
+        ),
         p.SRCustomExtension(
             id="gceFuncsScopes",
             url=extension_url("gceFuncsScopes.js"),
         ),
         p.SRCustomExtension(
             id="gceTestRunner",
-            url=extension_url("testRunner.js"),
+            url=extension_url("gceTestRunner.js"),
         ),
     ]
 
     print(50 * "=", "Created Project", 50 * "=")
     print(project)
     project.add_all_extensions_to_info_api(p.info_api)
+
+    # Tricks to avoid errors for invalid extension URLs (currently too strict)
+    extensions_before = copy.deepcopy(project.extensions)
+    for extension in project.extensions:
+        extension.url = "https://example.com/"
+
     project.validate(AbstractTreePath(), p.info_api)
+    project.extensions = extensions_before
+
     frproject = project.to_first(p.info_api)
     frproject.to_file("project_tests.pmp")
     print_example_descriptions()
+    print(project.extensions)
 
 
 def main() -> None:

@@ -449,6 +449,34 @@ return [my value]::#428af5 cap
 // And many more
 ```
 - Returns a readable type name for a value.
+- Possible return texts are:
+	- `Function`
+	- `Method`
+	- `Getter Method`
+	- `Setter Method`
+	- `Operator Method`
+	- `Class`
+	- `Class Instance`
+	- `Nothing`
+	- `Boolean`
+	- `Number`
+	- `String`
+	- `Array`
+	- `Object`
+	- `Date`
+	- `Set`
+	- `Lambda`
+	- `Color`
+	- `Unlimited Number`
+	- `Target`
+	- `XML`
+	- `JavaScript Undefined`
+	- `JavaScript Null`
+	- `JavaScript BigInt`
+	- `JavaScript Symbol`
+	- `JavaScript Function`
+	- `JavaScript Object`
+	- `Unknown` *(shouldn't happen in practice; unrecognized values will usually return `JavaScript Object` instead)*
 
 ---
 ```scratch

@@ -336,7 +336,7 @@ def create_helpers() -> None:
     create_category_file(
         output_path=Path("python/helpers/gceTestRunner.py"),
         category_id="gceTestRunner",
-        category_source=("http://localhost:5173/extensions/testRunner.js"),
+        category_source=("http://localhost:5173/extensions/gceTestRunner.js"),
     )
 
 def main() -> None:
