@@ -60,7 +60,6 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
     return p.SRScript(
         position=(0, 180),
         blocks=[
-            c.logStacks(),
             c.setScopeVar("outer", "global-value"),
             c.executeExpression(c.scopeVarExists("outer", "all scopes")),
             c.executeExpression(c.allVariables("global scope")),

@@ -34,6 +34,7 @@ A
   - Behavior details
     - "bind variable to current scope" links to the same variable, not a copy.
     - If you change the linked variable in an inner scope, the source value also changes.
+    - If a linked variable is deleted, it disappears everywhere that shared link is used.
     - Linking fails if the source variable does not exist in the selected origin.
 
 - Feature: Functions and methods keep outer context safely
@@ -46,6 +47,7 @@ A
   - Behavior details
     - Functions and methods can use outer variables from where they were defined.
     - "return" block exits the current function or method cleanly.
+    - "return" only works while a function or method call is active; using it elsewhere fails.
     - If execution fails, temporary inner scopes are cleaned up instead of leaking.
 
 - Feature: Function arguments and defaults
@@ -88,12 +90,14 @@ A
     - "define setter [NAME] [SHADOW1] [SHADOW2]"
     - "define operator method [OPERATOR_KIND] [SHADOW]"
     - "on [CLASS] set class variable [NAME] to [VALUE]"
+    - "get class variable [NAME] of [CLASS]"
     - "on [CLASS] delete class variable [NAME]"
     - "[PROPERTY] names of class [CLASS]"
   - Behavior details
     - Local class members are used first, then inherited ones.
     - Subclass members replace same-name inherited members.
     - A getter and setter can share one name, but invalid redefinitions are blocked.
+    - Class variables can be set, read, listed, and deleted as class-level metadata.
     - Deleting by member type checks both existence and matching type.
 
 - Feature: Instance creation rules
@@ -116,6 +120,7 @@ A
     - "define instance method [NAME] [SHADOW]"
   - Behavior details
     - "on call method with positional args" calls an instance method by name.
+    - "self" is only available while a method-like call is active.
     - "call super method with positional args" calls the parent version even if the subclass overrides it.
     - Calling a super method fails if there is no parent class.
 
@@ -132,6 +137,7 @@ A
     - Plain attributes work directly if no getter or setter is defined.
     - A getter can run instead of a direct read.
     - A setter can run instead of a direct write, and can read the incoming value via "value".
+    - The reporter "value" only works while a setter is running.
     - Writing to a getter-only attribute fails.
 
 - Feature: Custom operator behavior
@@ -153,6 +159,16 @@ A
     - Static methods can be inherited from parent classes.
     - "get static method of as function" lets you pass a static method around as a function value.
 
+- Feature: Typed inputs resolve from values or variable names
+  - Blocks involved
+    - "call function [FUNC] with positional args [POSARGS]"
+    - "create instance of class [CLASS] with positional args [POSARGS]"
+    - "on [CLASS] call static method [NAME] with positional args [POSARGS]"
+    - "on [INSTANCE] call method [NAME] with positional args [POSARGS]"
+  - Behavior details
+    - Inputs that expect a function, class, or instance can use either the value itself or the name of a variable holding that value.
+    - A missing name or a value of the wrong kind causes an error instead of silently continuing.
+
 - Feature: Type checks, identity, and special no-value
   - Blocks involved
     - "is [INSTANCE] an instance of [CLASS] ?"
@@ -164,6 +180,7 @@ A
   - Behavior details
     - "is an instance of ?" respects inheritance (subclass instance counts as base instance).
     - "is ?" checks whether two values are the same exact object.
+    - "as string" gives stable readable text for classes, instances, and `Nothing`; class text includes superclass info when present.
     - "Nothing" is a stable special no-value. When it is converted to a boolean it evaluates to `false`.
 
 - Feature: Introspection and listing helpers

@@ -3488,10 +3488,4 @@ if (!isRuntimeEnv) {
  * + - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
  *
  * + DOC NOTES TO REMEMBER:
- * + - explain that inputs allow either class, class instance or function values or variable names
- * + - replace arg ids with defaults in docs
- * + - explain block shapes -> indicate return types
- * + - class variables specially supported
- * + - “This extension uses runtime scope resolution. To modify or delete outer variables, explicitly bind them first.”
- * + - Variable context limited to PM Script
  */

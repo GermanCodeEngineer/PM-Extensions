@@ -1,12 +1,86 @@
 # Classes Extension
 
-**The classes extension** by [GermanCodeEngineer](https://github.com/GermanCodeEngineer/) provides Python-like **functions, classes, methods, variables** and many other features of Object Orientated Programming.
+**The classes extension** by [GermanCodeEngineer](https://github.com/GermanCodeEngineer/) provides Python-like object-oriented programming features in PenguinMod blocks.
+> Highlights: **scoped variables**, **functions with defaults**, **classes and inheritance**, **getters/setters**, **operator methods**, **static methods**, **introspection**, and the special **`Nothing`** value.
 
-Please do not forget to read the [features](#features).
+Contents:
+- [Feature List](#features)
+- [Block List](#blocks)
 
 Thanks to [jwklong](https://github.com/jwklong), [DogeisCut](https://github.com/dogeiscut), [Sharkpool](https://github.com/SharkPool-SP) and especially [**VeryGoodScratcher42**](https://github.com/Lego7set) for inspiration.
 
 # Features
+
+The Classes extension brings structured **object-oriented programming** and **scope-aware functions** into block-based projects.
+
+## Quick Notes
+- **Flexible inputs:** When a block expects a **class**, **instance**, or **function**, you can usually give either the value itself or the **name of a variable** that stores it.
+- **Scope behavior:** Variables are resolved at **runtime** and only within the current **PM Script**. If you want to modify or delete an outer variable from inside a nested scope, **bind it first**.
+- **Default arguments:** Default values automatically fill the **last positional arguments** when those trailing inputs are left out.
+- **Class variables:** These are specially supported with blocks to **set**, **get**, **delete**, and **list** them.
+- **`as string`:** This converts a value to readable text. For class instances, it calls the special **`as string`** method when one is defined.
+
+## Block and Input Shapes
+In this extension, the shapes of reporters indicate the **type of value**, they return. Input shapes indicate in the same way which type of value, they expect. Here are some examples for the existing shapes:
+### Class
+![Class Example](images/create_class_named.png)
+### Class Instance
+![Class Instance Example](images/create_instance_of.png)
+### Function
+![Function Example](images/create_function_named.png)
+### Nothing
+![Nothing Example](images/Nothing.png)
+### Array (extension by jwklong)
+![Array Example](images/all_variables_in.png)
+### Object (extension by dogeiscut)
+![Object Example](images/all_attributes_of.png)
+### Any value (Normal round reporter)
+![Anything Example](images/attribute_of.png)
+
+## Scoped Variables and Scope Control
+- Create, read, update, and delete variables in the **current scope**.
+- Check whether a variable exists in **local**, **global**, or **all visible** scopes.
+- Create temporary **local variable scopes** for safer nested logic.
+- **Bind global or non-local variables** into the current scope so changes stay linked instead of copied.
+- Variable context is limited to the current **PenguinMod Script**(e.g.a green flag block and the blocks below it), and outer names are resolved **at runtime**.
+- Handle shadowing naturally: when the same name exists in multiple scopes, the **innermost** one is used first.
+
+## Functions and Closures
+- Create functions either **to store them in a variable** or **in a reporter block**.
+- Configure the **next function's argument names and default values** before defining it.
+- Default values fill the **last positional arguments** automatically when those trailing inputs are omitted.
+- Call functions with positional arguments.
+- Functions and methods can **capture outer variables** from where they were defined.
+- Use `return` to exit a function or method cleanly with a result.
+
+## Classes and Inheritance
+- Create classes and subclasses either **in a variable** or **in a reporter block**.
+- All class-related inputs accept either the **class value itself** or the **name of a variable** holding that class.
+- Re-open an existing class with **`on class`** to add more members later.
+- Access **`class being created`** while inside a class-definition context.
+- Check subclass relationships and retrieve a class's **superclass**.
+
+## Methods, Accessors, and Custom Behavior
+- Define **instance methods**, **special methods** like `init` and `as string`, and **static methods**.
+- Define **getters** and **setters** to control attribute reads and writes.
+- Define **operator methods** to customize how instances behave with operators.
+- Use helper values like **`self`**, **`value`**, and **`other value`** inside the appropriate method contexts.
+- Call parent-class behavior with **`call super method`** and **`call super init method`**.
+
+## Instances, Attributes, and Introspection
+- Create instances with positional arguments passed to `init`.
+- Inputs that expect an **instance** can use either the instance itself or the **name of a variable** holding it.
+- Read and write attributes directly, or route access through getters and setters.
+- Get **all attributes** of an instance for quick inspection.
+- Check whether a value **is an instance of** a class, get its class, compare identity, and inspect its type.
+- List class members by category, including **instance methods**, **static methods**, **getters**, **setters**, **operator methods**, and **class variables**.
+- **Class variables are specially supported** with dedicated set/get/delete/list blocks for class-level metadata.
+
+## Special Values and Utilities
+- Use **`Nothing`** as a stable no-value similar to Python's `None`.
+- Convert values to readable text with **`as string`**. On class instances that define it, this calls the special **`as string`** method.
+- Use **`execute expression`** to evaluate reporter blocks inside scripts.
+- Use the debugging helper to inspect the current **thread stacks and scopes** when needed.
 
 # Blocks
 
@@ -57,7 +131,7 @@ create local variable scope {
 bind [non-local v] variable [myVar] to current scope::#428af5
 bind [global v] variable [myVar] to current scope::#428af5
 ```
-- Links a global or non-local variable into the current scope.
+- Links a global or non-local variable into the current scope. Because scope resolution happens at runtime, bind outer variables first if you want to modify or delete them from an inner scope.
 
 <br><br>
 ## Define Classes
@@ -256,7 +330,7 @@ definẹ static method [myMethod] {
 ```scratch
 (create instance of class [MyClass] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
 ```
-- Creates an instance of a class and passes the given positional arguments to its init method.
+- Creates an instance of a class and passes the given positional arguments to its `init` method. The class input can be either a class value or the name of a variable holding one.
 
 ---
 ```scratch
@@ -298,13 +372,13 @@ on [my instance] set attribute [myAttr] to [my value]::#428af5
 ```scratch
 (on [my instance] call method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
 ```
-- Calls an instance method on an object with positional arguments.
+- Calls an instance method on an object with positional arguments. The instance input can be either the instance itself or the name of a variable holding it.
 
 ---
 ```scratch
 (on [MyClass] call static method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
 ```
-- Calls a static method on a class with positional arguments.
+- Calls a static method on a class with positional arguments. The class input can be either the class itself or the name of a variable holding it.
 
 ---
 ```scratch
@@ -322,7 +396,7 @@ on [my instance] set attribute [myAttr] to [my value]::#428af5
 ```scratch
 configure next function: argument names (parse [\["person", "message"\]] as an array::#ff513d) defaults (parse [\["Hello World!"\]] as an array::#ff513d)::#428af5
 ```
-- Configures the argument names and default values used by the next function or method definition.
+- Configures the argument names and default values used by the next function or method definition. Default values fill the last positional arguments when those trailing inputs are omitted.
 
 <br><br>
 ### Define
@@ -355,7 +429,7 @@ return [my value]::#428af5 cap
 ```scratch
 (call function [myFunction] with positional args (parse [\["Bob", "Goodbye."\]] as an array::#ff513d)::#428af5)
 ```
-- Calls a function value with positional arguments.
+- Calls a function value with positional arguments. The function input can be either the function itself or the name of a variable holding it.
 
 <br><br>
 ### Utilities
@@ -364,7 +438,7 @@ return [my value]::#428af5 cap
 ```scratch
 ([my instance] as string::#428af5)
 ```
-- Converts a value to its string form, using a class's special as string method when available.
+- Converts a value to its string form. On class instances that implement it, this calls the special `as string` method automatically.
 
 ---
 ```scratch
