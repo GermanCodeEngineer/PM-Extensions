@@ -3487,5 +3487,5 @@ if (!isRuntimeEnv) {
  * + - remove temporary logStacks block
  * + - set CONFIG.HIDE_ARGUMENT_DEFAULTS to false
  *
- * + DOC NOTES TO REMEMBER:
+ * + DOC NOTES TO REMEMBER
  */
