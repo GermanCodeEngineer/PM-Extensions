@@ -84,14 +84,18 @@ function applyHacks(Scratch) {
 
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
-        if (value instanceof NothingType) return false
-        return oldToBoolean(value)
+    
+    // Avoid multiple wrappings
+    if (!oldToBoolean.isGceOOPModified) {
+        /**
+         * @param {*} value
+         * @returns {boolean}
+         */
+        Scratch.Cast.toBoolean = function modifiedToBoolean(value) {
+            if (value instanceof NothingType) return false
+            return oldToBoolean(value)
+        }
+        Scratch.Cast.toBoolean.isGceOOPModified = true
     }
 
     // Wrap ScriptTreeGenerator.descendInput to make
@@ -99,96 +103,107 @@ function applyHacks(Scratch) {
     // CAN BE REMOVED START: IF THIS IS MERGED: https://github.com/PenguinMod/PenguinMod-Vm/pull/188
     const oldDescendTreeGenInput = ScriptTreeGenerator.prototype.descendInput
 
-    /**
-     * @param {Object} block
-     */
-    ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
-        switch (block.opcode) {
-            case "operator_notequal":
-            case "operator_gtorequal":
-            case "operator_ltorequal":
-                const input = {
-                    left: this.descendInputOfBlock(block, "OPERAND1"),
-                    right: this.descendInputOfBlock(block, "OPERAND2"),
-                }
-                if      (block.opcode === "operator_notequal") input.kind = "op.notequal"
-                else if (block.opcode === "operator_gtorequal") input.kind = "op.gtorequal"
-                else if (block.opcode === "operator_ltorequal") input.kind = "op.ltorequal"
-                return input
+    if (!oldDescendTreeGenInput.isGceOOPModified) {
+        /**
+         * @param {Object} block
+         */
+        ScriptTreeGenerator.prototype.descendInput = function modifiedDescendInput (block) {
+            switch (block.opcode) {
+                case "operator_notequal":
+                case "operator_gtorequal":
+                case "operator_ltorequal":
+                    const input = {
+                        left: this.descendInputOfBlock(block, "OPERAND1"),
+                        right: this.descendInputOfBlock(block, "OPERAND2"),
+                    }
+                    if      (block.opcode === "operator_notequal") input.kind = "op.notequal"
+                    else if (block.opcode === "operator_gtorequal") input.kind = "op.gtorequal"
+                    else if (block.opcode === "operator_ltorequal") input.kind = "op.ltorequal"
+                    return input
+            }
+            return oldDescendTreeGenInput.call(this, block)
         }
-        return oldDescendTreeGenInput.call(this, block)
+        ScriptTreeGenerator.prototype.descendInput.isGceOOPModified = true
     }
     // CAN BE REMOVED END
+
 
     // Wrap JSGenerator.descendInput for some operator blocks to allow classes to define custom handling
     const oldDescendJSGenInput = JSGenerator.prototype.descendInput
 
-    /**
-     * @param {Object} node
-     * @param {boolean} visualReport
-     */
-    JSGenerator.prototype.descendInput = function modifiedDescendInput (node, visualReport = false) {
-        let left, right, leftMethod, rightMethod
-        switch (node.kind) {
-            case "op.add":
-            case "op.subtract":
-            case "op.multiply":
-            case "op.divide":
-            case "op.mod":
-            case "op.power":
-                left = this.descendInput(node.left).asUnknown()
-                right = this.descendInput(node.right).asUnknown()
-                leftMethod = quote("left " + node.kind.replace("op.", ""))
-                rightMethod = quote("right " + node.kind.replace("op.", ""))
+    if (!oldDescendJSGenInput.isGceOOPModified) {
+        /**
+         * @param {Object} node
+         * @param {boolean} visualReport
+         */
+        JSGenerator.prototype.descendInput = function modifiedDescendInput (node, visualReport = false) {
+            let left, right, leftMethod, rightMethod
+            switch (node.kind) {
+                case "op.add":
+                case "op.subtract":
+                case "op.multiply":
+                case "op.divide":
+                case "op.mod":
+                case "op.power":
+                    left = this.descendInput(node.left).asUnknown()
+                    right = this.descendInput(node.right).asUnknown()
+                    leftMethod = quote("left " + node.kind.replace("op.", ""))
+                    rightMethod = quote("right " + node.kind.replace("op.", ""))
 
-                if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
+                    if (node.kind === "op.mod") this.descendedIntoModulo = true // ¯\_(ツ)_/¯
 
-                return new TypedInput(`(yield* runtime.ext_gceOOP._binaryOperator(thread, ${left}, ${right}, `+
-                    `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
+                    return new TypedInput(`(yield* runtime.ext_gceOOP._binaryOperator(thread, ${left}, ${right}, `+
+                        `${leftMethod}, ${rightMethod}, ${quote(node.kind)}))`, TYPE_UNKNOWN)
 
-            case "op.equals":
-            case "op.notequal":
-            case "op.greater":
-            case "op.gtorequal":
-            case "op.less":
-            case "op.ltorequal":
-                left = this.descendInput(node.left)
-                right = this.descendInput(node.right)
-                if      (node.kind === "op.equals") leftMethod = "equals"
-                else if (node.kind === "op.notequal") leftMethod = "not equals"
-                else if (node.kind === "op.greater") leftMethod = "greater than"
-                else if (node.kind === "op.gtorequal") leftMethod = "greater or equal"
-                else if (node.kind === "op.less") leftMethod = "less than"
-                else if (node.kind === "op.ltorequal") leftMethod = "less or equal"
-                // Python uses reflected operators: a < b tries b > a as fallback
-                rightMethod = {
-                    "equals": "equals",
-                    "not equals": "not equals",
-                    "greater than": "less than",
-                    "greater or equal": "less or equal",
-                    "less than": "greater than",
-                    "less or equal": "greater or equal",
-                }[leftMethod]
-                // I cannot really use optimizations here
-                return new TypedInput(`(yield* runtime.ext_gceOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
-                    `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
+                case "op.equals":
+                case "op.notequal":
+                case "op.greater":
+                case "op.gtorequal":
+                case "op.less":
+                case "op.ltorequal":
+                    left = this.descendInput(node.left)
+                    right = this.descendInput(node.right)
+                    if      (node.kind === "op.equals") leftMethod = "equals"
+                    else if (node.kind === "op.notequal") leftMethod = "not equals"
+                    else if (node.kind === "op.greater") leftMethod = "greater than"
+                    else if (node.kind === "op.gtorequal") leftMethod = "greater or equal"
+                    else if (node.kind === "op.less") leftMethod = "less than"
+                    else if (node.kind === "op.ltorequal") leftMethod = "less or equal"
+                    // Python uses reflected operators: a < b tries b > a as fallback
+                    rightMethod = {
+                        "equals": "equals",
+                        "not equals": "not equals",
+                        "greater than": "less than",
+                        "greater or equal": "less or equal",
+                        "less than": "greater than",
+                        "less or equal": "greater or equal",
+                    }[leftMethod]
+                    // I cannot really use optimizations here
+                    return new TypedInput(`(yield* runtime.ext_gceOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
+                        `${quote(leftMethod)}, ${quote(rightMethod)}, ${quote(node.kind)}))`, TYPE_BOOLEAN)
+            }
+            return oldDescendJSGenInput.call(this, node, visualReport)
         }
-        return oldDescendJSGenInput.call(this, node, visualReport)
+        JSGenerator.prototype.descendInput.isGceOOPModified = true
     }
 
-    // Wrap Runtime._convertBlockForScratchBlocks to implement hover tooltips
-    const oldConvertBlock = Scratch.vm.runtime._convertBlockForScratchBlocks.bind(Scratch.vm.runtime);
 
-    /**
-     * @param {Object} blockInfo
-     * @param {Object} categoryInfo
-     */
-    Scratch.vm.runtime._convertBlockForScratchBlocks = function(blockInfo, categoryInfo) {
-        const result = oldConvertBlock(blockInfo, categoryInfo);
-        if (blockInfo.tooltip) {
-            result.json.tooltip = blockInfo.tooltip
+    // Wrap Runtime._convertBlockForScratchBlocks to implement hover tooltips
+    const oldConvertBlock = runtime._convertBlockForScratchBlocks.bind(runtime);
+
+    if (!oldConvertBlock.isGceOOPModified) {
+        /**
+         * @param {Object} blockInfo
+         * @param {Object} categoryInfo
+         */
+        runtime._convertBlockForScratchBlocks = function(blockInfo, categoryInfo) {
+            const result = oldConvertBlock(blockInfo, categoryInfo);
+            if (blockInfo.tooltip) {
+                result.json.tooltip = blockInfo.tooltip
+            }
+            return result;
         }
-        return result;
+        runtime._convertBlockForScratchBlocks.isGceOOPModified = true
     }
 }
 
@@ -1188,16 +1203,6 @@ class Cast extends Scratch.Cast {
 *                            Dependencies and Value Types                           *
 ************************************************************************************/
 
-if (isRuntimeEnv &&!Scratch.vm.jwArray) Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
-if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
-    Scratch.vm.extensionManager.loadExtensionURL(
-        "http://localhost:5173/extensions/gceFuncsScopes.js",
-    )
-}
-if (isRuntimeEnv &&!Scratch.vm.dogeiscutObject) Scratch.vm.extensionManager.loadExtensionURL(
-    "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
-)
-
 const jwArrayStub = {
     Type: null,
     Block: {
@@ -1911,11 +1916,21 @@ class GCEOOPBlocks {
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
-                makeLabel("Missing Functions & Scopes Extension?"),
+                makeLabel("Missing Extensions?"),
                 { // BUTTON
                     blockType: BlockType.BUTTON,
                     opcode: "addFuncsScopesExtension",
                     text: "Add Functions & Scopes Extension"
+                },
+                { // BUTTON
+                    blockType: BlockType.BUTTON,
+                    opcode: "addArrayExtension",
+                    text: "Add Array Extension"
+                },
+                { // BUTTON
+                    blockType: BlockType.BUTTON,
+                    opcode: "addObjectExtension",
+                    text: "Add Object Extension"
                 },
                 {
                     ...commonBlocks.command,
@@ -2630,6 +2645,10 @@ class GCEOOPBlocks {
 
     setup() {
         if (!isRuntimeEnv) return
+        
+        this.addFuncsScopesExtension()
+        this.addArrayExtension()
+        this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
         commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
@@ -2653,6 +2672,20 @@ class GCEOOPBlocks {
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
             Scratch.vm.extensionManager.loadExtensionURL(
                 "http://localhost:5173/extensions/gceFuncsScopes.js",
+            )
+        }
+    }
+    
+    addArrayExtension() {
+        if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("jwArray")) {
+            Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
+        }
+    }
+
+    addObjectExtension() {
+        if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("dogeiscutObject")) {
+            Scratch.vm.extensionManager.loadExtensionURL(
+                "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"
             )
         }
     }
@@ -3126,8 +3159,8 @@ const extensionClassInstance = new GCEOOPBlocks()
 extensionClassInstance.setup()
 Scratch.extensions.register(extensionClassInstance)
 if (isRuntimeEnv) {
-    Scratch.vm.runtime.registerCompiledExtensionBlocks("gceOOP", extensionClassInstance.getCompileInfo(true, false))
-    Scratch.vm.runtime.registerCompiledExtensionBlocks("gceFuncsScopes", extensionClassInstance.getCompileInfo(false, true))
+    runtime.registerCompiledExtensionBlocks("gceOOP", extensionClassInstance.getCompileInfo(true, false))
+    runtime.registerCompiledExtensionBlocks("gceFuncsScopes", extensionClassInstance.getCompileInfo(false, true))
 }
 if (!isRuntimeEnv) {
     console.log("Imported OOP extension in non-runtime environment")

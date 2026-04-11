@@ -425,7 +425,7 @@ class GCEFuncsScopesBlocks {
         // Acess actual implementation at runtime
         return (function bridgeToOOPExtension(...args) {
             if (!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
-                throw new Error("The Functions & Scopes Extension requires the OOP Extension to work.")
+                throw new Error(`The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.`)
             }
             let func
             try {
