@@ -1,15 +1,15 @@
 from __future__ import annotations
-from gceutils import grepr_dataclass
+from gceutils import grepr_dataclass, enforce_argument_types
 from typing import Any
 import pmp_manip as p
+
+INPUT_COMPATIBLE_T = list[p.SRBlock] | p.SRBlock | str | bool | p.SRDropdownValue
 
 
 @grepr_dataclass()
 class InputValue:
-    value: list[p.SRBlock] | p.SRBlock | str | bool | p.SRDropdownValue
+    value: INPUT_COMPATIBLE_T
 
-
-    # TODO: add copy?
     def as_type[_T: p.SRInputValue](self, input_type: type[_T]) -> _T:
         match input_type:
             case p.SRBlockAndTextInputValue:
@@ -52,13 +52,12 @@ class InputValue:
             case _:
                 raise ValueError()
 
-    # TODO: remove temporary
+    @enforce_argument_types
     @staticmethod
-    def try_as_type[_T: p.SRInputValue](value: InputValue | Any, input_type: type[_T]) -> _T | Any:
-        if (not isinstance(value, InputValue)) and isinstance(value, (list, p.SRBlock, str, bool, p.SRDropdownValue)):
-            value = InputValue(value)
-
-        if isinstance(value, InputValue):
+    def try_as_input[_T: p.SRInputValue](value: INPUT_COMPATIBLE_T | InputValue | Any, input_type: type[_T]) -> _T | Any:
+        if isinstance(value, (list, p.SRBlock, str, bool, p.SRDropdownValue)):
+            return InputValue(value).as_type(input_type)
+        elif isinstance(value, InputValue):
             return value.as_type(input_type)
         else:
             return value
