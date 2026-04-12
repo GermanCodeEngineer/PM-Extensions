@@ -374,7 +374,7 @@ class TestRunner {
         return info
     }
 
-    /** @returns {{ir: Object<string, Function>, js: Object<string, Function>}} */
+    /** @returns {Object} */
     getCompileInfo() {
         const EXTENSION_PREFIX = "runtime.ext_gceTestRunner"
 

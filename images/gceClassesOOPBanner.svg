@@ -11,7 +11,6 @@ style="fill:#428af5ff;stroke:#2d5fa8;stroke-width:32px;fill-opacity:1;stroke-opa
     <path
       d="m -32.5 0 l 22.5 -27.5 l 6 3 l -18.5 24.5 l 18.5 24.5 l -6 3 z m 65 0 l -22.5 -27.5 l -6 3 l 18.5 24.5 l -18.5 24.5 l 6 3 z"
       style="fill:#ffffff"
-      d="m 17.5 50 l 22.5 -27.5 l 6 3 l -18.5 24.5 l 18.5 24.5 l -6 3 z m 65 0 l -22.5 -27.5 l -6 3 l 18.5 24.5 l -18.5 24.5 l 6 3 z"
-      style="fill:#ffffff" />
+    />
   </g>
 </svg>
