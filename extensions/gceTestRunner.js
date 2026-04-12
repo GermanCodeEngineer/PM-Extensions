@@ -1,6 +1,23 @@
+// Name: Test Runner
+// ID: gceTestRunner
+// Description: A testing framework for PenguinMod: Test that blocks behaves as expected. Provides good error messages and error traceback.
+// By: GermanCodeEngineer <https://github.com/GermanCodeEngineer/>
+// License: MIT
+// Made for PenguinMod
+
 (/** @param {ScratchObject} Scratch */ (Scratch) => {
-const {BlockType, ArgumentType, Cast} = Scratch
+"use strict"
+
+/**
+ * Allow importing this file in a non-Scratch testing environment.
+ * When the extension is imported in PenguinMod this is always true
+ */
 const isRuntimeEnv = !Scratch.extensions.isTestingEnv
+if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
+    throw new Error("Test Runner Extension must run unsandboxed.")
+}
+
+const {BlockType, ArgumentType, Cast} = Scratch
 
 /**
  * @param {string} s
@@ -77,32 +94,64 @@ class TypeChecker {
         return value instanceof vmExtension.Type
     }
 
-    static _stringTypeof(value) {
+    // There are three date extensions: jwklong and two by dde
+    static _isDdeDate(value) {
+        if (runtime.ext_ddeDateFormat) {
+            try {
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
+                if (value instanceof dateType) return true
+            } catch {}
+        }
+        return false
+    }
+
+    static _isDdeDateV2(value) {
+        if (runtime.ext_ddeDateFormatV2) {
+            try {
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
+                if (value instanceof dateType) return true
+            } catch {}
+        }
+        return false
+    }
+
+    static stringTypeof(value) {
         if (value === undefined) return "JavaScript Undefined"
         if (value === null) return "JavaScript Null"
         if (typeof value === "boolean") return "Boolean"
         if (typeof value === "number") return "Number"
         if (typeof value === "string") return "String"
 
-        if (TypeChecker._isVMType(value, "jwArray")) return "Array"
-        if (TypeChecker._isVMType(value, "dogeiscutObject")) return "Object"
-        if (TypeChecker._isVMType(value, "jwDate")) return "Date"
-        if (TypeChecker._isVMType(value, "dogeiscutSet")) return "Set"
-        if (TypeChecker._isVMType(value, "jwLambda")) return "Lambda"
-        if (TypeChecker._isVMType(value, "jwColor")) return "Color"
-        if (TypeChecker._isVMType(value, "jwNum")) return "Unlimited Number"
-        if (TypeChecker._isVMType(value, "jwTargets")) return "Target"
-        if (TypeChecker._isVMType(value, "jwXML")) return "XML"
+        /*
+         * All custom types one can get from a reporter in PM
+         * (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
+         * - Array
+         * - Object
+         * - Date
+         * - Set
+         * - Lambda
+         * - Color
+         * - UnlimitedNum (really Num, to avoid confusion)
+         * - Target
+         * - XML
+         */
+        if (TypeChecker._isVMType(value, "jwArray")) return "Array (jwklong)"
+        if (TypeChecker._isVMType(value, "dogeiscutObject")) return "Object (dogeiscut)"
+        if (TypeChecker._isVMType(value, "jwDate")) return "Date (jwklong)"
+        if (TypeChecker._isDdeDate(value)) return "Date (old by dde)"
+        if (TypeChecker._isDdeDateV2(value)) return "Date (new by dde)"
+        if (TypeChecker._isVMType(value, "dogeiscutSet")) return "Set (dogeiscut)"
+        if (TypeChecker._isVMType(value, "jwLambda")) return "Lambda (jwklong)"
+        if (TypeChecker._isVMType(value, "jwColor")) return "Color (jwklong)"
+        if (TypeChecker._isVMType(value, "jwNum")) return "Unlimited Number (jwklong)"
+        if (TypeChecker._isVMType(value, "jwTargets")) return "Target (jwklong)"
+        if (TypeChecker._isVMType(value, "jwXML")) return "XML (jwklong)"
 
         if (typeof value === "bigint") return "JavaScript BigInt"
         if (typeof value === "symbol") return "JavaScript Symbol"
         if (typeof value === "function") return "JavaScript Function"
-        if (typeof value === "object") return "JavaScript Object"
-        return "Unknown"
-    }
-
-    static string_typeof(value) {
-        return TypeChecker._stringTypeof(value)
+        if (typeof value === "object") return "JavaScript Object (generic)"
+        return "Unknown (very rare)"
     }
 }
 
@@ -116,19 +165,35 @@ class TestRunner {
 
     /** @returns {Object} */
     getInfo () {
+        const commonArguments = {
+            boolean: {
+                type: ArgumentType.BOOLEAN,
+            },
+            errorMessage: {
+                type: ArgumentType.STRING,
+                defaultValue: "test failed"
+            },
+            allowAnything: {
+                type: ArgumentType.STRING,
+                exemptFromNormalization: true,
+            },
+        }
+
         const info = {
             id: 'gceTestRunner',
             name: 'Test Runner',
             color1: '#4a9e6b',
             color2: '#3d8a5e',
             color3: '#2e7050',
+            menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0YTllNmI7IHN0cm9rZTojMmU3MDUwOyBzdHJva2Utd2lkdGg6MnB4OyBmaWxsLW9wYWNpdHk6MTsgc3Ryb2tlLW9wYWNpdHk6MTsgcGFpbnQtb3JkZXI6c3Ryb2tlIiAvPgogIDxwYXRoCiAgICBkPSJNIDcuNSAyLjc1IEggMTIuNSBMIDEyIDMuNzUgViA3Ljc1IEwgMTUuNSAxNS43NSBIIDQuNSBMIDggNy43NSBWIDMuNzUgTCA3LjUgMi43NSBaIE0gOSAzLjI1IEggMTEuMzc1IEwgMTEgMy44NzUgViA4LjM3NSBMIDE0IDE0Ljg3NSBIIDYgTCA5IDguMzc1IFYgMy44NzUgTCA4LjYyNSAzLjI1IFoiCiAgICBzdHlsZT0iZmlsbDojZmZmZmZmOyBmaWxsLXJ1bGU6ZXZlbm9kZCIgLz4KPC9zdmc+Cg==",
             blocks: [
                 {
                     opcode: 'testScope',
                     blockType: BlockType.CONDITIONAL,
                     text: 'test scope named [NAME]',
+                    tooltip: 'Runs the enclosed blocks and properly reports any errors with a scopes traceback path.',
                     arguments: {
-                        NAME: { type: ArgumentType.STRING, defaultValue: 'scope name' }
+                        NAME: { type: ArgumentType.STRING, defaultValue: 'test for my custom block' }
                     }
                 },
                 '---',
@@ -136,34 +201,38 @@ class TestRunner {
                     opcode: 'assert',
                     blockType: BlockType.COMMAND,
                     text: 'assert [CONDITION]',
+                    tooltip: 'Fails when the condition is false.',
                     arguments: {
-                        CONDITION: { type: ArgumentType.BOOLEAN }
+                        CONDITION: commonArguments.boolean,
                     }
                 },
                 {
                     opcode: 'assertNot',
                     blockType: BlockType.COMMAND,
                     text: 'assert not [CONDITION]',
+                    tooltip: 'Fails when the condition is true.',
                     arguments: {
-                        CONDITION: { type: ArgumentType.BOOLEAN }
+                        CONDITION: commonArguments.boolean,
                     }
                 },
                 {
                     opcode: 'assertMsg',
                     blockType: BlockType.COMMAND,
                     text: 'assert [CONDITION] message [MSG]',
+                    tooltip: 'Fails when the condition is false and adds the message in the thrown error.',
                     arguments: {
-                        CONDITION: { type: ArgumentType.BOOLEAN },
-                        MSG: { type: ArgumentType.STRING, defaultValue: 'assertion failed' }
+                        CONDITION: commonArguments.boolean,
+                        MSG: commonArguments.errorMessage,
                     }
                 },
                 {
                     opcode: 'assertNotMsg',
                     blockType: BlockType.COMMAND,
                     text: 'assert not [CONDITION] message [MSG]',
+                    tooltip: 'Fails when CONDITION is true and adds the message in the thrown error',
                     arguments: {
-                        CONDITION: { type: ArgumentType.BOOLEAN },
-                        MSG: { type: ArgumentType.STRING, defaultValue: 'assertion failed' }
+                        CONDITION: commonArguments.boolean,
+                        MSG: commonArguments.errorMessage
                     }
                 },
                 "---",
@@ -173,8 +242,8 @@ class TestRunner {
                     text: 'assert typed equality [A] = [B]',
                     tooltip: 'Compares A and B as raw values without converting to strings (strict typed check).',
                     arguments: {
-                        A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' }
+                        A: commonArguments.allowAnything,
+                        B: commonArguments.allowAnything,
                     }
                 },
                 {
@@ -183,8 +252,8 @@ class TestRunner {
                     text: 'assert typed inequality [A] != [B]',
                     tooltip: 'Compares A and B as raw values without converting to strings (strict typed check).',
                     arguments: {
-                        A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' }
+                        A: commonArguments.allowAnything,
+                        B: commonArguments.allowAnything,
                     }
                 },
                 {
@@ -193,8 +262,8 @@ class TestRunner {
                     text: 'assert string equality [A] = [B]',
                     tooltip: 'Converts both inputs to strings first, then checks for equal text.',
                     arguments: {
-                        A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' }
+                        A: commonArguments.allowAnything,
+                        B: commonArguments.allowAnything,
                     }
                 },
                 {
@@ -203,8 +272,8 @@ class TestRunner {
                     text: 'assert string inequality [A] != [B]',
                     tooltip: 'Converts both inputs to strings first, then checks they differ as text.',
                     arguments: {
-                        A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' }
+                        A: commonArguments.allowAnything,
+                        B: commonArguments.allowAnything,
                     }
                 },
                 {
@@ -213,8 +282,8 @@ class TestRunner {
                     text: 'assert text [TEXT] in value [VALUE]',
                     tooltip: 'Converts both inputs to strings and asserts value contains text.',
                     arguments: {
-                        TEXT: { type: ArgumentType.STRING, defaultValue: '' },
-                        VALUE: { type: ArgumentType.STRING, defaultValue: '' }
+                        TEXT: { type: ArgumentType.STRING, defaultValue: 'sit amet' },
+                        VALUE: { type: ArgumentType.STRING, defaultValue: 'Lorem ipsum dolor sit amet, consetetur' },
                     }
                 },
                 {
@@ -223,17 +292,17 @@ class TestRunner {
                     text: 'assert text [TEXT] not in value [VALUE]',
                     tooltip: 'Converts both inputs to strings and asserts value does not contain text.',
                     arguments: {
-                        TEXT: { type: ArgumentType.STRING, defaultValue: '' },
-                        VALUE: { type: ArgumentType.STRING, defaultValue: '' }
+                        TEXT: { type: ArgumentType.STRING, defaultValue: 'hello' },
+                        VALUE: { type: ArgumentType.STRING, defaultValue: 'hello world' }
                     }
                 },
                 {
                     opcode: 'assertType',
                     blockType: BlockType.COMMAND,
                     text: 'assert type of [VALUE] is [EXPECTED]',
-                    tooltip: 'Checks the runtime type name of VALUE against the selected expected type.',
+                    tooltip: 'Checks the value against types from common extensions and defaults to JavaScript base types.',
                     arguments: {
-                        VALUE: { type: ArgumentType.STRING, defaultValue: '' },
+                        VALUE: commonArguments.allowAnything,
                         EXPECTED: { type: ArgumentType.STRING, menu: 'expectedType' }
                     }
                 },
@@ -243,14 +312,16 @@ class TestRunner {
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
                     text: 'assert throws error',
+                    tooltip: 'Runs enclosed blocks and fails unless an error is thrown.',
                 },
                 {
                     opcode: 'assertThrowsContains',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
                     text: 'assert throws error containing [MSG]',
+                    tooltip: 'Runs enclosed blocks and fails unless an error is thrown and it\'s message contains the text.',
                     arguments: {
-                        MSG: { type: ArgumentType.STRING, defaultValue: '' }
+                        MSG: commonArguments.errorMessage,
                     }
                 },
                 {
@@ -258,15 +329,16 @@ class TestRunner {
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
                     text: 'assert does not throw error',
-                    arguments: {}
+                    tooltip: 'Runs enclosed blocks and fails if any error is thrown.',
                 },
                 "---",
                 {
                     opcode: 'failTest',
                     blockType: BlockType.COMMAND,
-                    text: 'fail test [MSG]',
+                    text: 'fail test with message [MSG]',
+                    tooltip: 'Throws a custom error to indicate a test failed. You can also use the "throw" block from controls of course.',
                     arguments: {
-                        MSG: { type: ArgumentType.STRING, defaultValue: 'test failed' }
+                        MSG: commonArguments.errorMessage,
                     }
                 },
             ],
@@ -274,25 +346,27 @@ class TestRunner {
                 expectedType: {
                     acceptReporters: false,
                     items: [
-                        'Boolean',
-                        'Number',
-                        'String',
-                        'Array',
-                        'Object',
-                        'Date',
-                        'Set',
-                        'Lambda',
-                        'Color',
-                        'Unlimited Number',
-                        'Target',
-                        'XML',
-                        'JavaScript Undefined',
-                        'JavaScript Null',
-                        'JavaScript BigInt',
-                        'JavaScript Symbol',
-                        'JavaScript Function',
-                        'JavaScript Object',
-                        'Unknown'
+                        "Boolean",
+                        "Number",
+                        "String",
+                        "Array (jwklong)",
+                        "Object (dogeiscut)",
+                        "Date (jwklong)",
+                        "Date (old by dde)",
+                        "Date (new by dde)",
+                        "Set (dogeiscut)",
+                        "Lambda (jwklong)",
+                        "Color (jwklong)",
+                        "Unlimited Number (jwklong)",
+                        "Target (jwklong)",
+                        "XML (jwklong)",
+                        "JavaScript Undefined",
+                        "JavaScript Null",
+                        "JavaScript BigInt",
+                        "JavaScript Symbol",
+                        "JavaScript Function",
+                        "JavaScript Object",
+                        "Unknown (Very Rare)"
                     ]
                 }
             }
@@ -464,7 +538,7 @@ class TestRunner {
     /** @param {Object} args */
     assertType ({VALUE, EXPECTED}) {
         const expectedType = Cast.toString(EXPECTED)
-        const actualType = this.TypeChecker.string_typeof(VALUE)
+        const actualType = this.TypeChecker.stringTypeof(VALUE)
         if (actualType !== expectedType) {
             throw new TestError(
                 `Assertion failed: expected type ${quote(expectedType)} but got ${quote(actualType)} for value ${quote(VALUE)}`

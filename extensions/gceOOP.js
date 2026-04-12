@@ -1063,7 +1063,7 @@ class TypeChecker {
      * @param {*} value
      * @returns {string}
      */
-    static string_typeof(value) {
+    static stringTypeof(value) {
         // My Types
         if (value instanceof BaseCallableType) return value.className // respect subclass names
         if (value instanceof ClassType) return "Class"
@@ -1156,7 +1156,7 @@ class Cast extends Scratch.Cast {
     static _toTypeFromValueOrVariable(value, thread, expectedType, expectedDescription) {
         if (value instanceof expectedType) return value
         if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
-            throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.string_typeof(value)}.`)
+            throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.stringTypeof(value)}.`)
         }
         const name = Cast.toString(value)
         let varValue
@@ -1166,7 +1166,7 @@ class Cast extends Scratch.Cast {
             throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
         }
         if (varValue instanceof expectedType) return varValue
-        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.string_typeof(varValue)}.`)
+        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.stringTypeof(varValue)}.`)
     }
 
     // Own
@@ -1944,7 +1944,7 @@ class GCEOOPBlocks {
                     tooltip: "Creates a new class, stores it in the chosen variable.",
                     arguments: {
                         NAME: commonArguments.classVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
+                        SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
@@ -1955,7 +1955,7 @@ class GCEOOPBlocks {
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
+                        SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
@@ -1966,7 +1966,7 @@ class GCEOOPBlocks {
                     branchCount: 1,
                     arguments: {
                         NAME: commonArguments.classVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
+                        SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
@@ -1978,7 +1978,7 @@ class GCEOOPBlocks {
                     arguments: {
                         NAME: {...commonArguments.classVarName, defaultValue: "MySubclass"},
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
+                        SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
@@ -1989,13 +1989,13 @@ class GCEOOPBlocks {
                       "This allows you to e.g. add methods to already defined classes.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
-                        SHADOW: {fillIn: "classBeingCreated"},
+                        SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
                     ...gceClass.Block,
-                    opcode: "classBeingCreated",
-                    text: "class being created",
+                    opcode: "currentClass",
+                    text: "current class",
                     tooltip: "Returns the class currently being defined.",
                     canDragDuplicate: true,
                     hideFromPalette: true,
@@ -2821,8 +2821,8 @@ class GCEOOPBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
-    classBeingCreated(args, util) {
-        return ThreadUtil.getCurrentStack(util.thread).getClsOrThrow("class being created")
+    currentClass(args, util) {
+        return ThreadUtil.getCurrentStack(util.thread).getClsOrThrow("current class")
     }
 
     // Use Classes
@@ -3031,7 +3031,7 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     typeofValue(args, util) {
-        return TypeChecker.string_typeof(args.VALUE)
+        return TypeChecker.stringTypeof(args.VALUE)
     }
 
     /**

@@ -57,7 +57,7 @@ In this extension, the shapes of reporters indicate the **type of value**, they 
 - Create classes and subclasses either **in a variable** or **in a reporter block**.
 - All class-related inputs accept either the **class value itself** or the **name of a variable** holding that class.
 - Re-open an existing class with **`on class`** to add more members later.
-- Access **`class being created`** while inside a class-definition context.
+- Access **`current class`** while inside a class-definition context.
 - Check subclass relationships and retrieve a class's **superclass**.
 
 ## Methods, Accessors, and Custom Behavior
@@ -138,21 +138,21 @@ bind [global v] variable [myVar] to current scope::#428af5
 
 ---
 ```scratch
-create class at var [MyClass] (class being created::#428af5) {
+create class at var [MyClass] (current class::#428af5) {
 }::#428af5
 ```
 - Creates a new class, stores it in the chosen variable.
 
 ---
 ```scratch
-create subclass at var [MySubclass] with superclass [MyClass] (class being created::#428af5) {
+create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
 }::#428af5
 ```
 - Creates a subclass with the given superclass, stores it in a variable.
 
 ---
 ```scratch
-create class named [MyClass] (class being created::#428af5) {
+create class named [MyClass] (current class::#428af5) {
 
 }::#428af5
 ```
@@ -161,7 +161,7 @@ create class named [MyClass] (class being created::#428af5) {
 
 ---
 ```scratch
-create subclass named [MySubclass] with superclass [MyClass] (class being created::#428af5) {
+create subclass named [MySubclass] with superclass [MyClass] (current class::#428af5) {
 }::#428af5
 ```
 - *Note: This block is really a reporter with a branch, but it can not be rendered accurately here.*
@@ -169,14 +169,14 @@ create subclass named [MySubclass] with superclass [MyClass] (class being create
 
 ---
 ```scratch
-on class [MyClass] (class being created::#428af5) {
+on class [MyClass] (current class::#428af5) {
 }::#428af5
 ```
 - Runs the enclosed blocks as if they were inside the selected class definition. This allows you to e.g. add methods to already defined classes.
 
 ---
 ```scratch
-(class being created::#428af5)
+(current class::#428af5)
 ```
 - Returns the class currently being defined.
 
