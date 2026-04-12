@@ -3297,6 +3297,7 @@ if (!isRuntimeEnv) {
  *
  * + HIGH PRIORITY
  * + - finish new scope sytem
+ * + - ~ to fix custom blocks and broadcasts problem, see new thread block in livetests
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
  * + - ~ add inner example blocks
  *

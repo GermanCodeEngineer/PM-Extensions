@@ -1,13 +1,122 @@
-((Scratch) => {
+(/** @param {ScratchObject} Scratch */ (Scratch) => {
 const {BlockType, ArgumentType, Cast} = Scratch
+const isRuntimeEnv = !Scratch.extensions.isTestingEnv
+
+/**
+ * @param {string} s
+ * @returns {string}
+ */
+function quote(s) {
+    s = Cast.toString(s)
+    s = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
+    return `'${s}'`
+}
+
+class TestError extends Error {
+    /**
+     * @param {string} message
+     * @param {{cause?: *, actualMessage?: ?string, scopePrefix?: ?string}} [options]
+     */
+    constructor (message, options = {}) {
+        super(message, options)
+        this.name = "TestError"
+        // Full message like a normal error has
+        this.fullMessage = message
+        // The actual error message (excludes prefixes)
+        this.actualMessage = options.actualMessage || null
+        // The scope prefixes (e.g., 'test scope "scope name":')
+        this.scopePrefix = options.scopePrefix || null
+    }
+
+    /**
+     * @param {*} error
+     * @returns {string}
+     */
+    static getActualErrorMessage(error) {
+        if (error instanceof TestError && error.actualMessage) {
+            return error.actualMessage
+        }
+        if (error instanceof Error) {
+            return error.message
+        }
+        return String(error)
+    }
+
+    /**
+     * @param {*} error
+     * @param {string} substring
+     * @returns {boolean}
+     */
+    static errorContainsMsg(error, substring) {
+        if (!substring) return true
+        const message = TestError.getActualErrorMessage(error)
+        return message.toLowerCase().includes(substring.toLowerCase())
+    }
+
+    /**
+     * @param {?string} fallback
+     * @param {*} cause
+     * @returns {?string}
+     */
+    static preserveActualMessage(fallback, cause) {
+        if (fallback !== null && fallback !== undefined) {
+            return fallback
+        }
+        if (cause instanceof TestError && cause.actualMessage) {
+            return cause.actualMessage
+        }
+        return null
+    }
+}
+
+class TypeChecker {
+    static _isVMType(value, vmExtensionKey) {
+        if (!isRuntimeEnv) return false
+        const vmExtension = Scratch.vm[vmExtensionKey]
+        if (!vmExtension || !vmExtension.Type) return false
+        return value instanceof vmExtension.Type
+    }
+
+    static _stringTypeof(value) {
+        if (value === undefined) return "JavaScript Undefined"
+        if (value === null) return "JavaScript Null"
+        if (typeof value === "boolean") return "Boolean"
+        if (typeof value === "number") return "Number"
+        if (typeof value === "string") return "String"
+
+        if (TypeChecker._isVMType(value, "jwArray")) return "Array"
+        if (TypeChecker._isVMType(value, "dogeiscutObject")) return "Object"
+        if (TypeChecker._isVMType(value, "jwDate")) return "Date"
+        if (TypeChecker._isVMType(value, "dogeiscutSet")) return "Set"
+        if (TypeChecker._isVMType(value, "jwLambda")) return "Lambda"
+        if (TypeChecker._isVMType(value, "jwColor")) return "Color"
+        if (TypeChecker._isVMType(value, "jwNum")) return "Unlimited Number"
+        if (TypeChecker._isVMType(value, "jwTargets")) return "Target"
+        if (TypeChecker._isVMType(value, "jwXML")) return "XML"
+
+        if (typeof value === "bigint") return "JavaScript BigInt"
+        if (typeof value === "symbol") return "JavaScript Symbol"
+        if (typeof value === "function") return "JavaScript Function"
+        if (typeof value === "object") return "JavaScript Object"
+        return "Unknown"
+    }
+
+    static string_typeof(value) {
+        return TypeChecker._stringTypeof(value)
+    }
+}
 
 class TestRunner {
     constructor () {
         this._testScopes = []
+        this.quote = quote
+        this.TypeChecker = TypeChecker
+        this.TestError = TestError
     }
 
+    /** @returns {Object} */
     getInfo () {
-        return {
+        const info = {
             id: 'gceTestRunner',
             name: 'Test Runner',
             color1: '#4a9e6b',
@@ -19,7 +128,7 @@ class TestRunner {
                     blockType: BlockType.CONDITIONAL,
                     text: 'test scope named [NAME]',
                     arguments: {
-                        NAME: { type: ArgumentType.STRING, defaultValue: 'suite name' }
+                        NAME: { type: ArgumentType.STRING, defaultValue: 'scope name' }
                     }
                 },
                 '---',
@@ -59,41 +168,73 @@ class TestRunner {
                 },
                 "---",
                 {
-                    opcode: 'assertEqual',
+                    opcode: 'assertStrictEqual',
                     blockType: BlockType.COMMAND,
-                    text: 'assert [A] = [B]',
+                    text: 'assert typed equality [A] = [B]',
+                    tooltip: 'Compares A and B as raw values without converting to strings (strict typed check).',
                     arguments: {
                         A: { type: ArgumentType.STRING, defaultValue: '' },
                         B: { type: ArgumentType.STRING, defaultValue: '' }
                     }
                 },
                 {
-                    opcode: 'assertNotEqual',
+                    opcode: 'assertStrictNotEqual',
                     blockType: BlockType.COMMAND,
-                    text: 'assert [A] != [B]',
+                    text: 'assert typed inequality [A] != [B]',
+                    tooltip: 'Compares A and B as raw values without converting to strings (strict typed check).',
                     arguments: {
                         A: { type: ArgumentType.STRING, defaultValue: '' },
                         B: { type: ArgumentType.STRING, defaultValue: '' }
                     }
                 },
                 {
-                    opcode: 'assertEqualMsg',
+                    opcode: 'assertUnstrictEqual',
                     blockType: BlockType.COMMAND,
-                    text: 'assert [A] = [B] message [MSG]',
+                    text: 'assert string equality [A] = [B]',
+                    tooltip: 'Converts both inputs to strings first, then checks for equal text.',
                     arguments: {
                         A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' },
-                        MSG: { type: ArgumentType.STRING, defaultValue: 'assertion failed' }
+                        B: { type: ArgumentType.STRING, defaultValue: '' }
                     }
                 },
                 {
-                    opcode: 'assertNotEqualMsg',
+                    opcode: 'assertUnstrictNotEqual',
                     blockType: BlockType.COMMAND,
-                    text: 'assert [A] != [B] message [MSG]',
+                    text: 'assert string inequality [A] != [B]',
+                    tooltip: 'Converts both inputs to strings first, then checks they differ as text.',
                     arguments: {
                         A: { type: ArgumentType.STRING, defaultValue: '' },
-                        B: { type: ArgumentType.STRING, defaultValue: '' },
-                        MSG: { type: ArgumentType.STRING, defaultValue: 'assertion failed' }
+                        B: { type: ArgumentType.STRING, defaultValue: '' }
+                    }
+                },
+                {
+                    opcode: 'assertTextInValue',
+                    blockType: BlockType.COMMAND,
+                    text: 'assert text [TEXT] in value [VALUE]',
+                    tooltip: 'Converts both inputs to strings and asserts value contains text.',
+                    arguments: {
+                        TEXT: { type: ArgumentType.STRING, defaultValue: '' },
+                        VALUE: { type: ArgumentType.STRING, defaultValue: '' }
+                    }
+                },
+                {
+                    opcode: 'assertTextNotInValue',
+                    blockType: BlockType.COMMAND,
+                    text: 'assert text [TEXT] not in value [VALUE]',
+                    tooltip: 'Converts both inputs to strings and asserts value does not contain text.',
+                    arguments: {
+                        TEXT: { type: ArgumentType.STRING, defaultValue: '' },
+                        VALUE: { type: ArgumentType.STRING, defaultValue: '' }
+                    }
+                },
+                {
+                    opcode: 'assertType',
+                    blockType: BlockType.COMMAND,
+                    text: 'assert type of [VALUE] is [EXPECTED]',
+                    tooltip: 'Checks the runtime type name of VALUE against the selected expected type.',
+                    arguments: {
+                        VALUE: { type: ArgumentType.STRING, defaultValue: '' },
+                        EXPECTED: { type: ArgumentType.STRING, menu: 'expectedType' }
                     }
                 },
                 "---",
@@ -101,13 +242,13 @@ class TestRunner {
                     opcode: 'assertThrows',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
-                    text: 'assert throws',
+                    text: 'assert throws error',
                 },
                 {
                     opcode: 'assertThrowsContains',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
-                    text: 'assert throws [MSG]',
+                    text: 'assert throws error containing [MSG]',
                     arguments: {
                         MSG: { type: ArgumentType.STRING, defaultValue: '' }
                     }
@@ -116,7 +257,7 @@ class TestRunner {
                     opcode: 'assertDoesNotThrow',
                     blockType: BlockType.CONDITIONAL,
                     branchCount: 1,
-                    text: 'assert does not throw',
+                    text: 'assert does not throw error',
                     arguments: {}
                 },
                 "---",
@@ -128,144 +269,46 @@ class TestRunner {
                         MSG: { type: ArgumentType.STRING, defaultValue: 'test failed' }
                     }
                 },
-            ]
-        }
-    }
-
-    testScope (args, util) {
-        this._testScopes.push(Cast.toString(args.NAME))
-        
-        try {
-            try {
-                util.startBranch(1, false)
-            } catch (err) {
-                throw this._errorWithCause(
-                    `TestScope "${Cast.toString(args.NAME)}": ${this._errorMessage(err)}`,
-                    err
-                )
+            ],
+            menus: {
+                expectedType: {
+                    acceptReporters: false,
+                    items: [
+                        'Boolean',
+                        'Number',
+                        'String',
+                        'Array',
+                        'Object',
+                        'Date',
+                        'Set',
+                        'Lambda',
+                        'Color',
+                        'Unlimited Number',
+                        'Target',
+                        'XML',
+                        'JavaScript Undefined',
+                        'JavaScript Null',
+                        'JavaScript BigInt',
+                        'JavaScript Symbol',
+                        'JavaScript Function',
+                        'JavaScript Object',
+                        'Unknown'
+                    ]
+                }
             }
-        } finally {
-            this._testScopes.pop()
         }
+        return info
     }
 
-    assert (args) {
-        if (!Cast.toBoolean(args.CONDITION)) {
-            throw new Error("BoolAssertion: condition is unexpectedly false")
-        }
-    }
-
-    assertNot (args) {
-        if (Cast.toBoolean(args.CONDITION)) {
-            throw new Error("BoolAssertion: condition is unexpectedly true")
-        }
-    }
-
-    assertMsg (args) {
-        if (!Cast.toBoolean(args.CONDITION)) {
-            throw new Error(`BoolAssertion: condition is unexpectedly false: ${Cast.toString(args.MSG)}`)
-        }
-    }
-
-    assertNotMsg (args) {
-        if (Cast.toBoolean(args.CONDITION)) {
-            throw new Error(`BoolAssertion: condition is unexpectedly true: ${Cast.toString(args.MSG)}`)
-        }
-    }
-
-    assertEqual (args) {
-        const a = Cast.toString(args.A)
-        const b = Cast.toString(args.B)
-        if (a !== b) {
-            throw new Error(`ComparisonAssertion: expected "${b}" but got "${a}"`)
-        }
-    }
-
-    assertNotEqual (args) {
-        const a = Cast.toString(args.A)
-        const b = Cast.toString(args.B)
-        if (a === b) {
-            throw new Error(`ComparisonAssertion: expected not, but still got: "${a}"`)
-        }
-    }
-
-    assertEqualMsg (args) {
-        const a = Cast.toString(args.A)
-        const b = Cast.toString(args.B)
-        if (a !== b) {
-            throw new Error(`ComparisonAssertion: expected "${b}" but got "${a}": ${Cast.toString(args.MSG)}`)
-        }
-    }
-
-    assertNotEqualMsg (args) {
-        const a = Cast.toString(args.A)
-        const b = Cast.toString(args.B)
-        if (a === b) {
-            throw new Error(`ComparisonAssertion: expected not, but still got: "${a}": ${Cast.toString(args.MSG)}`)
-        }
-    }
-
-    assertThrows(args, util) {
-        let error = undefined
-        try {
-            util.startBranch(1, false)
-        } catch (err) {
-            error = err
-        }
-        if (!error) {
-            throw new Error(`InvalidThrow: Expected error, but no error was thrown`)
-        }
-    }
-
-    assertThrowsContains(args, util) {
-        let error = undefined
-        try {
-            util.startBranch(1, false)
-        } catch (err) {
-            error = err
-        }
-        const expectedMsg = Cast.toString(args.MSG)
-        const actualMsg = this._errorMessage(error)
-        if (expectedMsg && !actualMsg.toLowerCase().includes(expectedMsg.toLowerCase())) {
-            throw this._errorWithCause(
-                `InvalidThrow: Expected error containing "${expectedMsg}" but got: "${actualMsg}"`,
-                error
-            )
-        }
-    }
-
-    assertDoesNotThrow(args, util) {
-        let error = undefined
-        try {
-            util.startBranch(1, false)
-        } catch (err) {
-            error = err
-        }
-        if (error) {
-            throw this._errorWithCause(
-                `InvalidThrow: Expected no error, but got: ${this._errorMessage(error)}`,
-                error
-            )
-        }
-    }
-
-    failTest(args) {
-        throw new Error(`FailTest: ${Cast.toString(args.MSG)}`)
-    }
-
-
-    _errorMessage (error) {
-        if (error instanceof Error) return error.message
-        return String(error)
-    }
-
-    _errorWithCause (message, cause) {
-        return new Error(message, { cause })
-    }
-
+    /** @returns {{ir: Object<string, Function>, js: Object<string, Function>}} */
     getCompileInfo() {
         const EXTENSION_PREFIX = "runtime.ext_gceTestRunner"
 
+        /**
+         * @param {string} kind
+         * @param {Array<string>} inputs
+         * @returns {(generator: *, block: *) => Object<string, *>}
+         */
         const createIRGenerator = (kind, inputs) => ((generator, block) => {
             const result = { kind }
             inputs.forEach(inputName => {
@@ -276,141 +319,259 @@ class TestRunner {
             return result
         })
 
+        /**
+         * @param {*} compiler
+         * @param {*} substack
+         * @param {*} imports
+         * @returns {void}
+         */
         const addSubstackCode = (compiler, substack, imports) => {
             compiler.descendStack(substack, new imports.Frame(false, undefined, true))
         }
 
         const irInfo = {
-            testScope:           createIRGenerator("stack", ["NAME", "SUBSTACK"]),
-            assert:              createIRGenerator("stack", ["CONDITION"]),
-            assertNot:           createIRGenerator("stack", ["CONDITION"]),
-            assertMsg:           createIRGenerator("stack", ["CONDITION", "MSG"]),
-            assertNotMsg:        createIRGenerator("stack", ["CONDITION", "MSG"]),
-            assertEqual:         createIRGenerator("stack", ["A", "B"]),
-            assertNotEqual:      createIRGenerator("stack", ["A", "B"]),
-            assertEqualMsg:      createIRGenerator("stack", ["A", "B", "MSG"]),
-            assertNotEqualMsg:   createIRGenerator("stack", ["A", "B", "MSG"]),
-            assertThrows:        createIRGenerator("stack", ["SUBSTACK"]),
+            testScope:            createIRGenerator("stack", ["NAME", "SUBSTACK"]),
+            assertThrows:         createIRGenerator("stack", ["SUBSTACK"]),
             assertThrowsContains: createIRGenerator("stack", ["MSG", "SUBSTACK"]),
-            assertDoesNotThrow:  createIRGenerator("stack", ["SUBSTACK"]),
-            failTest:            createIRGenerator("stack", ["MSG"]),
+            assertDoesNotThrow:   createIRGenerator("stack", ["SUBSTACK"]),
         }
 
         const jsInfo = {
             testScope: (node, compiler, imports) => {
-                const nameCode = compiler.descendInput(node.NAME).asString()
-                compiler.source += `${EXTENSION_PREFIX}._testScopes.push(${nameCode})\n`
+                const nameLocal = compiler.localVariables.next()
+                const errLocal = compiler.localVariables.next()
+                compiler.source += `const ${nameLocal} = ${compiler.descendInput(node.NAME).asString()};\n`
+                compiler.source += `${EXTENSION_PREFIX}._testScopes.push(${nameLocal})\n`
                 compiler.source += `try {\ntry {\n`
                 addSubstackCode(compiler, node.SUBSTACK, imports)
-                compiler.source += `} catch (e) {\n`
-                compiler.source += `  throw ${EXTENSION_PREFIX}._errorWithCause(\`TestScope "\${${nameCode}}": \${${EXTENSION_PREFIX}._errorMessage(e)}\`, e);\n`
+                compiler.source += `} catch (${errLocal}) {\n`
+                compiler.source += `  throw ${EXTENSION_PREFIX}._wrapError(\`test scope \${${EXTENSION_PREFIX}.quote(${nameLocal})}:\`, ${errLocal});\n`
                 compiler.source += `}} finally {\n${EXTENSION_PREFIX}._testScopes.pop();\n}\n`
-            },
-            assert: (node, compiler) => {
-                const condCode = compiler.descendInput(node.CONDITION).asBoolean()
-                compiler.source += `if (!(${condCode})) throw new Error("BoolAssertion: condition is unexpectedly false");\n`
-            },
-            assertNot: (node, compiler) => {
-                const condCode = compiler.descendInput(node.CONDITION).asBoolean()
-                compiler.source += `if (${condCode}) throw new Error("BoolAssertion: condition is unexpectedly true");\n`
-            },
-            assertMsg: (node, compiler) => {
-                const condCode = compiler.descendInput(node.CONDITION).asBoolean()
-                const msgCode = compiler.descendInput(node.MSG).asString()
-                compiler.source += `if (!(${condCode})) throw new Error(\`BoolAssertion: condition is unexpectedly false: \${${msgCode}}\`);\n`
-            },
-            assertNotMsg: (node, compiler) => {
-                const condCode = compiler.descendInput(node.CONDITION).asBoolean()
-                const msgCode = compiler.descendInput(node.MSG).asString()
-                compiler.source += `if (${condCode}) throw new Error(\`BoolAssertion: condition is unexpectedly true: \${${msgCode}}\`);\n`
-            },
-            assertEqual: (node, compiler) => {
-                const aLocal = compiler.localVariables.next()
-                const bLocal = compiler.localVariables.next()
-                compiler.source += `const ${aLocal} = ${compiler.descendInput(node.A).asString()};\n`
-                compiler.source += `const ${bLocal} = ${compiler.descendInput(node.B).asString()};\n`
-                compiler.source += `if (${aLocal} !== ${bLocal}) throw new Error(\`ComparisonAssertion: expected "\${${bLocal}}" but got "\${${aLocal}}"\`);\n`
-            },
-            assertNotEqual: (node, compiler) => {
-                const aLocal = compiler.localVariables.next()
-                const bLocal = compiler.localVariables.next()
-                compiler.source += `const ${aLocal} = ${compiler.descendInput(node.A).asString()};\n`
-                compiler.source += `const ${bLocal} = ${compiler.descendInput(node.B).asString()};\n`
-                compiler.source += `if (${aLocal} === ${bLocal}) throw new Error(\`ComparisonAssertion: expected not, but still got: "\${${aLocal}}"\`);\n`
-            },
-            assertEqualMsg: (node, compiler) => {
-                const aLocal = compiler.localVariables.next()
-                const bLocal = compiler.localVariables.next()
-                compiler.source += `const ${aLocal} = ${compiler.descendInput(node.A).asString()};\n`
-                compiler.source += `const ${bLocal} = ${compiler.descendInput(node.B).asString()};\n`
-                const msgCode = compiler.descendInput(node.MSG).asString()
-                compiler.source += `if (${aLocal} !== ${bLocal}) throw new Error(\`ComparisonAssertion: expected "\${${bLocal}}" but got "\${${aLocal}}": \${${msgCode}}\`);\n`
-            },
-            assertNotEqualMsg: (node, compiler) => {
-                const aLocal = compiler.localVariables.next()
-                const bLocal = compiler.localVariables.next()
-                compiler.source += `const ${aLocal} = ${compiler.descendInput(node.A).asString()};\n`
-                compiler.source += `const ${bLocal} = ${compiler.descendInput(node.B).asString()};\n`
-                const msgCode = compiler.descendInput(node.MSG).asString()
-                compiler.source += `if (${aLocal} === ${bLocal}) throw new Error(\`ComparisonAssertion: expected not, but still got: "\${${aLocal}}": \${${msgCode}}\`);\n`
             },
             assertThrows: (node, compiler, imports) => {
                 const errLocal = compiler.localVariables.next()
-                compiler.source += `let ${errLocal} = undefined;\n`
+                compiler.source += `let ${errLocal};\n`
                 compiler.source += `try {\n`
                 addSubstackCode(compiler, node.SUBSTACK, imports)
-                compiler.source += `} catch (e) { ${errLocal} = e; }\n`
-                compiler.source += `if (!${errLocal}) throw new Error("InvalidThrow: Expected error, but no error was thrown");\n`
+                compiler.source += `} catch (${errLocal}) {}\n`
+                compiler.source += `if (!${errLocal}) throw new ${EXTENSION_PREFIX}.TestError("Expected exception but none was thrown");\n`
             },
             assertThrowsContains: (node, compiler, imports) => {
                 const errLocal = compiler.localVariables.next()
                 const expectedLocal = compiler.localVariables.next()
-                compiler.source += `let ${errLocal} = undefined;\n`
+                compiler.source += `let ${errLocal};\n`
                 compiler.source += `try {\n`
                 addSubstackCode(compiler, node.SUBSTACK, imports)
-                compiler.source += `} catch (e) { ${errLocal} = e; }\n`
+                compiler.source += `} catch (${errLocal}) {}\n`
                 compiler.source += `const ${expectedLocal} = ${compiler.descendInput(node.MSG).asString()};\n`
-                compiler.source += `if (${expectedLocal} && !${EXTENSION_PREFIX}._errorMessage(${errLocal}).toLowerCase().includes(${expectedLocal}.toLowerCase())) `+
-                    `throw ${EXTENSION_PREFIX}._errorWithCause(\`InvalidThrow: Expected error containing "\${${expectedLocal}}" but got: "\${${EXTENSION_PREFIX}._errorMessage(${errLocal})}"\`, ${errLocal});\n`
+                compiler.source += `if (!${errLocal}) throw new ${EXTENSION_PREFIX}.TestError("Expected exception but none was thrown");\n`
+                compiler.source += `if (!${EXTENSION_PREFIX}.TestError.errorContainsMsg(${errLocal}, ${expectedLocal})) `+
+                    `throw ${EXTENSION_PREFIX}._errorWithCause(\`Expected exception containing \${${EXTENSION_PREFIX}.quote(${expectedLocal})} but got \${${EXTENSION_PREFIX}.quote(${EXTENSION_PREFIX}.TestError.getActualErrorMessage(${errLocal}))}\`, ${errLocal});\n`
             },
             assertDoesNotThrow: (node, compiler, imports) => {
                 const errLocal = compiler.localVariables.next()
-                compiler.source += `let ${errLocal} = undefined;\n`
+                compiler.source += `let ${errLocal};\n`
                 compiler.source += `try {\n`
                 addSubstackCode(compiler, node.SUBSTACK, imports)
-                compiler.source += `} catch (e) { ${errLocal} = e; }\n`
-                compiler.source += `if (${errLocal}) throw ${EXTENSION_PREFIX}._errorWithCause(\`InvalidThrow: Expected no error, but got: \${${EXTENSION_PREFIX}._errorMessage(${errLocal})}\`, ${errLocal});\n`
+                compiler.source += `} catch (${errLocal}) {}\n`
+                compiler.source += `if (${errLocal}) throw ${EXTENSION_PREFIX}._errorWithCause(\`Unexpected exception: \${${EXTENSION_PREFIX}._errorMessage(${errLocal})}\`, ${errLocal});\n`
             },
             failTest: (node, compiler) => {
-                compiler.source += `throw new Error(\`FailTest: \${${compiler.descendInput(node.MSG).asString()}}\`);\n`
+                compiler.source += `throw new ${EXTENSION_PREFIX}.TestError(\`Test failed: \${${compiler.descendInput(node.MSG).asString()}}\`);\n`
             },
         }
 
         return { ir: irInfo, js: jsInfo }
     }
 
+    // Compiled-only blocks
+    testScope = this._isACompiledBlock
+    assertThrows = this._isACompiledBlock
+    assertThrowsContains = this._isACompiledBlock
+    assertDoesNotThrow = this._isACompiledBlock
+
+    _isACompiledBlock() {
+        throw new TestError(
+            "This block only works in compiled mode. " +
+            "Make sure the Test Runner extension is registered with compiled block support."
+        )
+    }
+
+    /** @param {Object} args */
+    assert ({CONDITION}) {
+        CONDITION = Cast.toBoolean(CONDITION)
+        if (!CONDITION) throw new TestError("Assertion failed: condition was false")
+    }
+
+    /** @param {Object} args */
+    assertNot ({CONDITION}) {
+        CONDITION = Cast.toBoolean(CONDITION)
+        if (CONDITION) throw new TestError("Assertion failed: condition was true")
+    }
+
+    /** @param {Object} args */
+    assertMsg ({CONDITION, MSG}) {
+        CONDITION = Cast.toBoolean(CONDITION)
+        MSG = Cast.toString(MSG)
+        if (!CONDITION) throw new TestError(`Assertion failed: condition was false: ${MSG}`)
+    }
+
+    /** @param {Object} args */
+    assertNotMsg ({CONDITION, MSG}) {
+        CONDITION = Cast.toBoolean(CONDITION)
+        MSG = Cast.toString(MSG)
+        if (CONDITION) throw new TestError(`Assertion failed: condition was true: ${MSG}`)
+    }
+
+    /** @param {Object} args */
+    assertStrictEqual ({A, B}) {
+        if (A !== B) throw new TestError(`Assertion failed: got ${this._valueWithType(A)}, expected ${this._valueWithType(B)}`)
+    }
+
+    /** @param {Object} args */
+    assertStrictNotEqual ({A, B}) {
+        if (A === B) throw new TestError(`Assertion failed: values unexpectedly equal: ${this._valueWithType(A)} and ${this._valueWithType(B)}`)
+    }
+
+    /** @param {Object} args */
+    assertUnstrictEqual ({A, B}) {
+        const aStr = Cast.toString(A)
+        const bStr = Cast.toString(B)
+        if (aStr !== bStr) throw new TestError(`Assertion failed: got ${quote(aStr)}, expected ${quote(bStr)}`)
+    }
+
+    /** @param {Object} args */
+    assertUnstrictNotEqual ({A, B}) {
+        const aStr = Cast.toString(A)
+        const bStr = Cast.toString(B)
+        if (aStr === bStr) throw new TestError(`Assertion failed: values unexpectedly equal: ${quote(aStr)}`)
+    }
+
+    /** @param {Object} args */
+    assertTextInValue ({TEXT, VALUE}) {
+        const textStr = Cast.toString(TEXT)
+        const valueStr = Cast.toString(VALUE)
+        if (!valueStr.includes(textStr)) throw new TestError(`Assertion failed: text ${quote(textStr)} not found in value ${quote(valueStr)}`)
+    }
+
+    /** @param {Object} args */
+    assertTextNotInValue ({TEXT, VALUE}) {
+        const textStr = Cast.toString(TEXT)
+        const valueStr = Cast.toString(VALUE)
+        if (valueStr.includes(textStr)) throw new TestError(`Assertion failed: text ${quote(textStr)} unexpectedly found in value ${quote(valueStr)}`)
+    }
+
+    /** @param {Object} args */
+    assertType ({VALUE, EXPECTED}) {
+        const expectedType = Cast.toString(EXPECTED)
+        const actualType = this.TypeChecker.string_typeof(VALUE)
+        if (actualType !== expectedType) {
+            throw new TestError(
+                `Assertion failed: expected type ${quote(expectedType)} but got ${quote(actualType)} for value ${quote(VALUE)}`
+            )
+        }
+    }
+
+    /** @param {Object} args */
+    failTest ({MSG}) {
+        throw new TestError(`Test failed: ${Cast.toString(MSG)}`)
+    }
+
+
+    
+    /**
+     * @param {*} error
+     * @returns {string}
+     */
+    _errorMessage (error) {
+        return this._formatErrorLines(error).join("\n")
+    }
+
+    /**
+     * @param {*} value
+     * @returns {string}
+     */
+    _typeLabel (value) {
+        if (value === null) return "null"
+        if (value === undefined) return "undefined"
+        const baseType = typeof value
+        const ctorName = value && value.constructor && value.constructor.name
+        return ctorName ? `${baseType} (${ctorName})` : baseType
+    }
+
+    /**
+     * @param {*} value
+     * @returns {string}
+     */
+    _valueWithType (value) {
+        return `${quote(value)} [${this._typeLabel(value)}]`
+    }
+
+    /**
+     * @param {string} message
+     * @param {*} cause
+     * @returns {TestError}
+     */
+    _wrapError (message, cause) {
+        const combinedMessage = [
+            message,
+            ...this._formatErrorLines(cause)
+        ].join("\n")
+        const innerActualMessage = TestError.preserveActualMessage(null, cause)
+        return this._errorWithCause(combinedMessage, cause, message, innerActualMessage)
+    }
+
+    /**
+     * @param {string} message
+     * @param {*} cause
+     * @param {?string} [scopePrefix]
+     * @param {?string} [actualMessage]
+     * @returns {TestError}
+     */
+    _errorWithCause (message, cause, scopePrefix = null, actualMessage = null) {
+        return new TestError(message, { 
+            cause,
+            scopePrefix,
+            actualMessage: TestError.preserveActualMessage(actualMessage, cause)
+        })
+    }
+
+    /**
+     * @param {*} error
+     * @returns {Array<string>}
+     */
     _formatErrorLines (error) {
         if (!(error instanceof Error)) return [String(error)]
-
-        const lines = [error.message]
-        let cause = error.cause
-        while (cause !== undefined) {
-            if (cause instanceof Error) {
-                lines.push(`caused by: ${cause.message}`)
-                cause = cause.cause
-            } else {
-                lines.push(`caused by: ${String(cause)}`)
-                break
-            }
-        }
-        return lines
+        return String(error.message).split("\n")
     }
 }
 
 const testRunnerInstance = new TestRunner()
-const isRuntimeEnv = !Scratch.extensions.isTestingEnv
+
+if (isRuntimeEnv) {
+    const runtime = Scratch.vm.runtime
+    const oldConvertBlock = runtime._convertBlockForScratchBlocks.bind(runtime)
+    if (!oldConvertBlock.tooltipImplementationAdded) {
+        /**
+         * @param {Object} blockInfo
+         * @param {Object} categoryInfo
+         * @returns {Object}
+         */
+        runtime._convertBlockForScratchBlocks = function (blockInfo, categoryInfo) {
+            const result = oldConvertBlock(blockInfo, categoryInfo)
+            if (blockInfo.tooltip) {
+                result.json.tooltip = blockInfo.tooltip
+            }
+            return result
+        }
+        runtime._convertBlockForScratchBlocks.tooltipImplementationAdded = true
+    }
+}
+
 Scratch.extensions.register(testRunnerInstance)
 if (isRuntimeEnv) {
-    Scratch.vm.runtime.registerCompiledExtensionBlocks("gceTestRunner", testRunnerInstance.getCompileInfo())
+    Scratch.vm.runtime.registerCompiledExtensionBlocks(
+        "gceTestRunner", testRunnerInstance.getCompileInfo(),
+    )
 }
 })(Scratch)
