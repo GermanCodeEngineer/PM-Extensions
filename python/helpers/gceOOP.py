@@ -18,8 +18,7 @@ class gceOOP:
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.class_being_created()),
-                    p.SREmbeddedBlockInputValue,
+                    InputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
@@ -40,8 +39,7 @@ class gceOOP:
                     superclass, p.SRBlockAndTextInputValue
                 ),
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.class_being_created()),
-                    p.SREmbeddedBlockInputValue,
+                    InputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
@@ -57,8 +55,7 @@ class gceOOP:
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.class_being_created()),
-                    p.SREmbeddedBlockInputValue,
+                    InputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
@@ -79,8 +76,7 @@ class gceOOP:
                     superclass, p.SRBlockAndTextInputValue
                 ),
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.class_being_created()),
-                    p.SREmbeddedBlockInputValue,
+                    InputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
@@ -94,8 +90,7 @@ class gceOOP:
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.class_being_created()),
-                    p.SREmbeddedBlockInputValue,
+                    InputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
@@ -103,8 +98,8 @@ class gceOOP:
         )
 
     @staticmethod
-    def class_being_created() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::class being created", inputs={}, dropdowns={})
+    def current_class() -> p.SRBlock:
+        return p.SRBlock(opcode="&gceOOP::current class", inputs={}, dropdowns={})
 
     @staticmethod
     def is_subclass(

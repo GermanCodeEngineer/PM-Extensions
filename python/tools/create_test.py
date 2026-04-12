@@ -35,18 +35,17 @@ def extension_url(filename: str) -> str:
 
 
 def describe_suite(name: str, *tests: p.SRBlock) -> p.SRBlock:
-    return t.describe(name, list(tests))
+    return t.test_scope(name, list(tests))
 
 
 def run_case(name: str, *blocks: p.SRBlock) -> p.SRBlock:
-    return t.run_test(name, list(blocks))
+    return t.test_scope(name, list(blocks))
 
 
 def create_class_test() -> p.SRScript:
     return p.SRScript(
         position=(0, 0),
         blocks=[ # HERE: review tests
-            t.reset_results(),
             describe_suite(
                 "Basic Class With Instance Method",
                 run_case(
@@ -98,12 +97,12 @@ def create_class_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_equal(fs.get_scope_var("message"), "World"),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(fs.get_scope_var("message"), "World"),
+                    t.assert_unstrict_equal(
                         fs.object_as_string(fs.get_scope_var("greeter")),
                         "<Instance of 'Greeter'>",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.typeof_value(fs.get_scope_var("greeter")),
                         "Class Instance",
                     ),
@@ -127,7 +126,7 @@ def create_class_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "Undefined instance method",
                         [
                             fs.execute_expression(
@@ -137,7 +136,6 @@ def create_class_test() -> p.SRScript:
                     ),
                 ),
             ),
-            t.report_results(),
         ],
     )
 
@@ -146,7 +144,6 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
     return p.SRScript(
         position=(0, 180),
         blocks=[
-            t.reset_results(),
             describe_suite(
                 "Scopes, Binding, and Function Defaults",
                 run_case(
@@ -160,7 +157,7 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
                                     t.assert_(
                                         fs.scope_var_exists("outer", "all scopes")
                                     ),
-                                    t.assert_equal(
+                                    t.assert_unstrict_equal(
                                         fs.get_scope_var("outer"),
                                         "global-value",
                                     ),
@@ -182,7 +179,7 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_equal(fs.get_scope_var("outer"), "global-value"),
+                    t.assert_unstrict_equal(fs.get_scope_var("outer"), "global-value"),
                 ),
                 run_case(
                     "function defaults and Nothing returns are respected",
@@ -213,19 +210,19 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_equal(fs.get_scope_var("combined"), "B-default"),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(fs.get_scope_var("combined"), "B-default"),
+                    t.assert_unstrict_equal(
                         fs.typeof_value(fs.get_scope_var("echo")),
                         "Function",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.object_as_string(fs.get_scope_var("echoResult")),
                         "<Nothing>",
                     ),
                 ),
                 run_case(
                     "invalid default configurations raise an error",
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "as many default values",
                         [
                             fs.configure_next_function_args(
@@ -236,7 +233,6 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
                     ),
                 ),
             ),
-            t.report_results(),
         ],
     )
 
@@ -245,7 +241,6 @@ def create_inheritance_and_super_test() -> p.SRScript:
     return p.SRScript(
         position=(520, 0),
         blocks=[
-            t.reset_results(),
             describe_suite(
                 "Inheritance, Super Calls, and Special Methods",
                 run_case(
@@ -311,16 +306,16 @@ def create_inheritance_and_super_test() -> p.SRScript:
                         ]
                     ),
                     t.assert_(c.is_subclass("FriendlyGreeter", "BaseGreeter")),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.object_as_string(c.get_superclass("FriendlyGreeter")),
                         "<Class 'BaseGreeter'>",
                     ),
-                    t.assert_equal(fs.get_scope_var("result"), "Hello from Base"),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(fs.get_scope_var("result"), "Hello from Base"),
+                    t.assert_unstrict_equal(
                         fs.object_as_string(fs.get_scope_var("greeter")),
                         "BaseGreeter(self)",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.typeof_value(fs.get_scope_var("greeter")),
                         "Class Instance",
                     ),
@@ -352,7 +347,7 @@ def create_inheritance_and_super_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "class has no superclass",
                         [
                             fs.execute_expression(
@@ -362,7 +357,6 @@ def create_inheritance_and_super_test() -> p.SRScript:
                     ),
                 ),
             ),
-            t.report_results(),
         ],
     )
 
@@ -371,7 +365,6 @@ def create_class_meta_and_members_test() -> p.SRScript:
     return p.SRScript(
         position=(520, 260),
         blocks=[
-            t.reset_results(),
             describe_suite(
                 "Class Metadata, Getters/Setters, Operators, and Static APIs",
                 run_case(
@@ -383,9 +376,9 @@ def create_class_meta_and_members_test() -> p.SRScript:
                                 c.create_class_named(
                                     "Point",
                                     [
-                                        t.assert_equal(
+                                        t.assert_unstrict_equal(
                                             fs.object_as_string(
-                                                c.class_being_created()
+                                                c.current_class()
                                             ),
                                             "<Class 'Point'>",
                                         ),
@@ -427,7 +420,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                                             ],
                                         ),
                                         c.set_class_variable(
-                                            c.class_being_created(),
+                                            c.current_class(),
                                             "kind",
                                             "point",
                                         ),
@@ -471,15 +464,15 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             ),
                         ]
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         c.get_attribute("x", fs.get_scope_var("origin")),
                         "9",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.typeof_value(c.get_all_attributes(fs.get_scope_var("origin"))),
                         "Object",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.object_as_string(
                             c.get_class_of_instance(fs.get_scope_var("origin"))
                         ),
@@ -492,18 +485,18 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             fs.get_scope_var("origin"),
                         )
                     ),
-                    t.assert_equal(c.get_class_variable("kind", "Point"), "point"),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(c.get_class_variable("kind", "Point"), "point"),
+                    t.assert_unstrict_equal(
                         fs.typeof_value(fs.get_scope_var("originFactory")),
                         "Function",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         fs.typeof_value(
                             fs.call_function(fs.get_scope_var("originFactory"), "[]")
                         ),
                         "Class Instance",
                     ),
-                    t.assert_equal(
+                    t.assert_unstrict_equal(
                         c.call_method(fs.get_scope_var("point3d"), "dimensionLabel", "[]"),
                         "three-dimensional",
                     ),
@@ -546,7 +539,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                                             ],
                                         ),
                                         c.set_class_variable(
-                                            c.class_being_created(),
+                                            c.current_class(),
                                             "kind",
                                             "meta",
                                         ),
@@ -560,7 +553,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             c.delete_class_variable("MetaPoint", "kind"),
                         ]
                     ),
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "getter method",
                         [
                             c.set_attribute(
@@ -570,7 +563,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             ),
                         ],
                     ),
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "Undefined class variable",
                         [
                             fs.execute_expression(
@@ -578,7 +571,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             ),
                         ],
                     ),
-                    t.assert_throws(
+                    t.assert_throws_contains(
                         "Undefined instance method",
                         [
                             fs.execute_expression(
@@ -592,7 +585,6 @@ def create_class_meta_and_members_test() -> p.SRScript:
                     ),
                 ),
             ),
-            t.report_results(),
         ],
     )
 

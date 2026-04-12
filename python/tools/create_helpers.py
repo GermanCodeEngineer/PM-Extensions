@@ -305,7 +305,7 @@ def create_category_file(output_path: Path, category_id: str, category_source: s
     except Exception as error:
         print(ValueError(f"Failed to format code: {error}"))
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(code)
+    output_path.write_text(code, "utf8")
 
 def create_helpers() -> None:
     cfg = p.get_default_config()

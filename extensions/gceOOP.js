@@ -3302,6 +3302,7 @@ if (!isRuntimeEnv) {
  * + - ~ add inner example blocks
  *
  * + MID PRIORITY
+ * + - why object in gceClassInstance?
  * + - maybe reorganize block cagegories
  * + - option to exclude super classes when asking for members
  * + - implement right-click switch options for similar blocks

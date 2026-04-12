@@ -6,20 +6,9 @@ from utils import InputValue, INPUT_COMPATIBLE_T
 class gceTestRunner:
 
     @staticmethod
-    def describe(name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def test_scope(name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::describe (NAME) {SUBSTACK}",
-            inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
-
-    @staticmethod
-    def run_test(name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceTestRunner::test (NAME) {SUBSTACK}",
+            opcode="&gceTestRunner::test scope named (NAME) {SUBSTACK}",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
@@ -65,9 +54,24 @@ class gceTestRunner:
         )
 
     @staticmethod
-    def assert_equal(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def assert_not_msg(
+        condition: INPUT_COMPATIBLE_T, msg: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::assert (A) = (B)",
+            opcode="&gceTestRunner::assert not <CONDITION> message (MSG)",
+            inputs={
+                "CONDITION": InputValue.try_as_input(
+                    condition, p.SRBlockAndBoolInputValue
+                ),
+                "MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_strict_equal(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert typed equality (A) = (B)",
             inputs={
                 "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
                 "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
@@ -76,11 +80,98 @@ class gceTestRunner:
         )
 
     @staticmethod
-    def assert_throws(
+    def assert_strict_not_equal(
+        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert typed inequality (A) != (B)",
+            inputs={
+                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
+                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_unstrict_equal(
+        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert string equality (A) = (B)",
+            inputs={
+                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
+                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_unstrict_not_equal(
+        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert string inequality (A) != (B)",
+            inputs={
+                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
+                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_text_in_value(
+        text: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert text (TEXT) in value (VALUE)",
+            inputs={
+                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_text_not_in_value(
+        text: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert text (TEXT) not in value (VALUE)",
+            inputs={
+                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_type(value: INPUT_COMPATIBLE_T, expected: str) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert type of (VALUE) is [EXPECTED]",
+            inputs={
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+            },
+            dropdowns={
+                "EXPECTED": p.SRDropdownValue(p.DropdownValueKind.STANDARD, expected)
+            },
+        )
+
+    @staticmethod
+    def assert_throws(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert throws error {SUBSTACK}",
+            inputs={
+                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_throws_contains(
         msg: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::assert throws (MSG) {SUBSTACK}",
+            opcode="&gceTestRunner::assert throws error containing (MSG) {SUBSTACK}",
             inputs={
                 "MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
@@ -91,7 +182,7 @@ class gceTestRunner:
     @staticmethod
     def assert_does_not_throw(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::assert does not throw {SUBSTACK}",
+            opcode="&gceTestRunner::assert does not throw error {SUBSTACK}",
             inputs={
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
             },
@@ -99,29 +190,15 @@ class gceTestRunner:
         )
 
     @staticmethod
-    def fail(msg: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def fail_test(msg: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::fail (MSG)",
+            opcode="&gceTestRunner::fail test with message (MSG)",
             inputs={"MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
     @staticmethod
-    def report_results() -> p.SRBlock:
+    def menu_expected_type() -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::report results", inputs={}, dropdowns={}
+            opcode="&gceTestRunner::#menu:expectedType", inputs={}, dropdowns={}
         )
-
-    @staticmethod
-    def reset_results() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceTestRunner::reset results", inputs={}, dropdowns={}
-        )
-
-    @staticmethod
-    def get_passed() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceTestRunner::passed", inputs={}, dropdowns={})
-
-    @staticmethod
-    def get_failed() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceTestRunner::failed", inputs={}, dropdowns={})
