@@ -10,6 +10,7 @@ import copy
 import pmp_manip as p
 from gceutils import AbstractTreePath, grepr_dataclass
 
+from helpers.event import event
 from helpers.gceFuncsScopes import gceFuncsScopes as fs
 from helpers.gceOOP import gceOOP as c
 from helpers.gceTestRunner import gceTestRunner as t
@@ -46,6 +47,7 @@ def create_class_test() -> p.SRScript:
     return p.SRScript(
         position=(0, 0),
         blocks=[ # HERE: review tests
+            event.whenflagclicked(),
             describe_suite(
                 "Basic Class With Instance Method",
                 run_case(
@@ -135,6 +137,93 @@ def create_class_test() -> p.SRScript:
                         ],
                     ),
                 ),
+                run_case(
+                    "too many positional args raises",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "OneArgClass",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                    c.define_instance_method(
+                                        "oneArg",
+                                        [fs.return_value(fs.nothing())],
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "oneArgObj",
+                                c.create_instance("OneArgClass", "[]"),
+                            ),
+                        ]
+                    ),
+                    t.assert_throws_contains(
+                        "expected at most",
+                        [
+                            fs.execute_expression(
+                                c.call_method(
+                                    "oneArgObj", "oneArg", '["extra1", "extra2"]'
+                                )
+                            ),
+                        ],
+                    ),
+                ),
+                run_case(
+                    "too few positional args raises",
+                    t.assert_does_not_throw(
+                        [
+                            fs.configure_next_function_args('["a", "b"]', "[]"),
+                            fs.set_scope_var(
+                                "twoArgFunc",
+                                fs.create_function_named(
+                                    "twoArgFunc",
+                                    [fs.return_value(fs.get_scope_var("a"))],
+                                ),
+                            ),
+                        ]
+                    ),
+                    t.assert_throws_contains(
+                        "expected at least",
+                        [
+                            fs.execute_expression(
+                                fs.call_function(
+                                    fs.get_scope_var("twoArgFunc"), '["only-one"]'
+                                )
+                            ),
+                        ],
+                    ),
+                ),
+                run_case(
+                    "missing attribute (no getter) raises",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "Plain",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "plainObj",
+                                c.create_instance("Plain", "[]"),
+                            ),
+                        ]
+                    ),
+                    t.assert_throws_contains(
+                        "no attribute",
+                        [
+                            fs.execute_expression(
+                                c.get_attribute("missing", fs.get_scope_var("plainObj"))
+                            ),
+                        ],
+                    ),
+                ),
             ),
         ],
     )
@@ -144,6 +233,7 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
     return p.SRScript(
         position=(0, 180),
         blocks=[
+            event.whenflagclicked(),
             describe_suite(
                 "Scopes, Binding, and Function Defaults",
                 run_case(
@@ -232,6 +322,124 @@ def create_scopes_and_functions_edge_test() -> p.SRScript:
                         ],
                     ),
                 ),
+                run_case(
+                    "non-local binding links a closure variable across nested scopes",
+                    t.assert_does_not_throw(
+                        [
+                            # Set up: outer scope has "counter"
+                            fs.set_scope_var("nlCounter", "0"),
+                            fs.create_var_scope(
+                                [
+                                    # inner scope: bind non-local so mutations propagate
+                                    fs.bind_var_to_scope("nlCounter", "non-local"),
+                                    fs.set_scope_var("nlCounter", "42"),
+                                ]
+                            ),
+                        ]
+                    ),
+                    # outer "nlCounter" should now reflect the inner write
+                    t.assert_unstrict_equal(fs.get_scope_var("nlCounter"), "42"),
+                ),
+                run_case(
+                    "delete non-existent variable raises",
+                    t.assert_throws_contains(
+                        "not defined",
+                        [
+                            fs.delete_scope_var("doesNotExist_xyz"),
+                        ],
+                    ),
+                ),
+                run_case(
+                    "all_variables returns expected names",
+                    t.assert_does_not_throw(
+                        [
+                            fs.set_scope_var("varA", "1"),
+                            fs.set_scope_var("varB", "2"),
+                        ]
+                    ),
+                    # varA and varB must appear in the global scope list
+                    t.assert_(
+                        fs.scope_var_exists("varA", "global scope")
+                    ),
+                    t.assert_(
+                        fs.scope_var_exists("varB", "global scope")
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.all_variables("global scope")),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.all_variables("all scopes")),
+                        "Array",
+                    ),
+                ),
+                run_case(
+                    "closure captures variable from definition site",
+                    t.assert_does_not_throw(
+                        [
+                            fs.set_scope_var("captured", "original"),
+                            fs.set_scope_var(
+                                "closureFunc",
+                                fs.create_function_named(
+                                    "closureFunc",
+                                    [fs.return_value(fs.get_scope_var("captured"))],
+                                ),
+                            ),
+                            # Mutate AFTER the function was captured — it reads from the
+                            # surrounding scope at call time (scope is captured by reference)
+                            fs.set_scope_var("captured", "mutated"),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.call_function(fs.get_scope_var("closureFunc"), "[]"),
+                        "mutated",
+                    ),
+                ),
+                run_case(
+                    "typeof returns correct labels for builtin value types",
+                    t.assert_does_not_throw(
+                        [
+                            fs.configure_next_function_args("[]", "[]"),
+                            fs.create_function_at(
+                                "typeofTestFunc",
+                                [fs.return_value(fs.nothing())],
+                            ),
+                            c.create_class_at(
+                                "TypeofTestClass",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                    c.define_instance_method(
+                                        "typeofTestMethod",
+                                        [fs.return_value(fs.nothing())],
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "typeofTestInstance",
+                                c.create_instance("TypeofTestClass", "[]"),
+                            ),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.nothing()),
+                        "Nothing",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.get_scope_var("typeofTestFunc")),
+                        "Function",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.get_scope_var("typeofTestInstance")),
+                        "Class Instance",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(fs.get_scope_var("TypeofTestClass")),
+                        "Class",
+                    ),
+                ),
             ),
         ],
     )
@@ -241,6 +449,7 @@ def create_inheritance_and_super_test() -> p.SRScript:
     return p.SRScript(
         position=(520, 0),
         blocks=[
+            event.whenflagclicked(),
             describe_suite(
                 "Inheritance, Super Calls, and Special Methods",
                 run_case(
@@ -356,6 +565,107 @@ def create_inheritance_and_super_test() -> p.SRScript:
                         ],
                     ),
                 ),
+                run_case(
+                    "is_instance is polymorphic: subclass instance satisfies superclass check",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "Animal",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                            c.create_subclass_at(
+                                "Dog",
+                                "Animal",
+                                [
+                                    c.define_special_method(
+                                        [
+                                            fs.execute_expression(
+                                                c.call_super_init_method("[]")
+                                            ),
+                                            fs.return_value(fs.nothing()),
+                                        ],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                            c.create_class_at(
+                                "Cat",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "dog",
+                                c.create_instance("Dog", "[]"),
+                            ),
+                        ]
+                    ),
+                    # Dog instance is also an Animal
+                    t.assert_(c.is_instance(fs.get_scope_var("dog"), "Animal")),
+                    # Dog instance is not a Cat
+                    t.assert_not(c.is_instance(fs.get_scope_var("dog"), "Cat")),
+                    # A class (not an instance) being checked against itself returns True
+                    t.assert_(c.is_subclass("Dog", "Animal")),
+                    t.assert_not(c.is_subclass("Animal", "Dog")),
+                ),
+                run_case(
+                    "get_superclass returns Nothing for a base class",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "RootClass",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.object_as_string(c.get_superclass("RootClass")),
+                        "<Nothing>",
+                    ),
+                ),
+                run_case(
+                    "identity check: same instance is identical, two different instances are not",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "IdentCls",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var("identA", c.create_instance("IdentCls", "[]")),
+                            fs.set_scope_var("identB", c.create_instance("IdentCls", "[]")),
+                        ]
+                    ),
+                    t.assert_(
+                        fs.check_identity(
+                            fs.get_scope_var("identA"),
+                            fs.get_scope_var("identA"),
+                        )
+                    ),
+                    t.assert_not(
+                        fs.check_identity(
+                            fs.get_scope_var("identA"),
+                            fs.get_scope_var("identB"),
+                        )
+                    ),
+                ),
             ),
         ],
     )
@@ -365,6 +675,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
     return p.SRScript(
         position=(520, 260),
         blocks=[
+            event.whenflagclicked(),
             describe_suite(
                 "Class Metadata, Getters/Setters, Operators, and Static APIs",
                 run_case(
@@ -453,6 +764,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                                 "origin",
                                 c.call_static_method("Point", "origin", "[]"),
                             ),
+                            # set_attribute routes through the setter for "x"
                             c.set_attribute(fs.get_scope_var("origin"), "x", "9"),
                             fs.set_scope_var(
                                 "originFactory",
@@ -464,6 +776,7 @@ def create_class_meta_and_members_test() -> p.SRScript:
                             ),
                         ]
                     ),
+                    # getter routes through setter-written _x
                     t.assert_unstrict_equal(
                         c.get_attribute("x", fs.get_scope_var("origin")),
                         "9",
@@ -584,6 +897,224 @@ def create_class_meta_and_members_test() -> p.SRScript:
                         ],
                     ),
                 ),
+                run_case(
+                    "operator method is actually invoked and returns the expected value",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "OpClass",
+                                [
+                                    c.define_special_method(
+                                        [
+                                            c.set_attribute(c.self(), "val", "op-instance"),
+                                            fs.return_value(fs.nothing()),
+                                        ],
+                                        "init",
+                                    ),
+                                    # left add: returns "self+<other>"
+                                    c.define_operator_method(
+                                        [
+                                            fs.return_value(
+                                                fs.object_as_string(
+                                                    c.operator_other_value()
+                                                )
+                                            ),
+                                        ],
+                                        "left add",
+                                    ),
+                                    # equals: returns true when other has the same val attribute
+                                    c.define_operator_method(
+                                        [
+                                            fs.return_value(
+                                                fs.object_as_string(
+                                                    c.operator_other_value()
+                                                )
+                                            ),
+                                        ],
+                                        "equals",
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "opObj",
+                                c.create_instance("OpClass", "[]"),
+                            ),
+                            fs.set_scope_var(
+                                "opResult",
+                                # opObj + "extra" should trigger the left-add operator method
+                                # We call it directly via call_method with internal name
+                                c.call_method(
+                                    "opObj",
+                                    "__operator_left_add__",
+                                    '["extra"]',
+                                ),
+                            ),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.get_scope_var("opResult"),
+                        "extra",
+                    ),
+                ),
+                run_case(
+                    "setter returning non-Nothing raises",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "BadSetter",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                    c.define_setter(
+                                        "bad",
+                                        [
+                                            # intentionally return a non-Nothing value
+                                            fs.return_value("oops"),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "badSetterObj",
+                                c.create_instance("BadSetter", "[]"),
+                            ),
+                        ]
+                    ),
+                    t.assert_throws_contains(
+                        "must return",
+                        [
+                            c.set_attribute(
+                                fs.get_scope_var("badSetterObj"),
+                                "bad",
+                                "value",
+                            ),
+                        ],
+                    ),
+                ),
+                run_case(
+                    "property_names_of_class returns correct member lists",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "MemberListClass",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                    c.define_instance_method(
+                                        "instM",
+                                        [fs.return_value(fs.nothing())],
+                                    ),
+                                    c.define_static_method(
+                                        "statM",
+                                        [fs.return_value(fs.nothing())],
+                                    ),
+                                    c.define_getter(
+                                        "getterProp",
+                                        [fs.return_value("g")],
+                                    ),
+                                    c.define_setter(
+                                        "setterProp",
+                                        [fs.return_value(fs.nothing())],
+                                    ),
+                                    c.define_operator_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "left add",
+                                    ),
+                                    c.set_class_variable(
+                                        c.current_class(),
+                                        "clsVar",
+                                        "cv",
+                                    ),
+                                ],
+                            ),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "instance method")
+                        ),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "static method")
+                        ),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "getter method")
+                        ),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "setter method")
+                        ),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "operator method")
+                        ),
+                        "Array",
+                    ),
+                    t.assert_unstrict_equal(
+                        fs.typeof_value(
+                            c.property_names_of_class("MemberListClass", "class variable")
+                        ),
+                        "Array",
+                    ),
+                ),
+                run_case(
+                    "class variable can be updated and on_class adds to an existing class",
+                    t.assert_does_not_throw(
+                        [
+                            c.create_class_at(
+                                "UpdatableClass",
+                                [
+                                    c.define_special_method(
+                                        [fs.return_value(fs.nothing())],
+                                        "init",
+                                    ),
+                                    c.set_class_variable(
+                                        c.current_class(),
+                                        "count",
+                                        "0",
+                                    ),
+                                ],
+                            ),
+                            # update the class variable
+                            c.set_class_variable("UpdatableClass", "count", "99"),
+                            # on_class reopens and adds a new method
+                            c.on_class(
+                                "UpdatableClass",
+                                [
+                                    c.define_instance_method(
+                                        "newMethod",
+                                        [fs.return_value("added-later")],
+                                    ),
+                                ],
+                            ),
+                            fs.set_scope_var(
+                                "updObj",
+                                c.create_instance("UpdatableClass", "[]"),
+                            ),
+                        ]
+                    ),
+                    t.assert_unstrict_equal(
+                        c.get_class_variable("count", "UpdatableClass"),
+                        "99",
+                    ),
+                    t.assert_unstrict_equal(
+                        c.call_method(fs.get_scope_var("updObj"), "newMethod", "[]"),
+                        "added-later",
+                    ),
+                ),
             ),
         ],
     )
@@ -595,7 +1126,8 @@ EXAMPLE_CASES: list[ExampleCase] = [
         title="Basic Class With Instance Method",
         description=(
             "Runnable test suite for class creation, static factory methods, returned values, "
-            "and missing-method error handling."
+            "missing-method errors, argument count errors (too many / too few), "
+            "missing attribute access, and typeof on class instances."
         ),
         build_script=create_class_test,
     ),
@@ -603,8 +1135,10 @@ EXAMPLE_CASES: list[ExampleCase] = [
         key="create_scopes_and_functions_edge_test",
         title="Scopes, Binding, and Function Defaults",
         description=(
-            "Covers global/local scope behavior, binding, function defaults, Nothing returns, "
-            "and invalid configuration errors."
+            "Covers global/local scope behavior, global binding, non-local binding, "
+            "function defaults, Nothing returns, invalid configuration errors, "
+            "closure capture semantics, delete-non-existent errors, all_variables return type, "
+            "and typeof for Function/Class/Nothing/ClassInstance."
         ),
         build_script=create_scopes_and_functions_edge_test,
     ),
@@ -612,8 +1146,9 @@ EXAMPLE_CASES: list[ExampleCase] = [
         key="create_inheritance_and_super_test",
         title="Inheritance, Super Calls, and Special Methods",
         description=(
-            "Checks subclass relationships, inherited as-string behavior, super dispatch, "
-            "and the no-superclass error path."
+            "Checks subclass relationships (positive and negative), inherited as-string behavior, "
+            "super dispatch, no-superclass error, get_superclass returning Nothing for root classes, "
+            "polymorphic is_instance, and identity check positive/negative cases."
         ),
         build_script=create_inheritance_and_super_test,
     ),
@@ -621,8 +1156,11 @@ EXAMPLE_CASES: list[ExampleCase] = [
         key="create_class_meta_and_members_test",
         title="Class Metadata, Getters/Setters, Operators, and Static APIs",
         description=(
-            "Exercises getters/setters, class metadata, static method functions, instance "
-            "introspection, and expected member-access failures."
+            "Exercises getters/setters (read and write through set_attribute), "
+            "class metadata, static method functions, instance introspection, "
+            "operator method actual invocation, setter returning non-Nothing error, "
+            "property_names_of_class for all six member types, "
+            "class variable update, and on_class reopening."
         ),
         build_script=create_class_meta_and_members_test,
     ),

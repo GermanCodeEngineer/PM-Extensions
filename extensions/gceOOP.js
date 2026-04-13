@@ -77,7 +77,7 @@ if (isRuntimeEnv) {
 /**
  * @param {ScratchObject} Scratch
  */
-function applyHacks(Scratch) {
+function applyInternalWrappers(Scratch) {
     const {IRGenerator, JSGenerator} = Scratch.vm.exports
     const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
     const ScriptTreeGenerator = IRGenerator.exports.ScriptTreeGenerator
@@ -257,6 +257,20 @@ function throwInternal(code, additionalMsg = "") {
         `An internal error occured in the OOP extension. `+
         `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
     )
+}
+
+/**
+ * @template T
+ * @param {string} errorCode 
+ * @param {new (...args: any[]) => T} type
+ * @param {*} value
+ * @returns {T}
+ */
+function assertType(errorCode, type, value) {
+    if (!(value instanceof type)) {
+        throwInternal(errorCode)
+    }
+    return value
 }
 
 /**
@@ -1118,8 +1132,6 @@ class Cast extends Scratch.Cast {
         return Scratch.vm.jwArray.Type.toArray(value)
     }
 
-    /** @returns {Scratch.vm.dogeiscutObject.Type} */
-
     /**
      * @param {*} value
      * @param {boolean} copy
@@ -1626,7 +1638,7 @@ class ClassType extends CustomType {
      * @returns {FunctionType}
      */
     getStaticMethod(name) {
-        return this.getMemberOfType(name, "static method")
+        return assertType(FunctionType, this.getMemberOfType(name, "static method"))
     }
 
     /**
@@ -1835,7 +1847,7 @@ const gceClassInstance = {
     Argument: {
         shape: "gceOOP-doublePlus",
         exemptFromNormalization: true,
-        check: ["gceClassInstance", "dogeiscutObject"],
+        check: ["gceClassInstance"],
     },
 }
 if (!CUSTOM_SHAPE) {
@@ -2620,6 +2632,8 @@ class GCEOOPBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
+            doublePlusShape: CUSTOM_SHAPE, applyInternalWrappers,
+            quote, escapeHTML, span, throwInternal, assertType,
             VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
@@ -2637,7 +2651,7 @@ class GCEOOPBlocks {
                 ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
             })
             
-            applyHacks(Scratch)
+            applyInternalWrappers(Scratch)
         }
 
         this.globalVariables = new VariableManager()
@@ -2843,7 +2857,11 @@ class GCEOOPBlocks {
      */
     getSuperclass(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
-        return cls.superCls ?? Nothing
+        if (cls.superCls) {
+            return assertType(`calm-hare`, ClassType, cls.superCls)
+        } else {
+            return Nothing
+        }
     }
 
     /******************** Class Members ********************/
@@ -2857,7 +2875,8 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     self(args, util) {
-        return ThreadUtil.getCurrentStack(util.thread).getSelfOrThrow()
+        const value =  ThreadUtil.getCurrentStack(util.thread).getSelfOrThrow()
+        return assertType(`mirthful-dolphin`, ClassInstanceType, value)
     }
     callSuperMethod = this._isACompiledBlock
     callSuperInitMethod = this._isACompiledBlock
@@ -2905,7 +2924,8 @@ class GCEOOPBlocks {
     getClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        return cls.getMemberOfType(name, "class variable")
+        const value = cls.getMemberOfType(name, "class variable")
+        return value
     }
 
     /**
@@ -2969,7 +2989,8 @@ class GCEOOPBlocks {
      */
     getClassOfInstance(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
-        return instance.cls
+        const value = instance.cls
+        return assertType(`calm-weasel`, ClassType, value)
     }
 
     // Attributes
@@ -2996,7 +3017,8 @@ class GCEOOPBlocks {
     getStaticMethodFunc(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        return cls.getStaticMethod(name)
+        const value = cls.getStaticMethod(name)
+        return assertType(`nimble-heron`, FunctionType, value)
     }
 
     /******************** Functions ********************/
@@ -3039,7 +3061,7 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     checkIdentity(args, util) {
-        return Cast.toBoolean(Object.is(args.VALUE1, args.VALUE2))
+        return Object.is(args.VALUE1, args.VALUE2)
     }
 
     /**
@@ -3300,9 +3322,9 @@ if (!isRuntimeEnv) {
  * + - ~ to fix custom blocks and broadcasts problem, see new thread block in livetests
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
  * + - ~ add inner example blocks
+ * + - finish project tests
  *
  * + MID PRIORITY
- * + - why object in gceClassInstance?
  * + - maybe reorganize block cagegories
  * + - option to exclude super classes when asking for members
  * + - implement right-click switch options for similar blocks
@@ -3328,6 +3350,12 @@ if (!isRuntimeEnv) {
  * + - test and/or rework enterClassDefScope
  * + - add project tests for TypeChecker, Cast
  * + - specially test special cases of propertyNamesOfClass
+ * + - ensure scopeVarExists is tested properly, especially with multiple scopes
+ * + - ensure allVariables is tested properly, especially with multiple scopes
+ * + - ensure bindVarToScope is tested properly
+ * + - ensure getSuperclass is tested properly
+ * + - ensure propertyNamesOfClass edge cases are tested
+ * + - test that createVarScope and onClass branch callbacks execute even on error
 
  * + ON RELEASE / AFTER TESTING:
  * + - remove temporary logStacks block
