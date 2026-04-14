@@ -944,113 +944,94 @@ const CONFIG = {
 
 
 class TypeChecker {
-    // All custom types one can get from a reporter in PM
-    // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
-    // - Array - jwArray - null
-    // - Object - https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js
-    // - Date
-    // - * jwDate - null
-    // - * dde V1: https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js
-    // - * dde V2: https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js
-    // - Set - https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js
-    // - Lambda - jwLambda - null
-    // - Color - jwColor - null
-    // - UnlimitedNum (really Num, to avoid confusion) - jwNum - null
-    // - Target - jwTargets - null
-    // - XML - jwXML - null
+    // All custom types (using `customId`) one can get from a reporter in PM
+    // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 14.04.2026)
+    // agBuffer (AndrewGaming587)
+    // agBufferPointer (AndrewGaming587)
+    // canvasData (RedMan13)
+    // ddeDateFormat (ddededodediamante)
+    // ddeDateFormatV2 (ddededodediamante)
+    // divEffect (Div)
+    // divIterator (Div)
+    // dogeiscutObject (DogeisCut)
+    // dogeiscutRegularExpression (DogeisCut)
+    // dogeiscutSet (DogeisCut)
+    // externaltimer (steve0greatness)
+    // jwArray (jwklong)
+    // jwColor (jwklong)
+    // jwDate (jwklong)
+    // jwLambda (jwklong)
+    // jwNum (jwklong)
+    // jwTarget (jwklong)
+    // jwVector (jwklong)
+    // jwXML (jwklong)
+    // paintUtilsColour (Fruits555000)
+
     URLS = {
-        "jwArray": null,
-        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
-        "jwDate": null,
-        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
-        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
-        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
-        "jwLambda": null,
-        "jwColor": null,
-        "jwNum": null,
-        "jwTargets": null,
-        "jwXML": null,
-
-        // MISSING NEW ONES
-        "newCanvas": null,
-        // canvasData: runtime._extensionVariables.canvas
-
-        "jwVector": null,
         "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
         // agBuffer: vm.agBuffer.Type
         // agBufferPointer: vm.agBuffer.PointerType
+        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
+        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
         "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
-        // divEffectPointer: vm.divAlgEffects.Effect
+        // divEffect: vm.divAlgEffects.Effect
         "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
         // divIterator: vm.divIterator.Type
+        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
         "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
         // dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
+        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
         "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",
         // paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+        "jwArray": null,
+        "jwColor": null,
+        "jwDate": null,
+        "jwLambda": null,
+        "jwNum": null,
+        "jwTargets": null,
+        "jwVector": null,
+        "jwXML": null,
+        "newCanvas": null,
+        // canvasData: runtime._extensionVariables.canvas
         "steve0greatnesstimers": "https://extensions.penguinmod.com/extensions/steve0greatness/timers.js",
         // externaltimer: runtime._extensionVariables.externaltimer
     }
 
-    static _assertRuntimeEnv() {
-        if (!isRuntimeEnv) {
-            throw new Error("Type checking for extension types is not available in a non-runtime environment.")
-        }
-    }
-
+    static is_agBuffer = TypeChecker._createVMTypeCheck("agBuffer")
+    static is_agBufferPointer = TypeChecker._createVMTypeCheck("agBuffer", "PointerType")
+    
     /**
-     * Helper for extension type checks
-     * @param {string} extKey - property name on Scratch.vm (e.g. 'jwArray')
      * @param {*} value
-     * @param {string} [errMsg] - optional error message if extension missing
      * @returns {boolean}
      */
-    static _isExtensionType(extKey, value, errMsg) {
+    static is_canvasData(value) {
         TypeChecker._assertRuntimeEnv()
-        const ext = Scratch.vm[extKey]
-        if (!ext) {
-            if (errMsg) throw new Error(errMsg)
-            return false
-        }
-        return value instanceof ext.Type
+        if (!runtime._extensionVariables) return false
+        const type = runtime._extensionVariables.canvas
+        if (!type) return false
+        return value instanceof type
     }
 
     /**
      * @param {*} value
      * @returns {boolean}
      */
-    static isArray(value) {
-        return TypeChecker._isExtensionType(
-            "jwArray",
-            value,
-            "Array extension was not loaded properly."
-        )
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isObject(value) {
-        return TypeChecker._isExtensionType(
-            "dogeiscutObject",
-            value,
-            "Object extension was not loaded properly."
-        )
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isDate(value) { // There are three date extensions
+    static is_ddeDateFormat(value) {
         TypeChecker._assertRuntimeEnv()
-        if (TypeChecker._isExtensionType("jwDate", value)) return true
         if (runtime.ext_ddeDateFormat) {
             try {
                 const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
                 if (value instanceof dateType) return true
             } catch {}
         }
+    }
+    
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static is_ddeDateFormatV2(value) {
+        TypeChecker._assertRuntimeEnv()
         if (runtime.ext_ddeDateFormatV2) {
             try {
                 const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
@@ -1060,118 +1041,41 @@ class TypeChecker {
         return false
     }
 
-    static isSet(value) {
-        return TypeChecker._isExtensionType("dogeiscutSet", value)
-    }
+    static is_divEffect = TypeChecker._createVMTypeCheck("divAlgEffects", "Effect")
+    static is_divIterator = TypeChecker._createVMTypeCheck("divIterator")
+    static is_dogeiscutObject = TypeChecker._createVMTypeCheck("dogeiscutObject", null, "Object extension was not loaded properly.")
+    static is_dogeiscutRegularExpression = TypeChecker._createVMTypeCheck("dogeiscutRegularExpression")
+    static is_dogeiscutSet = TypeChecker._createVMTypeCheck("dogeiscutSet")
 
     /**
      * @param {*} value
      * @returns {boolean}
      */
-    static isLambda(value) {
-        return TypeChecker._isExtensionType("jwLambda", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isColor(value) {
-        return TypeChecker._isExtensionType("jwColor", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isUnlimitedNum(value) {
-        return TypeChecker._isExtensionType("jwNum", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isTarget(value) {
-        return TypeChecker._isExtensionType("jwTargets", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isXML(value) {
-        return TypeChecker._isExtensionType("jwXML", value)
-    }
-
-    // HERE: reconsider and update
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isVector(value) {
-        return TypeChecker._isExtensionType("jwVector", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isBuffer(value) {
-        // agBuffer: vm.agBuffer.Type
-        return TypeChecker._isExtensionType("agBuffer", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isBufferPointer(value) {
-        // agBufferPointer: vm.agBuffer.PointerType
+    static is_externaltimer(value) {
         TypeChecker._assertRuntimeEnv()
-        const ext = Scratch.vm["agBuffer"]
-        if (!ext || !ext.PointerType) return false
-        return value instanceof ext.PointerType
+        if (!runtime._extensionVariables) return false
+        const type = runtime._extensionVariables.externaltimer
+        if (!type) return false
+        return value instanceof type
     }
 
+    static is_jwArray = TypeChecker._createVMTypeCheck("jwArray", null, "Array extension was not loaded properly.")
+    static is_jwColor = TypeChecker._createVMTypeCheck("jwColor")
+    static is_jwDate = TypeChecker._createVMTypeCheck("jwDate")
+    static is_jwLambda = TypeChecker._createVMTypeCheck("jwLambda")
+    static is_jwNum = TypeChecker._createVMTypeCheck("jwNum")
+    static is_jwTargets = TypeChecker._createVMTypeCheck("jwTargets")
+    static is_jwVector = TypeChecker._createVMTypeCheck("jwVector")
+    static is_jwXML = TypeChecker._createVMTypeCheck("jwXML")
+    
     /**
      * @param {*} value
      * @returns {boolean}
      */
-    static isEffect(value) {
-        // divEffectPointer: vm.divAlgEffects.Effect
-        TypeChecker._assertRuntimeEnv()
-        const ext = Scratch.vm["divAlgEffects"]
-        if (!ext || !ext.Effect) return false
-        return value instanceof ext.Effect
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isIterator(value) {
-        // divIterator: vm.divIterator.Type
-        return TypeChecker._isExtensionType("divIterator", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static isRegularExpression(value) {
-        // dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
-        return TypeChecker._isExtensionType("dogeiscutRegularExpression", value)
-    }
-
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
-    static ispaintUtilsColour(value) {
-        // paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+    static is_paintUtilsColour(value) {
         TypeChecker._assertRuntimeEnv()
         if (!runtime.ext_fruitsPaintUtils || typeof runtime.ext_fruitsPaintUtils.getColour !== "function") return false
+
         try {
             const proto = Object.getPrototypeOf(runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
             return value instanceof proto
@@ -1180,16 +1084,38 @@ class TypeChecker {
         }
     }
 
+
+
+    static _assertRuntimeEnv() {
+        if (!isRuntimeEnv) {
+            throw new Error("Type checking for extension types is not available in a non-runtime environment.")
+        }
+    }
+
     /**
-     * @param {*} value
-     * @returns {boolean}
+     * @param {string} typeId
+     * @param {?string} overrideTypeProperty
+     * @param {string} [errMsg] - optional error message if type missing
+     * @returns {(value: *) => boolean}
      */
-    static isexternaltimer(value) {
-        // externaltimer: runtime._extensionVariables.externaltimer
-        TypeChecker._assertRuntimeEnv()
-        if (!runtime._extensionVariables || !runtime._extensionVariables.externaltimer) return false
-        const timerType = Object.getPrototypeOf(runtime._extensionVariables.externaltimer)
-        return value instanceof timerType
+    static _createVMTypeCheck(typeId, overrideTypeProperty = null, typeMissingErrorMsg = null) {
+        return function isType(value) {
+            if (!isRuntimeEnv) return false
+            const typeInfo = Scratch.vm[typeId]
+            if (!typeInfo) {
+                if (typeMissingErrorMsg) throw new Error(typeMissingErrorMsg)
+                return false
+            }
+
+            let typeClass
+            try {
+                typeClass = overrideTypeProperty ? typeInfo[overrideTypeProperty] : typeInfo.Type
+            } catch {
+                if (typeMissingErrorMsg) throw new Error(typeMissingErrorMsg)
+                return false
+            }
+            return value instanceof typeClass
+        }
     }
 
     /**
@@ -1219,16 +1145,27 @@ class TypeChecker {
         if (typeof value === "number") return "Number"
         if (typeof value === "string") return "String"
 
-        // Foreign Extensions
-        if (TypeChecker.isArray(value)) return "Array"
-        if (TypeChecker.isObject(value)) return "Object"
-        if (TypeChecker.isDate(value)) return "Date"
-        if (TypeChecker.isSet(value)) return "Set"
-        if (TypeChecker.isLambda(value)) return "Lambda"
-        if (TypeChecker.isColor(value)) return "Color"
-        if (TypeChecker.isUnlimitedNum(value)) return "Unlimited Number"
-        if (TypeChecker.isTarget(value)) return "Target"
-        if (TypeChecker.isXML(value)) return "XML"
+        // Custom Extension Types 
+        if (TypeChecker.is_agBuffer(value)) return "Buffer (AndrewGaming587)"
+        if (TypeChecker.is_agBufferPointer(value)) return "Buffer Pointer (AndrewGaming587)"
+        if (TypeChecker.is_ddeDateFormat(value)) return "Date (Old Version) (ddededodediamante)"
+        if (TypeChecker.is_ddeDateFormatV2(value)) return "Date (ddededodediamante)"
+        if (TypeChecker.is_divEffect(value)) return "Effect (Div)"
+        if (TypeChecker.is_divIterator(value)) return "Iterator (Div)"
+        if (TypeChecker.is_dogeiscutObject(value)) return "Object (DogeisCut)"
+        if (TypeChecker.is_dogeiscutRegularExpression(value)) return "Regular Expression (DogeisCut)"
+        if (TypeChecker.is_dogeiscutSet(value)) return "Set (DogeisCut)"
+        if (TypeChecker.is_externaltimer(value)) return "External Timer (steve0greatness)"
+        if (TypeChecker.is_jwArray(value)) return "Array (jwklong)"
+        if (TypeChecker.is_jwColor(value)) return "Color (jwklong)"
+        if (TypeChecker.is_jwDate(value)) return "Date (jwklong)"
+        if (TypeChecker.is_jwLambda(value)) return "Lambda (jwklong)"
+        if (TypeChecker.is_jwNum(value)) return "Number (jwklong)"
+        if (TypeChecker.is_jwTargets(value)) return "Targets (jwklong)"
+        if (TypeChecker.is_jwVector(value)) return "Vector (jwklong)"
+        if (TypeChecker.is_jwXML(value)) return "XML (jwklong)"
+        if (TypeChecker.is_canvasData(value)) return "Canvas (RedMan13)"
+        if (TypeChecker.is_paintUtilsColour(value)) return "Paint Utils Colour (Fruits555000)"
 
         // Rare/Overlapping JS data types
         if (typeof value === "bigint") return "JavaScript BigInt"
