@@ -614,6 +614,7 @@ class ScopeStack {
             cls,
         })
     }
+
     enterUserScope() {
         this.insertScope({
             type: ScopeStack.USER_SCOPE,
@@ -945,15 +946,50 @@ const CONFIG = {
 class TypeChecker {
     // All custom types one can get from a reporter in PM
     // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 28.10.2025)
-    // - Array
-    // - Object
+    // - Array - jwArray - null
+    // - Object - https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js
     // - Date
-    // - Set
-    // - Lambda
-    // - Color
-    // - UnlimitedNum (really Num, to avoid confusion)
-    // - Target
-    // - XML
+    // - * jwDate - null
+    // - * dde V1: https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js
+    // - * dde V2: https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js
+    // - Set - https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js
+    // - Lambda - jwLambda - null
+    // - Color - jwColor - null
+    // - UnlimitedNum (really Num, to avoid confusion) - jwNum - null
+    // - Target - jwTargets - null
+    // - XML - jwXML - null
+    URLS = {
+        "jwArray": null,
+        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
+        "jwDate": null,
+        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
+        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
+        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
+        "jwLambda": null,
+        "jwColor": null,
+        "jwNum": null,
+        "jwTargets": null,
+        "jwXML": null,
+
+        // MISSING NEW ONES
+        "newCanvas": null,
+        // canvasData: runtime._extensionVariables.canvas
+
+        "jwVector": null,
+        "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
+        // agBuffer: vm.agBuffer.Type
+        // agBufferPointer: vm.agBuffer.PointerType
+        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
+        // divEffectPointer: vm.divAlgEffects.Effect
+        "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
+        // divIterator: vm.divIterator.Type
+        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
+        // dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
+        "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",
+        // paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+        "steve0greatnesstimers": "https://extensions.penguinmod.com/extensions/steve0greatness/timers.js",
+        // externaltimer: runtime._extensionVariables.externaltimer
+    }
 
     static _assertRuntimeEnv() {
         if (!isRuntimeEnv) {
@@ -962,13 +998,32 @@ class TypeChecker {
     }
 
     /**
+     * Helper for extension type checks
+     * @param {string} extKey - property name on Scratch.vm (e.g. 'jwArray')
+     * @param {*} value
+     * @param {string} [errMsg] - optional error message if extension missing
+     * @returns {boolean}
+     */
+    static _isExtensionType(extKey, value, errMsg) {
+        TypeChecker._assertRuntimeEnv()
+        const ext = Scratch.vm[extKey]
+        if (!ext) {
+            if (errMsg) throw new Error(errMsg)
+            return false
+        }
+        return value instanceof ext.Type
+    }
+
+    /**
      * @param {*} value
      * @returns {boolean}
      */
     static isArray(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
-        return value instanceof Scratch.vm.jwArray.Type
+        return TypeChecker._isExtensionType(
+            "jwArray",
+            value,
+            "Array extension was not loaded properly."
+        )
     }
 
     /**
@@ -976,9 +1031,11 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isObject(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
-        return value instanceof Scratch.vm.dogeiscutObject.Type
+        return TypeChecker._isExtensionType(
+            "dogeiscutObject",
+            value,
+            "Object extension was not loaded properly."
+        )
     }
 
     /**
@@ -987,7 +1044,7 @@ class TypeChecker {
      */
     static isDate(value) { // There are three date extensions
         TypeChecker._assertRuntimeEnv()
-        if (Scratch.vm.jwDate && (value instanceof Scratch.vm.jwDate.Type)) return true
+        if (TypeChecker._isExtensionType("jwDate", value)) return true
         if (runtime.ext_ddeDateFormat) {
             try {
                 const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
@@ -1003,14 +1060,8 @@ class TypeChecker {
         return false
     }
 
-    /**
-     * @param {*} value
-     * @returns {boolean}
-     */
     static isSet(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.dogeiscutSet) return false
-        return value instanceof Scratch.vm.dogeiscutSet.Type
+        return TypeChecker._isExtensionType("dogeiscutSet", value)
     }
 
     /**
@@ -1018,9 +1069,7 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isLambda(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwLambda) return false
-        return value instanceof Scratch.vm.jwLambda.Type
+        return TypeChecker._isExtensionType("jwLambda", value)
     }
 
     /**
@@ -1028,9 +1077,7 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isColor(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwColor) return false
-        return value instanceof Scratch.vm.jwColor.Type
+        return TypeChecker._isExtensionType("jwColor", value)
     }
 
     /**
@@ -1038,9 +1085,7 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isUnlimitedNum(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwNum) return false
-        return value instanceof Scratch.vm.jwNum.Type
+        return TypeChecker._isExtensionType("jwNum", value)
     }
 
     /**
@@ -1048,9 +1093,7 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isTarget(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwTargets) return false
-        return value instanceof Scratch.vm.jwTargets.Type
+        return TypeChecker._isExtensionType("jwTargets", value)
     }
 
     /**
@@ -1058,11 +1101,96 @@ class TypeChecker {
      * @returns {boolean}
      */
     static isXML(value) {
-        TypeChecker._assertRuntimeEnv()
-        if (!Scratch.vm.jwXML) return false
-        return value instanceof Scratch.vm.jwXML.Type
+        return TypeChecker._isExtensionType("jwXML", value)
     }
 
+    // HERE: reconsider and update
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isVector(value) {
+        return TypeChecker._isExtensionType("jwVector", value)
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isBuffer(value) {
+        // agBuffer: vm.agBuffer.Type
+        return TypeChecker._isExtensionType("agBuffer", value)
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isBufferPointer(value) {
+        // agBufferPointer: vm.agBuffer.PointerType
+        TypeChecker._assertRuntimeEnv()
+        const ext = Scratch.vm["agBuffer"]
+        if (!ext || !ext.PointerType) return false
+        return value instanceof ext.PointerType
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isEffect(value) {
+        // divEffectPointer: vm.divAlgEffects.Effect
+        TypeChecker._assertRuntimeEnv()
+        const ext = Scratch.vm["divAlgEffects"]
+        if (!ext || !ext.Effect) return false
+        return value instanceof ext.Effect
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isIterator(value) {
+        // divIterator: vm.divIterator.Type
+        return TypeChecker._isExtensionType("divIterator", value)
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isRegularExpression(value) {
+        // dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
+        return TypeChecker._isExtensionType("dogeiscutRegularExpression", value)
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static ispaintUtilsColour(value) {
+        // paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+        TypeChecker._assertRuntimeEnv()
+        if (!runtime.ext_fruitsPaintUtils || typeof runtime.ext_fruitsPaintUtils.getColour !== "function") return false
+        try {
+            const proto = Object.getPrototypeOf(runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+            return value instanceof proto
+        } catch {
+            return false
+        }
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
+    static isexternaltimer(value) {
+        // externaltimer: runtime._extensionVariables.externaltimer
+        TypeChecker._assertRuntimeEnv()
+        if (!runtime._extensionVariables || !runtime._extensionVariables.externaltimer) return false
+        const timerType = Object.getPrototypeOf(runtime._extensionVariables.externaltimer)
+        return value instanceof timerType
+    }
 
     /**
      * @param {*} value
@@ -3323,6 +3451,7 @@ if (!isRuntimeEnv) {
  * + - create docs(e.g. members or configure args, explain roles of internal classes)
  * + - ~ add inner example blocks
  * + - finish project tests
+ * + - consider different architecture for storing block implementations
  *
  * + MID PRIORITY
  * + - maybe reorganize block cagegories
@@ -3356,7 +3485,7 @@ if (!isRuntimeEnv) {
  * + - ensure getSuperclass is tested properly
  * + - ensure propertyNamesOfClass edge cases are tested
  * + - test that createVarScope and onClass branch callbacks execute even on error
-
+ *
  * + ON RELEASE / AFTER TESTING:
  * + - remove temporary logStacks block
  * + - change both localhost URLs to extensions.penguinmod URL
