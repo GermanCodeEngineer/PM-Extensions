@@ -967,35 +967,12 @@ class TypeChecker {
     // jwXML (jwklong)
     // paintUtilsColour (Fruits555000)
 
-    URLS = {
-        "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
-        // agBuffer: vm.agBuffer.Type
-        // agBufferPointer: vm.agBuffer.PointerType
-        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
-        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
-        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
-        // divEffect: vm.divAlgEffects.Effect
-        "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
-        // divIterator: vm.divIterator.Type
-        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
-        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
-        // dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
-        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
-        "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",
-        // paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
-        "jwArray": null,
-        "jwColor": null,
-        "jwDate": null,
-        "jwLambda": null,
-        "jwNum": null,
-        "jwTargets": null,
-        "jwVector": null,
-        "jwXML": null,
-        "newCanvas": null,
-        // canvasData: runtime._extensionVariables.canvas
-        "steve0greatnesstimers": "https://extensions.penguinmod.com/extensions/steve0greatness/timers.js",
-        // externaltimer: runtime._extensionVariables.externaltimer
-    }
+    // My Types
+    // FunctionType
+    // MethodType
+    // ClassType
+    // ClassInstanceType
+    // NothingType
 
     static is_agBuffer = TypeChecker._createVMTypeCheck("agBuffer")
     static is_agBufferPointer = TypeChecker._createVMTypeCheck("agBuffer", "PointerType")
@@ -1064,7 +1041,7 @@ class TypeChecker {
     static is_jwDate = TypeChecker._createVMTypeCheck("jwDate")
     static is_jwLambda = TypeChecker._createVMTypeCheck("jwLambda")
     static is_jwNum = TypeChecker._createVMTypeCheck("jwNum")
-    static is_jwTargets = TypeChecker._createVMTypeCheck("jwTargets")
+    static is_jwTarget = TypeChecker._createVMTypeCheck("jwTargets")
     static is_jwVector = TypeChecker._createVMTypeCheck("jwVector")
     static is_jwXML = TypeChecker._createVMTypeCheck("jwXML")
     
@@ -1161,7 +1138,7 @@ class TypeChecker {
         if (TypeChecker.is_jwDate(value)) return "Date (jwklong)"
         if (TypeChecker.is_jwLambda(value)) return "Lambda (jwklong)"
         if (TypeChecker.is_jwNum(value)) return "Number (jwklong)"
-        if (TypeChecker.is_jwTargets(value)) return "Targets (jwklong)"
+        if (TypeChecker.is_jwTarget(value)) return "Target (jwklong)"
         if (TypeChecker.is_jwVector(value)) return "Vector (jwklong)"
         if (TypeChecker.is_jwXML(value)) return "XML (jwklong)"
         if (TypeChecker.is_canvasData(value)) return "Canvas (RedMan13)"
@@ -1171,9 +1148,9 @@ class TypeChecker {
         if (typeof value === "bigint") return "JavaScript BigInt"
         if (typeof value === "symbol") return "JavaScript Symbol"
         if (typeof value === "function") return "JavaScript Function"
-        if (typeof value === "object") return "JavaScript Object"
+        if (typeof value === "object") return "JavaScript Object (generic)"
 
-        return "Unknown"
+        return "Unknown (rare)"
     }
 }
 
