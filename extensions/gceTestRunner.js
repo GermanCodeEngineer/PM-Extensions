@@ -89,7 +89,7 @@ class TestError extends Error {
 
 class TypeChecker {
     // All custom types (using `customId`) one can get from a reporter in PM
-    // (PenguinMod-Vm, PenguinMod-ExtensionsGallery) (as of 14.04.2026)
+    // (PenguinMod-Vm, PenguinMod-ExtensionsGallery, SharkPools-Extensions) (as of 14.04.2026)
     // agBuffer (AndrewGaming587)
     // agBufferPointer (AndrewGaming587)
     // canvasData (RedMan13)
