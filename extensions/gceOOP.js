@@ -1099,9 +1099,16 @@ class TypeChecker {
      * @param {*} value
      * @returns {boolean}
      */
+    static isMissingValue(value) {
+        return ((value === undefined) || (value === null))
+    }
+
+    /**
+     * @param {*} value
+     * @returns {boolean}
+     */
     static isClassicScratchValue(value) {
-        return ((value === undefined) || (value === null) ||
-        (typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
+        return ((typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
     }
 
     /**
@@ -1209,6 +1216,9 @@ class Cast extends Scratch.Cast {
      */
     static _toTypeFromValueOrVariable(value, thread, expectedType, expectedDescription) {
         if (value instanceof expectedType) return value
+        if (TypeChecker.isMissingValue(value)) {
+            throw new Error(`Expected a ${expectedDescription}, but got no input value.`)
+        }
         if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
             throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.stringTypeof(value)}.`)
         }
@@ -1680,7 +1690,7 @@ class ClassType extends CustomType {
      * @returns {FunctionType}
      */
     getStaticMethod(name) {
-        return assertType(FunctionType, this.getMemberOfType(name, "static method"))
+        return assertType("quiet-fox", FunctionType, this.getMemberOfType(name, "static method"))
     }
 
     /**
@@ -1898,6 +1908,7 @@ if (!CUSTOM_SHAPE) {
 }
 const gceNothing = {
     Type: NothingType,
+    Singleton: Nothing,
     Block: {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.SCRAPPED,
@@ -2181,7 +2192,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.command,
                     opcode: "setClassVariable",
-                    text: "on [CLASS] set class variable [NAME] to [VALUE]",
+                    text: "on [CLASS] set class var [NAME] to [VALUE]",
                     tooltip: "Sets a class variable on the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -2192,7 +2203,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "getClassVariable",
-                    text: "get class variable [NAME] of [CLASS]",
+                    text: "get class var [NAME] of [CLASS]",
                     tooltip: "Gets a class variable from the selected class.",
                     arguments: {
                         NAME: commonArguments.classVariableName,
@@ -2202,7 +2213,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.command,
                     opcode: "deleteClassVariable",
-                    text: "on [CLASS] delete class variable [NAME]",
+                    text: "on [CLASS] delete class var [NAME]",
                     tooltip: "Deletes a class variable from the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -2900,7 +2911,7 @@ class GCEOOPBlocks {
     getSuperclass(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         if (cls.superCls) {
-            return assertType(`calm-hare`, ClassType, cls.superCls)
+            return assertType("calm-hare", ClassType, cls.superCls)
         } else {
             return Nothing
         }
@@ -2918,7 +2929,7 @@ class GCEOOPBlocks {
      */
     self(args, util) {
         const value =  ThreadUtil.getCurrentStack(util.thread).getSelfOrThrow()
-        return assertType(`mirthful-dolphin`, ClassInstanceType, value)
+        return assertType("mirthful-dolphin", ClassInstanceType, value)
     }
     callSuperMethod = this._isACompiledBlock
     callSuperInitMethod = this._isACompiledBlock
@@ -3032,7 +3043,7 @@ class GCEOOPBlocks {
     getClassOfInstance(args, util) {
         const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
         const value = instance.cls
-        return assertType(`calm-weasel`, ClassType, value)
+        return assertType("calm-weasel", ClassType, value)
     }
 
     // Attributes
@@ -3060,7 +3071,7 @@ class GCEOOPBlocks {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = cls.getStaticMethod(name)
-        return assertType(`nimble-heron`, FunctionType, value)
+        return assertType("nimble-heron", FunctionType, value)
     }
 
     /******************** Functions ********************/

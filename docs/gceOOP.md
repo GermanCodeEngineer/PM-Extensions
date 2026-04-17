@@ -42,8 +42,55 @@ In this extension, the shapes of reporters indicate the **type of value**, they 
 - Check whether a variable exists in **local**, **global**, or **all visible** scopes.
 - Create temporary **local variable scopes** for safer nested logic.
 - **Bind global or non-local variables** into the current scope so changes stay linked instead of copied.
-- Variable context is limited to the current **PenguinMod Script**(e.g.a green flag block and the blocks below it), and outer names are resolved **at runtime**.
+- Variable context is limited to the current **PenguinMod Script** (e.g. a green flag block and the blocks below it), and outer names are resolved **at runtime**.
 - Handle shadowing naturally: when the same name exists in multiple scopes, the **innermost** one is used first.
+- **Note:** When using **broadcast blocks**, **custom blocks**, or other control features that start scripts in a new thread, the new script runs in its own thread with a separate local scope. This means any local variables from the calling scope are **not available** in the new script. Local variables do **not carry over** between threads or scripts started by these control features.
+
+### Examples for Scoped Variables
+```scratch
+set var [myGlobalVar] to [hello world] in current scope::#428af5
+create function at var [myFunction] {
+	\/\/ set a local variable for this scope::#949494
+	set var [myLocalVar] to [bye world] in current scope::#428af5
+	...
+	\/\/ see below::#949494
+	my custom block
+	broadcast (my broadcast v)
+	...
+	\/\/ you can read a variable from an upper scope::#949494
+	say (get var [myGlobalVar]::#428af5)
+	\/\/ or local scope...::#949494
+	say (get var [myLocalVar]::#428af5)
+	...
+	
+	\/\/ to change or delete a global var, bind it first::#949494
+	bind [global v] variable [myGlobalVar] to current scope::#428af5
+	delete var [myGlobalVar] in current scope::#428af5
+	...
+	
+	create local variable scope {
+		\/\/ local variables are available even in inward scopes::#949494
+		\/\/ example: (all variables in [all scopes v]::#428af5) is [\["myGlobalVar", "myLocalVar"\]]::#949494
+		\/\/ even though it does not count as local scope anymore::#949494
+		\/\/ example: (all variables in [local scope]::#428af5) is [\[\]]::#949494
+		\/\/ you can also just list global vars::#949494
+		\/\/ example: (all variables in [global scope]::#428af5) is [\["myGlobalVar"\]]::#949494
+	}::#428af5
+}::#428af5
+execute expression (call function [myFunction] with positional args ()::#428af5)::#428af5
+\/\/ local variables are not available outside their scope::#949494
+\/\/ example: (all variables in [all scopes v]::#428af5) is [\["myGlobalVar"\]] ::#949494
+
+define my custom block
+\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
+\/\/ global variables are of course available e.g. <var [myGlobalVar] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+
+when I receive [my broadcast v]
+\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
+\/\/ global variables are of course available e.g. <var [myGlobalVar] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+```
+
+---
 
 ## Functions and Closures
 - Create functions either **to store them in a variable** or **in a reporter block**.
@@ -53,6 +100,46 @@ In this extension, the shapes of reporters indicate the **type of value**, they 
 - Functions and methods can **capture outer variables** from where they were defined.
 - Use `return` to exit a function or method cleanly with a result.
 
+### Examples for Functions
+```scratch
+\/\/ Class Definitions work in a similar way to function definitions \(see above\) ::#949494
+\/\/ Create a global class ::#949494
+create class at var [MyClass] (current class::#428af5) {
+	configure next function: argument names (parse [\["arg1", "arg2"\]] as an array::#ff513d) defaults (parse [\["default for arg 2"\]] as an array::#ff513d)::#428af5
+	definẹ instance method [myMethod] (self::#428af5) {
+		...
+	}::#428af5
+	...
+	\/\/ Instead of ::#949494
+	on [MyClass] set class var [myVariable] to [100]::#428af5
+	\/\/ Use (current class::#428af5) to e.g. set a class variable ::#949494
+	on (current class::#428af5) set class var [myClassVariable] to [100]::#428af5
+}::#428af5
+
+\/\/ Interesting Case: Subclasses ::#949494
+create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
+	definẹ instance method [mySimpleMethod] (self::#428af5) {
+		// Subclasses of course inherit: ::#949494
+		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args (parse [\["lorem ipsum", 54\]] as an array::#ff513d)::#428af5))::#428af5
+	}::#428af5
+}::#428af5
+
+\/\/ To edit a class after defining it: ::#949494
+on class [MyClass] (current class::#428af5) {
+	definẹ instance method [myAddedMethod] (self::#428af5) {
+		...
+	}::#428af5
+}::#428af5
+on class [MySubclass] (current class::#428af5) {
+	on (current class::#428af5) set class var [myClassVariable] to [200]::#428af5
+}::#428af5
+
+\/\/ Example: get class variable of super class ::#949494
+wait (get class var [myClassVariable] of (get superclass of [MySubclass]::#428af5)::#428af5) seconds
+```
+
+---
+
 ## Classes and Inheritance
 - Create classes and subclasses either **in a variable** or **in a reporter block**.
 - All class-related inputs accept either the **class value itself** or the **name of a variable** holding that class.
@@ -60,23 +147,161 @@ In this extension, the shapes of reporters indicate the **type of value**, they 
 - Access **`current class`** while inside a class-definition context.
 - Check subclass relationships and retrieve a class's **superclass**.
 
+### Examples for Classes
+```scratch
+\/\/ Class Definitions work in a similar way to function definitions \(see above\) ::#949494
+\/\/ Create a global class ::#949494
+create class at var [MyClass] (current class::#428af5) {
+	configure next function: argument names (parse [\["arg1", "arg2"\]] as an array::#ff513d) defaults (parse [\["default for arg 2"\]] as an array::#ff513d)::#428af5
+	definẹ instance method [myMethod] (self::#428af5) {
+		...
+	}::#428af5
+	...
+	\/\/ Instead of ::#949494
+	on [MyClass] set class var [myVariable] to [100]::#428af5
+	\/\/ Use (current class::#428af5) to e.g. set a class variable ::#949494
+	on (current class::#428af5) set class var [myClassVariable] to [100]::#428af5
+}::#428af5
+
+\/\/ To edit a class after defining it: ::#949494
+on class [MyClass] (current class::#428af5) {
+	definẹ instance method [myAddedMethod] (self::#428af5) {
+		...
+	}::#428af5
+	...
+	on (current class::#428af5) set class var [myClassVariable] to [200]::#428af5
+}::#428af5
+
+\/\/ Interesting Case: Subclasses ::#949494
+create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
+	definẹ instance method [mySimpleMethod] (self::#428af5) {
+		// Subclasses of course inherit: ::#949494
+		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args (parse [\["lorem ipsum", 54\]] as an array::#ff513d)::#428af5))::#428af5
+	}::#428af5
+}::#428af5
+```
+
+---
+
 ## Methods, Accessors, and Custom Behavior
-- Define **instance methods**, **special methods** like `init` and `as string`, and **static methods**.
+- Define **instance methods** (including special methods like `init` and `as string`).
+- Define **static methods**.
 - Define **getters** and **setters** to control attribute reads and writes.
 - Define **operator methods** to customize how instances behave with operators.
 - Use helper values like **`self`**, **`value`**, and **`other value`** inside the appropriate method contexts.
 - Call parent-class behavior with **`call super method`** and **`call super init method`**.
 
+### Examples for Methods, Accessors, and Operators
+```scratch
+\/\/ Methods, getters, setters, operator methods, and static methods must be defined inside a class definition. ::#949494
+create class at var [MyClass] (current class::#428af5) {
+	\/\/ Define an instance method ::#949494
+	definẹ instance method [greet] (self::#428af5) {
+		say (join [Hello, ] (attribute [name] of (self::#428af5)::#428af5))
+	}::#428af5
+
+	\/\/ Define a getter and setter ::#949494
+	definẹ getter [score] (self::#428af5) {
+		return (attribute [internalScore] of (self::#428af5)::#428af5) ::#428af5
+	}::#428af5
+	definẹ setter [score] (self::#428af5) (value::#428af5) {
+		on (self::#428af5) set attribute [internalScore] to (value::#428af5) ::#428af5
+	}::#428af5
+
+	\/\/ Define an operator method ::#949494
+	definẹ operator method [left add v] (other value::#428af5) {
+		return ((attribute [score] of (self::#428af5)::#428af5) + (other value::#428af5))::#428af5
+	}::#428af5
+
+	\/\/ Define a static method ::#949494
+	definẹ static method [describe] {
+		say [This is a static method.]
+	}::#428af5
+}::#428af5
+
+\/\/ Special methods and super calls ::#949494
+create class at var [MyClass] (current class::#428af5) {
+	\/\/ Special method: init \(runs when a new instance is created\) ::#949494
+	definẹ [init v] instance method (self::#428af5) {
+		on (self::#428af5) set attribute [name] to [Bob] ::#428af5
+		on (self::#428af5) set attribute [internalScore] to [0] ::#428af5
+	}::#428af5
+
+	\/\/ Special method: as string for (() as string::#428af5) ::#949494
+	definẹ [as string v] instance method (self::#428af5) {
+		return (join (attribute [name] of (self::#428af5)::#428af5) (attribute [internalScore] of (self::#428af5)::#428af5)) ::#428af5
+	}::#428af5
+}::#428af5
+
+create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
+	definẹ [init v] instance method (self::#428af5) {
+		\/\/ Call the superclass init method ::#949494
+		call super init method with positional args (blank array::#ff513d)::#428af5
+		on (self::#428af5) set attribute [extra] to [something]::#428af5
+	}::#428af5
+	definẹ instance method [greet] (self::#428af5) {
+		\/\/ Call the superclass greet method ::#949494
+		call super method [greet] with positional args (blank array::#ff513d)::#428af5
+		say [Welcome to MySubclass!]
+	}::#428af5
+}::#428af5
+```
+
 ## Instances, Attributes, and Introspection
 - Create instances with positional arguments passed to `init`.
-- Inputs that expect an **instance** can use either the instance itself or the **name of a variable** holding it.
+- Use either the instance itself or the **name of a variable** holding it as input where an instance is expected.
 - Read and write attributes directly, or route access through getters and setters.
 - Get **all attributes** of an instance for quick inspection.
-- Check whether a value **is an instance of** a class, get its class, compare identity, and inspect its type.
-- List class members by category, including **instance methods**, **static methods**, **getters**, **setters**, **operator methods**, and **class variables**.
-- **Class variables are specially supported** with dedicated set/get/delete/list blocks for class-level metadata.
+- Check whether a value **is an instance of** a class.
+- Get the class of an instance.
+- Compare identity between values (check if two values are exactly the same instance).
+- Inspect the type of a value.
+- List class members by category.
+- Work with **class variables** using dedicated set/get/delete/list blocks for class-level metadata.
+
+### Examples for Instances, Attributes, and Introspection
+```scratch
+\/\/ Create an instance and set attributes ::#949494
+set var [bob] to (create instance of class [MyClass] with positional args (parse [\["Bob"\]] as an array::#ff513d)::#428af5) in current scope::#428af5
+on [bob] set attribute [score] to [42]::#428af5
+
+\/\/ Get an attribute ::#949494
+say (attribute [score] of [bob]::#428af5)
+
+\/\/ Call an instance method ::#949494
+on [bob] call method [greet] with positional args (blank array::#ff513d)::#428af5
+
+\/\/ Introspection ::#949494
+(get class of [bob]::#428af5) // <Class 'MyClass'(super 'Superclass')>
+(all attributes of [bob]::#428af5) // {"score": 42}
+(typeof [bob]::#428af5) // Class Instance
+<is [bob] an instance of [MyClass] ?::#428af5> // true
+```
 
 ## Special Values and Utilities
+- Use **`Nothing`** as a stable no-value similar to Python's `None`.
+- Convert values to readable text with **`as string`**. On class instances that define it, this calls the special **`as string`** method.
+- Use **`execute expression`** to evaluate reporter blocks inside scripts.
+- Use the debugging helper to inspect the current **thread stacks and scopes** when needed.
+
+### Examples for Special Values and Utilities
+```scratch
+\/\/ Using Nothing ::#949494
+set var [result] to (call function [myFunction] with positional args (blank array::#ff513d)::#428af5) in current scope::#428af5
+if <[result] is (Nothing::#428af5) ?::#428af5> then
+	say [No result!]
+end
+
+\/\/ as string \(allows live custom representation\) ::#949494
+say ([bob] as string::#428af5)
+
+\/\/ typeof ::#949494
+say (typeof [bob]::#428af5)
+
+\/\/ execute expression ::#949494
+\/\/ this helps you use a reporter in a script if you don't care about the return value ::#949494
+execute expression (call function [myFunction] with positional args (parse ["Bob"] as an array::#ff513d)::#428af5)::#428af5
+```
 - Use **`Nothing`** as a stable no-value similar to Python's `None`.
 - Convert values to readable text with **`as string`**. On class instances that define it, this calls the special **`as string`** method.
 - Use **`execute expression`** to evaluate reporter blocks inside scripts.
@@ -286,19 +511,19 @@ definẹ operator method [greater or equal v] (other value::#428af5) {
 
 ---
 ```scratch
-on [MyClass] set class variable [myVariable] to [my value]::#428af5
+on [MyClass] set class var [myVariable] to [my value]::#428af5
 ```
 - Sets a class variable on the selected class.
 
 ---
 ```scratch
-(get class variable [myVariable] of [MyClass]::#428af5)
+(get class var [myVariable] of [MyClass]::#428af5)
 ```
 - Gets a class variable from the selected class.
 
 ---
 ```scratch
-on [MyClass] delete class variable [myVariable]::#428af5
+on [MyClass] delete class var [myVariable]::#428af5
 ```
 - Deletes a class variable from the selected class.
 

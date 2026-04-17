@@ -26,6 +26,8 @@ const {
 let passed = 0
 let failed = 0
 let suiteDepth = 0
+let succeededSymbol = "✓"
+let failedSymbol = "✗"
 
 function describe(name, fn) {
     const indent = "  ".repeat(suiteDepth)
@@ -42,10 +44,10 @@ function test(name, fn) {
     const indent = "  ".repeat(suiteDepth)
     try {
         fn()
-        console.log(`${indent}✓ ${name}`)
+        console.log(`${indent}${succeededSymbol} ${name}`)
         passed++
     } catch (error) {
-        console.error(`${indent}✗ ${name}`)
+        console.error(`${indent}${failedSymbol} ${name}`)
         console.error(`${indent}  ${error.message}`)
         failed++
     }
@@ -1156,6 +1158,17 @@ describe("Cast", () => {
                 "is a Number"
             )
         })
+
+        test("throws for null or undefined", () => {
+            assertThrows(() => {
+                Cast._toTypeFromValueOrVariable(null, {}, ClassType, "class or class variable name"),
+                "got no input value"
+            })
+            assertThrows(() => {
+                Cast._toTypeFromValueOrVariable(undefined, {}, ClassType, "class or class variable name"),
+                "got no input value"
+            })
+        })
     })
 
     describe("toClass", () => {
@@ -1898,5 +1911,5 @@ describe("NothingType", () => {
 // =============================================================
 // Summary
 // =============================================================
-console.log(`\n${passed} passed, ${failed} failed out of ${passed + failed} tests`)
+console.log(`\n${passed} passed (${succeededSymbol}), ${failed} failed (${failedSymbol}) out of ${passed + failed} tests`)
 if (failed > 0) process.exit(1)
