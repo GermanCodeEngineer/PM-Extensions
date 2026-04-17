@@ -29,6 +29,40 @@ if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
 *                            Internal Types and Constants                           *
 ************************************************************************************/
 
+const TYPEOF_MENU = [
+    "Boolean",
+    "Number",
+    "String",
+
+    "Buffer (AndrewGaming587)",
+    "Buffer Pointer (AndrewGaming587)",
+    "Date (Old Version) (ddededodediamante)",
+    "Date (ddededodediamante)",
+    "Effect (Div)",
+    "Iterator (Div)",
+    "Object (DogeisCut)",
+    "Regular Expression (DogeisCut)",
+    "Set (DogeisCut)",
+    "External Timer (steve0greatness)",
+    "Array (jwklong)",
+    "Color (jwklong)",
+    "Date (jwklong)",
+    "Lambda (jwklong)",
+    "Number (jwklong)",
+    "Target (jwklong)",
+    "XML (jwklong)",
+    "Canvas (RedMan13)",
+    "Paint Utils Colour (Fruits555000)",
+    
+    "JavaScript Undefined",
+    "JavaScript Null",
+    "JavaScript BigInt",
+    "JavaScript Symbol",
+    "JavaScript Function",
+    "JavaScript Object (generic)",
+    "Unknown (rare)"
+]
+
 /**
  * @param {string} code
  * @param {string} additionalMsg
@@ -308,6 +342,16 @@ class GCEFuncsScopesBlocks {
                 },
                 {
                     ...commonBlocks.returnsBoolean,
+                    opcode: "typeofValueIsMenu",
+                    text: "typeof [VALUE] is [TYPE]",
+                    tooltip: "Check the type of a value.",
+                    arguments: {
+                        VALUE: commonArguments.allowAnything,
+                        TYPE: {type: ArgumentType.STRING, menu: "typeofMenu"},
+                    },
+                },
+                {
+                    ...commonBlocks.returnsBoolean,
                     opcode: "checkIdentity",
                     text: "[VALUE1] is [VALUE2] ?",
                     tooltip: "Checks whether two values are exactly the same value (the same instance).",
@@ -334,7 +378,7 @@ class GCEFuncsScopesBlocks {
             ],
             menus: {
                 variableAvailableKind: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: [
                         "all scopes",
                         "local scope",
@@ -342,11 +386,15 @@ class GCEFuncsScopesBlocks {
                     ],
                 },
                 bindVarOriginKind: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: [
                         "non-local",
                         "global",
                     ],
+                },
+                typeofMenu: {
+                    acceptReporters: true,
+                    items: TYPEOF_MENU,
                 },
             },
         }
@@ -402,6 +450,8 @@ class GCEFuncsScopesBlocks {
     objectAsString = this._getImplementation("objectAsString")
 
     typeofValue = this._getImplementation("typeofValue")
+
+    typeofValueIsMenu = this._getImplementation("typeofValueIsMenu")
 
     checkIdentity = this._getImplementation("checkIdentity")
 

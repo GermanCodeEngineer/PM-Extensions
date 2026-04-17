@@ -211,6 +211,40 @@ function applyInternalWrappers(Scratch) {
 *                            Internal Types and Constants                           *
 ************************************************************************************/
 
+const TYPEOF_MENU = [
+    "Boolean",
+    "Number",
+    "String",
+
+    "Buffer (AndrewGaming587)",
+    "Buffer Pointer (AndrewGaming587)",
+    "Date (Old Version) (ddededodediamante)",
+    "Date (ddededodediamante)",
+    "Effect (Div)",
+    "Iterator (Div)",
+    "Object (DogeisCut)",
+    "Regular Expression (DogeisCut)",
+    "Set (DogeisCut)",
+    "External Timer (steve0greatness)",
+    "Array (jwklong)",
+    "Color (jwklong)",
+    "Date (jwklong)",
+    "Lambda (jwklong)",
+    "Number (jwklong)",
+    "Target (jwklong)",
+    "XML (jwklong)",
+    "Canvas (RedMan13)",
+    "Paint Utils Colour (Fruits555000)",
+    
+    "JavaScript Undefined",
+    "JavaScript Null",
+    "JavaScript BigInt",
+    "JavaScript Symbol",
+    "JavaScript Function",
+    "JavaScript Object (generic)",
+    "Unknown (rare)"
+]
+
 /**
  * @param {string} s
  * @returns {string}
@@ -942,6 +976,27 @@ const CONFIG = {
     CONFIG.PUBLIC_OP_NAMES[internalName] = publicName
 })
 
+const MENU_ITEMS = {
+    CLASS_PROPERTY: [
+        "instance method",
+        "static method",
+        "getter method",
+        "setter method",
+        "operator method",
+        "class variable",
+    ],
+    SPECIAL_METHOD: [
+        {text: "init", value: CONFIG.INIT_METHOD_NAME},
+        {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
+    ],
+    TYPEOF_MENU: typeof TYPEOF_MENU !== "undefined" ? TYPEOF_MENU : [
+        "number", "string", "boolean", "object", "array", "function", "class", "instance", "nothing"
+    ],
+    OPERATOR_METHOD: CONFIG.INTERNAL_OP_NAMES
+        ? Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => ({text: publicName, value: internalName}))
+        : [],
+}
+
 
 class TypeChecker {
     // All custom types (using `customId`) one can get from a reporter in PM
@@ -1260,6 +1315,40 @@ class Cast extends Scratch.Cast {
      */
     static toFunction(value, thread = null) {
         return Cast._toTypeFromValueOrVariable(value, thread, FunctionType, "function or function variable name")
+    }
+
+    // Menus
+
+    static toMenuClassProperty(value) {
+        value = Cast.toString(value)
+        if (!MENU_ITEMS.CLASS_PROPERTY.includes(value)) {
+            throw new Error(`Invalid class property: ${value}`)
+        }
+        return value
+    }
+
+    static toMenuOperatorMethod(value) {
+        value = Cast.toString(value)
+        if (!MENU_ITEMS.OPERATOR_METHOD.includes(value)) {
+            throw new Error(`Invalid operator method: ${value}`)
+        }
+        return value
+    }
+
+    static toMenuSpecialMethod(value) {
+        value = Cast.toString(value)
+        if (!MENU_ITEMS.SPECIAL_METHOD.includes(value)) {
+            throw new Error(`Invalid special method: ${value}`)
+        }
+        return value
+    }
+
+    static toMenuTypeofType(value) {
+        value = Cast.toString(value)
+        if (!MENU_ITEMS.TYPEOF_MENU.includes(value)) {
+            throw new Error(`Invalid typeof type: ${value}`)
+        }
+        return value
     }
 }
 
@@ -2341,29 +2430,21 @@ class GCEOOPBlocks {
             ],
             menus: {
                 classProperty: {
-                    acceptReporters: false,
-                    items: [
-                        "instance method",
-                        "static method",
-                        "getter method",
-                        "setter method",
-                        "operator method",
-                        "class variable",
-                    ],
+                    acceptReporters: true,
+                    items: MENU_ITEMS.CLASS_PROPERTY,
                 },
                 operatorMethod: {
                     acceptReporters: false,
-                    items: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => {
-                        return {text: publicName, value: internalName}
-                    })
+                    items: MENU_ITEMS.OPERATOR_METHOD,
                 },
                 specialMethod: {
                     acceptReporters: false,
-                    items: [
-                        {text: "init", value: CONFIG.INIT_METHOD_NAME},
-                        {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
-                    ],
-                }
+                    items: MENU_ITEMS.SPECIAL_METHOD,
+                },
+                typeofMenu: {
+                    acceptReporters: true,
+                    items: MENU_ITEMS.TYPEOF_MENU,
+                },
             },
         }
         return info
@@ -2525,7 +2606,7 @@ class GCEOOPBlocks {
                     createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
                 },
                 defineSpecialMethod: (node, compiler, imports) => {
-                    const nameCode = quote(node.SPECIAL_METHOD)
+                    const nameCode = `${CAST_PREFIX}.toMenuSpecialMethod(${quote(node.SPECIAL_METHOD)})`
                     createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
@@ -2553,6 +2634,7 @@ class GCEOOPBlocks {
 
                 // Define Operator Methods
                 defineOperatorMethod: (node, compiler, imports) => {
+                    const nameCode = `${CAST_PREFIX}.toMenuOperatorMethod(${quote(node.OPERATOR_KIND)})`
                     createMethodDefinition(node, compiler, imports, quote(node.OPERATOR_KIND), "OperatorMethodType", "operator method", true)
                 },
 
@@ -2997,16 +3079,24 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     propertyNamesOfClass(args, util) {
-        const property = args.PROPERTY
+        const property = Cast.toMenuClassProperty(args.PROPERTY)
         const cls = Cast.toClass(args.CLASS, util.thread)
         const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
-        if (property === "instance method") values = instanceMethods
-        else if (property === "static method") values = staticMethods
-        else if (property === "getter method") values = getterMethods
-        else if (property === "setter method") values = setterMethods
-        else if (property === "operator method") values = operatorMethods
-        else if (property === "class variable") values = classVariables
+        switch (property) {
+            case "instance method":
+                values = instanceMethods; break
+            case "static method":
+                values = staticMethods; break
+            case "getter method":
+                values = getterMethods; break
+            case "setter method":
+                values = setterMethods; break
+            case "operator method":
+                values = operatorMethods; break
+            case "class variable":
+                values = classVariables; break
+        }
         let names = Object.keys(values)
         if (property == "instance method") {
             let index
@@ -3113,6 +3203,14 @@ class GCEOOPBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
+    typeofValueIsMenu(args, util) {
+        return (TypeChecker.stringTypeof(args.VALUE) === Cast.toMenuTypeofType(args.TYPE))
+    }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     checkIdentity(args, util) {
         return Object.is(args.VALUE1, args.VALUE2)
     }
@@ -3155,6 +3253,13 @@ class GCEOOPBlocks {
         return output
     }
 
+    // Copied from PenguinMod-Vm/src/compiler/jexecute.js
+    _mod(n, modulus) {
+        let result = n % modulus;
+        if (result / modulus < 0) result += modulus;
+        return result;
+    }
+
     /**
      * @param {Thread} thread
      * @param {*} left
@@ -3179,7 +3284,7 @@ class GCEOOPBlocks {
             case "op.multiply": return left * right
             case "op.divide": return left / right
             case "op.mod":
-                return mod(left, right)
+                return this._mod(left, right)
             case "op.power": return Math.pow(left, right)
         }
         return null
@@ -3371,12 +3476,9 @@ if (!isRuntimeEnv) {
  * TODO
  *
  * + HIGH PRIORITY
- * + - finish new scope sytem
- * + - ~ to fix custom blocks and broadcasts problem, see new thread block in livetests
- * + - create docs(e.g. members or configure args, explain roles of internal classes)
- * + - ~ add inner example blocks
  * + - finish project tests
  * + - consider different architecture for storing block implementations
+ * + - consider splitting "OOP" extension again
  *
  * + MID PRIORITY
  * + - maybe reorganize block cagegories
