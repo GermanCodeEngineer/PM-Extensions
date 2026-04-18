@@ -1215,6 +1215,36 @@ describe("Cast", () => {
             assert.strictEqual(Cast.toFunction(name, thread), fn)
         })
     })
+
+    describe("menu casting methods", () => {
+        test("toMenuClassProperty accepts valid values and rejects invalid", () => {
+            for (const val of ext.environment.MENU_ITEMS.CLASS_PROPERTY) {
+                assert.strictEqual(Cast.toMenuClassProperty(val), val)
+            }
+            assertThrows(() => Cast.toMenuClassProperty("not-a-class-property"), "Invalid class property")
+        })
+
+        test("toMenuOperatorMethod accepts valid values and rejects invalid", () => {
+            for (const item of ext.environment.MENU_ITEMS.OPERATOR_METHOD) {
+                assert.strictEqual(Cast.toMenuOperatorMethod(item.text), item.text)
+            }
+            assertThrows(() => Cast.toMenuOperatorMethod("not-an-operator-method"), "Invalid operator method")
+        })
+
+        test("toMenuSpecialMethod accepts valid values and rejects invalid", () => {
+            for (const item of ext.environment.MENU_ITEMS.SPECIAL_METHOD) {
+                assert.strictEqual(Cast.toMenuSpecialMethod(item.text), item.text)
+            }
+            assertThrows(() => Cast.toMenuSpecialMethod("not-a-special-method"), "Invalid special method")
+        })
+
+        test("toMenuTypeofType accepts valid values and rejects invalid", () => {
+            for (const val of ext.environment.MENU_ITEMS.TYPEOF_MENU) {
+                assert.strictEqual(Cast.toMenuTypeofType(val), val)
+            }
+            assertThrows(() => Cast.toMenuTypeofType("not-a-typeof-type"), "Invalid typeof type")
+        })
+    })
 })
 
 describe("CustomType", () => {

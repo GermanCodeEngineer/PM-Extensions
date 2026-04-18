@@ -999,9 +999,11 @@ const MENU_ITEMS = {
         {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
     ],
     TYPEOF_MENU: TYPEOF_MENU,
-    OPERATOR_METHOD: CONFIG.INTERNAL_OP_NAMES
-        ? Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => ({text: publicName, value: internalName}))
-        : [],
+    OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
+        ([publicName, internalName]) => (
+            {text: publicName, value: internalName}
+        )
+    ),
 }
 
 
@@ -1341,7 +1343,7 @@ class Cast extends Scratch.Cast {
 
     static toMenuOperatorMethod(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.OPERATOR_METHOD.includes(value)) {
+        if (!MENU_ITEMS.OPERATOR_METHOD.map((item) => item.text).includes(value)) {
             throw new Error(`Invalid operator method: ${value}`)
         }
         return value
@@ -1349,7 +1351,7 @@ class Cast extends Scratch.Cast {
 
     static toMenuSpecialMethod(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.SPECIAL_METHOD.includes(value)) {
+        if (!MENU_ITEMS.SPECIAL_METHOD.map((item) => item.text).includes(value)) {
             throw new Error(`Invalid special method: ${value}`)
         }
         return value
@@ -2783,7 +2785,7 @@ class GCEOOPBlocks {
         this.environment = {
             doublePlusShape: CUSTOM_SHAPE, applyInternalWrappers,
             quote, escapeHTML, span, throwInternal, assertType,
-            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG,
+            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, MENU_ITEMS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
@@ -3218,7 +3220,7 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     typeofValueIsMenu(args, util) {
-        return (TypeChecker.stringTypeof(args.VALUE) === Cast.toMenuTypeofType(args.TYPE))
+        return (Cast.toMenuTypeofType(args.TYPE) === TypeChecker.stringTypeof(args.VALUE))
     }
 
     /**

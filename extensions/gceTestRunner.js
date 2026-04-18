@@ -437,6 +437,16 @@ class TestRunner {
                         EXPECTED: { type: ArgumentType.STRING, menu: 'expectedType' }
                     }
                 },
+                {
+                    opcode: 'assertCustomIdType',
+                    blockType: BlockType.COMMAND,
+                    text: 'assert custom id of [VALUE] is [EXPECTED]',
+                    tooltip: 'Checks the `customID` property of a PM custom type. This also supports custom types from uncommon or new extensions.',
+                    arguments: {
+                        VALUE: commonArguments.allowAnything,
+                        EXPECTED: { type: ArgumentType.STRING, defaultValue: 'jwArray' }
+                    }
+                },                
                 "---",
                 {
                     opcode: 'assertThrows',
@@ -475,7 +485,7 @@ class TestRunner {
             ],
             menus: {
                 expectedType: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: [
                         "Boolean",
                         "Number",
@@ -686,6 +696,26 @@ class TestRunner {
         if (actualType !== expectedType) {
             throw new TestError(
                 `Assertion failed: expected type ${quote(expectedType)} but got ${quote(actualType)} for value ${quote(VALUE)}`
+            )
+        }
+    }
+
+    /** @param {Object} args */
+    assertCustomIdType ({VALUE, EXPECTED}) {
+        const expectedType = Cast.toString(EXPECTED)
+        let customId
+        if (typeof VALUE === "object") {
+            if (VALUE && typeof VALUE.customId === "string") {
+                customId = VALUE.customId
+            } else {
+                customId = "<invalid-custom-id>"
+            }
+        } else {
+            customId = "<not-an-object>"
+        }
+        if (customId !== expectedType) {
+            throw new TestError(
+                `Assertion failed: expected custom id ${quote(expectedType)} but got ${quote(customId)} for value ${quote(VALUE)}`
             )
         }
     }
