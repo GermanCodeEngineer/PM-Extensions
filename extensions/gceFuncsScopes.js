@@ -34,6 +34,15 @@ const TYPEOF_MENU = [
     "Number",
     "String",
 
+    "Function (GCE)",
+    "Instance Method (GCE)",
+    "Getter Method (GCE)",
+    "Setter Method (GCE)",
+    "Operator Method (GCE)",
+    "Class (GCE)",
+    "Class Instance (GCE)",
+    "Nothing (GCE)",
+
     "Buffer (AndrewGaming587)",
     "Buffer Pointer (AndrewGaming587)",
     "Date (Old Version) (ddededodediamante)",
@@ -343,8 +352,8 @@ class GCEFuncsScopesBlocks {
                 {
                     ...commonBlocks.returnsBoolean,
                     opcode: "typeofValueIsMenu",
-                    text: "typeof [VALUE] is [TYPE]",
-                    tooltip: "Check the type of a value.",
+                    text: "typeof [VALUE] is [TYPE] ?",
+                    tooltip: "Check if a value is of a specific type.",
                     arguments: {
                         VALUE: commonArguments.allowAnything,
                         TYPE: {type: ArgumentType.STRING, menu: "typeofMenu"},

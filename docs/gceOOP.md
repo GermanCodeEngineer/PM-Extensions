@@ -274,7 +274,8 @@ on [bob] call method [greet] with positional args (blank array::#ff513d)::#428af
 \/\/ Introspection ::#949494
 (get class of [bob]::#428af5) // <Class 'MyClass'(super 'Superclass')>
 (all attributes of [bob]::#428af5) // {"score": 42}
-(typeof [bob]::#428af5) // Class Instance
+(typeof [bob]::#428af5) // Class Instance (GCE)
+<typeof [bob] is (Class Instance \(GCE\) v) ?::#428af5> // true
 <is [bob] an instance of [MyClass] ?::#428af5> // true
 ```
 
@@ -674,34 +675,15 @@ return [my value]::#428af5 cap
 // And many more
 ```
 - Returns a readable type name for a value.
-- Possible return texts are:
-	- `Function`
-	- `Method`
-	- `Getter Method`
-	- `Setter Method`
-	- `Operator Method`
-	- `Class`
-	- `Class Instance`
-	- `Nothing`
-	- `Boolean`
-	- `Number`
-	- `String`
-	- `Array`
-	- `Object`
-	- `Date`
-	- `Set`
-	- `Lambda`
-	- `Color`
-	- `Unlimited Number`
-	- `Target`
-	- `XML`
-	- `JavaScript Undefined`
-	- `JavaScript Null`
-	- `JavaScript BigInt`
-	- `JavaScript Symbol`
-	- `JavaScript Function`
-	- `JavaScript Object`
-	- `Unknown` *(shouldn't happen in practice; unrecognized values will usually return `JavaScript Object` instead)*
+- You can see the list of types when using the block below.
+
+---
+```scratch
+<typeof (self::#428af5) is (Class Instance \(GCE\) v) ?::#428af5>
+<typeof (get var [myVar]::#428af5) is (String v) ?::#428af5>
+<typeof (blank array::#ff513d) is (Array \(jwklong\) v) ?::#428af5>
+```
+- Check if a value is of a specific type.
 
 ---
 ```scratch

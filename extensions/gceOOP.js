@@ -216,6 +216,15 @@ const TYPEOF_MENU = [
     "Number",
     "String",
 
+    "Function (GCE)",
+    "Instance Method (GCE)",
+    "Getter Method (GCE)",
+    "Setter Method (GCE)",
+    "Operator Method (GCE)",
+    "Class (GCE)",
+    "Class Instance (GCE)",
+    "Nothing (GCE)",
+
     "Buffer (AndrewGaming587)",
     "Buffer Pointer (AndrewGaming587)",
     "Date (Old Version) (ddededodediamante)",
@@ -989,9 +998,7 @@ const MENU_ITEMS = {
         {text: "init", value: CONFIG.INIT_METHOD_NAME},
         {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
     ],
-    TYPEOF_MENU: typeof TYPEOF_MENU !== "undefined" ? TYPEOF_MENU : [
-        "number", "string", "boolean", "object", "array", "function", "class", "instance", "nothing"
-    ],
+    TYPEOF_MENU: TYPEOF_MENU,
     OPERATOR_METHOD: CONFIG.INTERNAL_OP_NAMES
         ? Object.entries(CONFIG.INTERNAL_OP_NAMES).map(([publicName, internalName]) => ({text: publicName, value: internalName}))
         : [],
@@ -1172,10 +1179,15 @@ class TypeChecker {
      */
     static stringTypeof(value) {
         // My Types
-        if (value instanceof BaseCallableType) return value.className // respect subclass names
-        if (value instanceof ClassType) return "Class"
-        if (value instanceof ClassInstanceType) return "Class Instance"
-        if (value instanceof NothingType) return "Nothing"
+        if (value instanceof FunctionType) return "Function (GCE)"
+        if (value instanceof MethodType) return "Instance Method (GCE)"
+        if (value instanceof GetterMethodType) return "Getter Method (GCE)"
+        if (value instanceof SetterMethodType) return "Setter Method (GCE)"
+        if (value instanceof OperatorMethodType) return "Operator Method (GCE)"
+
+        if (value instanceof ClassType) return "Class (GCE)"
+        if (value instanceof ClassInstanceType) return "Class Instance (GCE)"
+        if (value instanceof NothingType) return "Nothing (GCE)"
 
         // Common/Safe JS data types
         if (value === undefined) return "JavaScript Undefined"
@@ -1406,7 +1418,9 @@ class CustomType {
 }
 
 class BaseCallableType extends CustomType {
-    className = "Callable" // Should allow s-plural
+    className = "Callable"
+    // Technically this name will never be shown, as only subclasses actually have instances
+    // Should allow s-plural
 
     /**
      * @param {string} name
