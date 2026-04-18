@@ -1133,8 +1133,8 @@ class TypeChecker {
 
     /**
      * @param {string} typeId
-     * @param {?string} overrideTypeProperty
-     * @param {string} [errMsg] - optional error message if type missing
+     * @param {?string} [overrideTypeProperty]
+     * @param {?string} [errMsg] - optional error message if type missing
      * @returns {(value: *) => boolean}
      */
     static _createVMTypeCheck(typeId, overrideTypeProperty = null, typeMissingErrorMsg = null) {
