@@ -289,12 +289,13 @@ def create_module(extension_id: str) -> d.Module | None:
         type_ignores=[],
     )
 
-def create_category_file(output_path: Path, category_id: str, category_source: str | None = None) -> None:
-    if category_source is not None:
+def create_category_file(output_path: Path, category_id: str, category_source: str | None = None, skip_generation: bool = False) -> None:
+    if not skip_generation:
         p.info_api.generate_and_add_extension(
             extension_id=category_id,
             extension_source=category_source,
         )
+    
 
     module = create_module(category_id)
     if module is None:
@@ -321,6 +322,7 @@ def create_helpers() -> None:
             create_category_file(
                 output_path=Path(f"python/helpers/{opcode_category}.py"),
                 category_id=opcode_category,
+                skip_generation=True,
             )
     
     create_category_file(
@@ -337,6 +339,20 @@ def create_helpers() -> None:
         output_path=Path("python/helpers/gceTestRunner.py"),
         category_id="gceTestRunner",
         category_source=("http://localhost:5173/extensions/gceTestRunner.js"),
+    )
+
+    create_category_file(
+        output_path=Path("python/helpers/jwArray.py"),
+        category_id="jwArray",
+    )
+    create_category_file(
+        output_path=Path("python/helpers/dogeiscutObject.py"),
+        category_id="dogeiscutObject",
+        category_source="https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
+    )
+    create_category_file(
+        output_path=Path("python/helpers/jwProto.py"),
+        category_id="jwProto",
     )
 
 def main() -> None:

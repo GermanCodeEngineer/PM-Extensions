@@ -10,10 +10,15 @@ import pmp_manip as p
 from gceutils import AbstractTreePath
 
 from helpers.event import event
-from helpers.gceFuncsScopes import gceFuncsScopes as fs
-from helpers.gceOOP import gceOOP as c
+from helpers.gceFuncsScopes import gceFuncsScopes
+from helpers.gceOOP import gceOOP
 from helpers.gceTestRunner import gceTestRunner as t
+from helpers.jwArray import jwArray as array
+from helpers.jwProto import jwProto as labels
 
+
+class o(gceOOP, gceFuncsScopes): # Combine both OOP extensions
+    pass
 
 EXTENSION_URL_BASE = (
     #"https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"
@@ -24,28 +29,13 @@ EXTENSION_URL_BASE = (
 def own_extension_url(filename: str) -> str:
     return f"{EXTENSION_URL_BASE}/{filename}"
 
-GCE_EXTENSIONS = [
-    p.SRCustomExtension(
-        id="gceOOP",
-            url=own_extension_url("gceOOP.js"),
-    ),
-    p.SRCustomExtension(
-        id="gceFuncsScopes",
-        url=own_extension_url("gceFuncsScopes.js"),
-    ),
-    p.SRCustomExtension(
-        id="gceTestRunner",
-        url=own_extension_url("gceTestRunner.js"),
-    ),
-]
+GCE_EXTENSIONS = {
+    "gceOOP": own_extension_url("gceOOP.js"),
+    "gceFuncsScopes": own_extension_url("gceFuncsScopes.js"),
+    "gceTestRunner": own_extension_url("gceTestRunner.js"),
+}
 
 
-def describe_suite(name: str, *tests: p.SRBlock) -> p.SRBlock:
-    return t.test_scope(name, list(tests))
-
-
-def run_case(name: str, *blocks: p.SRBlock) -> p.SRBlock:
-    return t.test_scope(name, list(blocks))
 
 _SCRIPT_IDX = 0
 def create_script(*blocks: tuple[p.SRBlock, ...]) -> p.SRScript:
@@ -59,7 +49,7 @@ def create_script(*blocks: tuple[p.SRBlock, ...]) -> p.SRScript:
     _SCRIPT_IDX += 1
     return script
 
-def create_test_project(extensions: list[p.SRCustomExtension|p.SRBuiltinExtension], scripts: list[p.SRScript], output_file: Path) -> None:
+def create_test_project(extensions: dict[str, str | None], scripts: list[p.SRScript], output_file: Path) -> None:
     cfg = p.get_default_config()
     handler = (
         lambda url: url.startswith(EXTENSION_URL_BASE)
@@ -69,7 +59,10 @@ def create_test_project(extensions: list[p.SRCustomExtension|p.SRBuiltinExtensio
 
     project = p.SRProject.create_empty()
     project.stage.scripts = scripts
-    project.extensions = extensions
+    project.extensions = [
+        p.SRCustomExtension(id, url) if url is not None else p.SRBuiltinExtension(id=id)
+        for id, url in extensions.items()
+    ]
 
     project.add_all_extensions_to_info_api(p.info_api)
 
@@ -82,17 +75,57 @@ def create_test_project(extensions: list[p.SRCustomExtension|p.SRBuiltinExtensio
     project.extensions = extensions_before
 
     frproject = project.to_first(p.info_api)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     frproject.to_file(str(output_file))
 
-def test_TypeChecker() -> None:
+def test_TypeChecker(output_path: Path) -> None:
     script = create_script(
         event.whenflagclicked(),
+        t.test_scope("TypeChecker", [
+            t.assert_custom_id_type(o.create_function_named("myFn", []), "gceFunction"),
+            labels.label_command("Methods can not be accessed from a reporter"),
+            t.assert_custom_id_type(o.create_class_named("MyClass", []), "gceClass"),
+            t.assert_custom_id_type(o.create_instance(o.create_class_named("MyClass", []), array.blank()), "gceClassInstance"),
+            t.assert_custom_id_type(o.nothing(), "gceNothing"),
+        ])
     )
-    extensions = [*GCE_EXTENSIONS]
-    create_test_project(extensions, [script], Path("test_TypeChecker.pmp"))
+    extensions = GCE_EXTENSIONS | {
+        "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
+        # agBuffer: vm.agBuffer.Type
+        # agBufferPointer: vm.agBuffer.PointerType
+        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
+        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
+        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
+        # divEffect: vm.divAlgEffects.Effect
+        "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
+        # divIterator: vm.divIterator.Type
+        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
+        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
+        # dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
+        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
+        "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",
+        # paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+        "jwArray": None,
+        "jwColor": None,
+        "jwDate": None,
+        "jwLambda": None,
+        "jwNum": None,
+        "jwTargets": None,
+        "jwVector": None,
+        "jwXML": None,
+        "newCanvas": None,
+        # canvasData: runtime._extensionVariables.canvas
+        "steve0greatnesstimers": "https://extensions.penguinmod.com/extensions/steve0greatness/timers.js",
+        # externaltimer: runtime._extensionVariables.externaltimer
+
+
+        "jwProto": None,
+    }
+    create_test_project(extensions, [script], output_path)
 
 def main() -> None:
-    test_TypeChecker()
+    test_projects_dir = Path("test_projects")
+    test_TypeChecker(test_projects_dir / "test_TypeChecker.pmp")
 
 if __name__ == "__main__":
     main()

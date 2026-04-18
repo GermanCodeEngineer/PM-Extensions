@@ -175,7 +175,7 @@ class gceOOP:
             opcode="&gceOOP::call super method (NAME) with positional args (POSARGS)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -185,7 +185,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::call super init method with positional args (POSARGS)",
             inputs={
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue)
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue)
             },
             dropdowns={},
         )
@@ -259,7 +259,7 @@ class gceOOP:
         class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) set class variable (NAME) to (VALUE)",
+            opcode="&gceOOP::on (CLASS) set class var (NAME) to (VALUE)",
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
@@ -273,7 +273,7 @@ class gceOOP:
         name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::get class variable (NAME) of (CLASS)",
+            opcode="&gceOOP::get class var (NAME) of (CLASS)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
@@ -286,7 +286,7 @@ class gceOOP:
         class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) delete class variable (NAME)",
+            opcode="&gceOOP::on (CLASS) delete class var (NAME)",
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
@@ -308,15 +308,18 @@ class gceOOP:
         )
 
     @staticmethod
-    def property_names_of_class(class_: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
+    def property_names_of_class(
+        property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::[PROPERTY] names of class (CLASS)",
+            opcode="&gceOOP::([PROPERTY]) names of class (CLASS)",
             inputs={
-                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue)
+                "PROPERTY": InputValue.try_as_input(
+                    property, p.SRBlockAndDropdownInputValue
+                ),
+                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
             },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -327,7 +330,7 @@ class gceOOP:
             opcode="&gceOOP::create instance of class (CLASS) with positional args (POSARGS)",
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -339,9 +342,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::is (INSTANCE) an instance of (CLASS) ?",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -352,9 +353,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::get class of (INSTANCE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                )
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue)
             },
             dropdowns={},
         )
@@ -368,9 +367,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::on (INSTANCE) set attribute (NAME) to (VALUE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
@@ -385,9 +382,7 @@ class gceOOP:
             opcode="&gceOOP::attribute (NAME) of (INSTANCE)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -397,9 +392,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::all attributes of (INSTANCE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                )
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue)
             },
             dropdowns={},
         )
@@ -413,11 +406,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::on (INSTANCE) call method (NAME) with positional args (POSARGS)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
+                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -433,7 +424,7 @@ class gceOOP:
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -464,3 +455,7 @@ class gceOOP:
     @staticmethod
     def menu_special_method() -> p.SRBlock:
         return p.SRBlock(opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={})
+
+    @staticmethod
+    def menu_typeof_menu() -> p.SRBlock:
+        return p.SRBlock(opcode="&gceOOP::#menu:typeofMenu", inputs={}, dropdowns={})

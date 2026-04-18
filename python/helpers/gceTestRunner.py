@@ -145,15 +145,33 @@ class gceTestRunner:
         )
 
     @staticmethod
-    def assert_type(value: INPUT_COMPATIBLE_T, expected: str) -> p.SRBlock:
+    def assert_type(
+        value: INPUT_COMPATIBLE_T, expected: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceTestRunner::assert type of (VALUE) is [EXPECTED]",
+            opcode="&gceTestRunner::assert type of (VALUE) is ([EXPECTED])",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "EXPECTED": InputValue.try_as_input(
+                    expected, p.SRBlockAndDropdownInputValue
+                ),
             },
-            dropdowns={
-                "EXPECTED": p.SRDropdownValue(p.DropdownValueKind.STANDARD, expected)
+            dropdowns={},
+        )
+
+    @staticmethod
+    def assert_custom_id_type(
+        value: INPUT_COMPATIBLE_T, expected: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceTestRunner::assert custom id of (VALUE) is (EXPECTED)",
+            inputs={
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "EXPECTED": InputValue.try_as_input(
+                    expected, p.SRBlockAndTextInputValue
+                ),
             },
+            dropdowns={},
         )
 
     @staticmethod

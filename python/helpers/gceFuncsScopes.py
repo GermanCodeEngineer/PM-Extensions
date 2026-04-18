@@ -25,11 +25,16 @@ class gceFuncsScopes:
         )
 
     @staticmethod
-    def scope_var_exists(name: INPUT_COMPATIBLE_T, kind: str) -> p.SRBlock:
+    def scope_var_exists(
+        name: INPUT_COMPATIBLE_T, kind: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceFuncsScopes::var (NAME) exists in [KIND]?",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
+            inputs={
+                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
+                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue),
+            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -41,11 +46,13 @@ class gceFuncsScopes:
         )
 
     @staticmethod
-    def all_variables(kind: str) -> p.SRBlock:
+    def all_variables(kind: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceFuncsScopes::all variables in [KIND]",
-            inputs={},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
+            opcode="&gceFuncsScopes::all variables in ([KIND])",
+            inputs={
+                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue)
+            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -59,11 +66,16 @@ class gceFuncsScopes:
         )
 
     @staticmethod
-    def bind_var_to_scope(name: INPUT_COMPATIBLE_T, kind: str) -> p.SRBlock:
+    def bind_var_to_scope(
+        kind: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceFuncsScopes::bind [KIND] variable (NAME) to current scope",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
-            dropdowns={"KIND": p.SRDropdownValue(p.DropdownValueKind.STANDARD, kind)},
+            opcode="&gceFuncsScopes::bind ([KIND]) variable (NAME) to current scope",
+            inputs={
+                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue),
+                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -127,7 +139,7 @@ class gceFuncsScopes:
             opcode="&gceFuncsScopes::call function (FUNC) with positional args (POSARGS)",
             inputs={
                 "FUNC": InputValue.try_as_input(func, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -148,6 +160,19 @@ class gceFuncsScopes:
             opcode="&gceFuncsScopes::typeof (VALUE)",
             inputs={
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def typeof_value_is_menu(
+        value: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceFuncsScopes::typeof (VALUE) is ([TYPE]) ?",
+            inputs={
+                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -189,4 +214,10 @@ class gceFuncsScopes:
     def menu_bind_var_origin_kind() -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceFuncsScopes::#menu:bindVarOriginKind", inputs={}, dropdowns={}
+        )
+
+    @staticmethod
+    def menu_typeof_menu() -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceFuncsScopes::#menu:typeofMenu", inputs={}, dropdowns={}
         )
