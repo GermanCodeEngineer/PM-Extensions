@@ -48,7 +48,6 @@ def create_script(*blocks: tuple[p.SRBlock, ...]) -> p.SRScript:
     script = p.SRScript(
         position=(200 * _SCRIPT_IDX, 0),
         blocks=[
-            event.whenflagclicked(),
             *blocks,
         ],
     )
