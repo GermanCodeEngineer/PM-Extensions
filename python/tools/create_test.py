@@ -10,6 +10,7 @@ import pmp_manip as p
 from gceutils import AbstractTreePath
 
 from helpers.event import event
+from helpers.operator import operator
 from helpers.gceFuncsScopes import gceFuncsScopes
 from helpers.gceOOP import gceOOP
 from helpers.gceTestRunner import gceTestRunner as t
@@ -82,7 +83,7 @@ def test_TypeChecker(output_path: Path) -> None:
     script = create_script(
         event.whenflagclicked(),
         t.test_scope("TypeChecker", [
-            t.assert_custom_id_type(o.create_function_named("myFn", []), "gceFunction"),
+            t.assert_(o.typeof_value_is_menu(o.create_function_named("myFn", []), operator.stringify("Function (GCE)"))),
             labels.label_command("Methods can not be accessed from a reporter"),
             t.assert_custom_id_type(o.create_class_named("MyClass", []), "gceClass"),
             t.assert_custom_id_type(o.create_instance(o.create_class_named("MyClass", []), array.blank()), "gceClassInstance"),
@@ -120,6 +121,7 @@ def test_TypeChecker(output_path: Path) -> None:
 
 
         "jwProto": None,
+        "SPjavascriptV2": None,
     }
     create_test_project(extensions, [script], output_path)
 
