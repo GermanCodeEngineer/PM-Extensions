@@ -9,6 +9,7 @@ import copy
 import pmp_manip as p
 from gceutils import AbstractTreePath
 
+from helpers.operator import operator
 from helpers.event import event
 from helpers.operator import operator
 from helpers.gceFuncsScopes import gceFuncsScopes
@@ -16,6 +17,8 @@ from helpers.gceOOP import gceOOP
 from helpers.gceTestRunner import gceTestRunner as t
 from helpers.jwArray import jwArray as array
 from helpers.jwProto import jwProto as labels
+from helpers.SPjavascriptV2 import SPjavascriptV2
+import helpers as h
 
 
 class o(gceOOP, gceFuncsScopes): # Combine both OOP extensions
@@ -83,11 +86,20 @@ def test_TypeChecker(output_path: Path) -> None:
     script = create_script(
         event.whenflagclicked(),
         t.test_scope("TypeChecker", [
-            t.assert_(o.typeof_value_is_menu(o.create_function_named("myFn", []), operator.stringify("Function (GCE)"))),
+            labels.label_command("My Types"),
+            t.assert_(o.typeof_value_is_menu(o.create_function_named("myFn", []), "Function (GCE)")),
             labels.label_command("Methods can not be accessed from a reporter"),
-            t.assert_custom_id_type(o.create_class_named("MyClass", []), "gceClass"),
-            t.assert_custom_id_type(o.create_instance(o.create_class_named("MyClass", []), array.blank()), "gceClassInstance"),
-            t.assert_custom_id_type(o.nothing(), "gceNothing"),
+            t.assert_(o.typeof_value_is_menu(o.create_class_named("MyClass", []), "Class (GCE)")),
+            t.assert_(o.typeof_value_is_menu(o.create_instance(o.create_class_named("MyClass", []), array.blank()), "Class Instance (GCE)")),
+            t.assert_(o.typeof_value_is_menu(o.nothing(), "Nothing (GCE)")),
+            labels.label_command("Common/Safe JS data types"),
+            t.assert_(o.typeof_value_is_menu(SPjavascriptV2.js_reporter("undefined"), "JavaScript Undefined")),
+            t.assert_(o.typeof_value_is_menu(SPjavascriptV2.js_reporter("null"), "JavaScript Null")),
+            t.assert_(o.typeof_value_is_menu(operator.true_boolean(), "Boolean")),
+            t.assert_(o.typeof_value_is_menu("777", "Number")),
+            t.assert_(o.typeof_value_is_menu("hello", "String")),
+            labels.label_command("Custom Extension Types"),
+            t.assert_(o.typeof_value_is_menu(h.agBuffer.new_buffer("0"), "Buffer (AndrewGaming587)")),
         ])
     )
     extensions = GCE_EXTENSIONS | {

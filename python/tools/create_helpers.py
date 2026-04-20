@@ -308,6 +308,25 @@ def create_category_file(output_path: Path, category_id: str, category_source: s
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(code, "utf8")
 
+##########################################################################################
+
+EXTENSION_URL_BASE = (
+    #"https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"
+    #"refs/heads/main/extensions"
+    "http://localhost:5173/extensions"
+)
+
+def own_extension_url(filename: str) -> str:
+    return f"{EXTENSION_URL_BASE}/{filename}"
+
+GCE_EXTENSIONS = {
+    "gceOOP": own_extension_url("gceOOP.js"),
+    "gceFuncsScopes": own_extension_url("gceFuncsScopes.js"),
+    "gceTestRunner": own_extension_url("gceTestRunner.js"),
+}
+
+
+
 def create_helpers() -> None:
     cfg = p.get_default_config()
     handler = lambda url: url.startswith("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/")
@@ -325,35 +344,46 @@ def create_helpers() -> None:
                 skip_generation=True,
             )
     
-    create_category_file(
-        output_path=Path("python/helpers/gceOOP.py"),
-        category_id="gceOOP",
-        category_source=("http://localhost:5173/extensions/gceOOP.js"),
-    )
-    create_category_file(
-        output_path=Path("python/helpers/gceFuncsScopes.py"),
-        category_id="gceFuncsScopes",
-        category_source=("http://localhost:5173/extensions/gceFuncsScopes.js"),
-    )
-    create_category_file(
-        output_path=Path("python/helpers/gceTestRunner.py"),
-        category_id="gceTestRunner",
-        category_source=("http://localhost:5173/extensions/gceTestRunner.js"),
-    )
+    extensions = GCE_EXTENSIONS | {
+        "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
+        # agBuffer: vm.agBuffer.Type
+        # agBufferPointer: vm.agBuffer.PointerType
+        "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
+        "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
+        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
+        # divEffect: vm.divAlgEffects.Effect
+        "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
+        # divIterator: vm.divIterator.Type
+        "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
+        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
+        # dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
+        "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
+        "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",
+        # paintUtilsColour: Object.getPrototypeOf(vm.runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+        "jwArray": None,
+        "jwColor": None,
+        "jwDate": None,
+        "jwLambda": None,
+        "jwNum": None,
+        "jwTargets": None,
+        "jwVector": None,
+        "jwXML": None,
+        "newCanvas": None,
+        # canvasData: runtime._extensionVariables.canvas
+        "steve0greatnesstimers": "https://extensions.penguinmod.com/extensions/steve0greatness/timers.js",
+        # externaltimer: runtime._extensionVariables.externaltimer
 
-    create_category_file(
-        output_path=Path("python/helpers/jwArray.py"),
-        category_id="jwArray",
-    )
-    create_category_file(
-        output_path=Path("python/helpers/dogeiscutObject.py"),
-        category_id="dogeiscutObject",
-        category_source="https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
-    )
-    create_category_file(
-        output_path=Path("python/helpers/jwProto.py"),
-        category_id="jwProto",
-    )
+
+        "jwProto": None,
+        "SPjavascriptV2": None,
+    }
+    
+    for extension_id, extension_source in extensions.items():
+        create_category_file(
+            output_path=Path(f"python/helpers/{extension_id}.py"),
+            category_id=extension_id,
+            category_source=extension_source,
+        )
 
 def main() -> None:
     parser = argparse.ArgumentParser()
