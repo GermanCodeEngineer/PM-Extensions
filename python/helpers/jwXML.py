@@ -37,7 +37,7 @@ class jwXML:
     def get_name(node: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwXML::name of (NODE)",
-            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue)},
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -46,7 +46,7 @@ class jwXML:
         return p.SRBlock(
             opcode="&jwXML::set name of (NODE) to (NAME)",
             inputs={
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -58,7 +58,7 @@ class jwXML:
             opcode="&jwXML::append (CHILD) to (NODE)",
             inputs={
                 "CHILD": InputValue.try_as_input(child, p.SRBlockAndTextInputValue),
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -67,7 +67,7 @@ class jwXML:
     def remove_children(node: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwXML::remove children of (NODE)",
-            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue)},
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -75,7 +75,7 @@ class jwXML:
     def get_children(node: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwXML::children of (NODE)",
-            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue)},
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -86,8 +86,10 @@ class jwXML:
         return p.SRBlock(
             opcode="&jwXML::set children of (NODE) to (CHILDREN)",
             inputs={
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
-                "CHILDREN": InputValue.try_as_input(children, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
+                "CHILDREN": InputValue.try_as_input(
+                    children, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -102,7 +104,7 @@ class jwXML:
                 "ATTRIBUTE": InputValue.try_as_input(
                     attribute, p.SRBlockAndTextInputValue
                 ),
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -119,7 +121,7 @@ class jwXML:
                 "ATTRIBUTE": InputValue.try_as_input(
                     attribute, p.SRBlockAndTextInputValue
                 ),
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -135,7 +137,7 @@ class jwXML:
                 "ATTRIBUTE": InputValue.try_as_input(
                     attribute, p.SRBlockAndTextInputValue
                 ),
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -144,7 +146,7 @@ class jwXML:
     def remove_attributes(node: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwXML::remove all attributes of (NODE)",
-            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue)},
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -155,7 +157,7 @@ class jwXML:
         return p.SRBlock(
             opcode="&jwXML::(NODE) has attribute (ATTRIBUTE)",
             inputs={
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
+                "NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue),
                 "ATTRIBUTE": InputValue.try_as_input(
                     attribute, p.SRBlockAndTextInputValue
                 ),
@@ -167,19 +169,18 @@ class jwXML:
     def get_attributes(node: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwXML::attributes of (NODE)",
-            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue)},
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
     @staticmethod
-    def to_string(node: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def to_string(node: INPUT_COMPATIBLE_T, format: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwXML::stringify (NODE) (FORMAT)",
-            inputs={
-                "NODE": InputValue.try_as_input(node, p.SRBlockOnlyInputValue),
-                "FORMAT": InputValue.try_as_input(format, p.SRBlockOnlyInputValue),
+            opcode="&jwXML::stringify (NODE) [FORMAT]",
+            inputs={"NODE": InputValue.try_as_input(node, p.SRBlockAndTextInputValue)},
+            dropdowns={
+                "FORMAT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, format)
             },
-            dropdowns={},
         )
 
     @staticmethod
@@ -204,7 +205,7 @@ class jwXML:
             opcode="&jwXML::elements named (NAME) in (INPUT)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "INPUT": InputValue.try_as_input(input, p.SRBlockOnlyInputValue),
+                "INPUT": InputValue.try_as_input(input, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

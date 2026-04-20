@@ -33,7 +33,9 @@ class jwVector:
     def vector_x(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::(VECTOR) x",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -41,7 +43,9 @@ class jwVector:
     def vector_y(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::(VECTOR) y",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -50,8 +54,8 @@ class jwVector:
         return p.SRBlock(
             opcode="&jwVector::(X) + (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
+                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -61,8 +65,8 @@ class jwVector:
         return p.SRBlock(
             opcode="&jwVector::(X) - (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
+                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -72,8 +76,8 @@ class jwVector:
         return p.SRBlock(
             opcode="&jwVector::(X) * (Y) {{id=jwVector_multiplyB}}",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
+                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -83,8 +87,8 @@ class jwVector:
         return p.SRBlock(
             opcode="&jwVector::(X) / (Y) {{id=jwVector_divideB}}",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
+                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -93,7 +97,9 @@ class jwVector:
     def magnitude(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::magnitude of (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -101,7 +107,9 @@ class jwVector:
     def angle(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::angle of (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -109,7 +117,9 @@ class jwVector:
     def normalize(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::normalize (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -117,7 +127,9 @@ class jwVector:
     def absolute(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::absolute (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -126,21 +138,22 @@ class jwVector:
         return p.SRBlock(
             opcode="&jwVector::rotate (VECTOR) by (ANGLE)",
             inputs={
-                "VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue),
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue),
                 "ANGLE": InputValue.try_as_input(angle, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
 
     @staticmethod
-    def round(rounding: INPUT_COMPATIBLE_T, vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def round(vector: INPUT_COMPATIBLE_T, rounding: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwVector::(ROUNDING) of (VECTOR)",
+            opcode="&jwVector::[ROUNDING] of (VECTOR)",
             inputs={
-                "ROUNDING": InputValue.try_as_input(rounding, p.SRBlockOnlyInputValue),
-                "VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue),
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
             },
-            dropdowns={},
+            dropdowns={
+                "ROUNDING": p.SRDropdownValue(p.DropdownValueKind.STANDARD, rounding)
+            },
         )
 
     @staticmethod
@@ -151,7 +164,9 @@ class jwVector:
     def set_pos(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::set position to (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -163,7 +178,9 @@ class jwVector:
     def set_stretch(vector: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwVector::set stretch to (VECTOR)",
-            inputs={"VECTOR": InputValue.try_as_input(vector, p.SRBlockOnlyInputValue)},
+            inputs={
+                "VECTOR": InputValue.try_as_input(vector, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -172,22 +189,22 @@ class jwVector:
         return p.SRBlock(opcode="&jwVector::mouse position", inputs={}, dropdowns={})
 
     @staticmethod
-    def multiply_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def divide_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwVector::(X) * (Y) {{id=jwVector_multiplyA}}",
+            opcode="&jwVector::(X) / (Y) {{id=jwVector_divideA}}",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
                 "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
 
     @staticmethod
-    def divide_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def multiply_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwVector::(X) / (Y) {{id=jwVector_divideA}}",
+            opcode="&jwVector::(X) * (Y) {{id=jwVector_multiplyA}}",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
+                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
                 "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},

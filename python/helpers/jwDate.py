@@ -17,6 +17,8 @@ class jwDate:
     def parse(input: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwDate::parse (INPUT)",
-            inputs={"INPUT": InputValue.try_as_input(input, p.SRBlockOnlyInputValue)},
+            inputs={
+                "INPUT": InputValue.try_as_input(input, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )

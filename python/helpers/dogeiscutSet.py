@@ -10,11 +10,11 @@ class dogeiscutSet:
         return p.SRBlock(opcode="&dogeiscutSet::blank set", inputs={}, dropdowns={})
 
     @staticmethod
-    def from_list(list: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def from_list(list: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&dogeiscutSet::set from list (LIST)",
-            inputs={"LIST": InputValue.try_as_input(list, p.SRBlockOnlyInputValue)},
-            dropdowns={},
+            opcode="&dogeiscutSet::set from list [LIST]",
+            inputs={},
+            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
 
     @staticmethod
@@ -59,7 +59,7 @@ class dogeiscutSet:
     def builder_set(set: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutSet::set builder to (SET)",
-            inputs={"SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue)},
+            inputs={"SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -68,7 +68,7 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::(SET) has (VALUE)",
             inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
+                "SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -79,8 +79,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::is (ONE) a subset of [TWO]?",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -90,8 +90,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::is (ONE) a superset of [TWO]?",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -101,8 +101,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::is (ONE) disjoint from [TWO]?",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -111,7 +111,7 @@ class dogeiscutSet:
     def size(set: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutSet::size of (SET)",
-            inputs={"SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue)},
+            inputs={"SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -120,7 +120,7 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::add (VALUE) to (SET)",
             inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
+                "SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -131,7 +131,7 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::delete (VALUE) from (SET)",
             inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
+                "SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -142,8 +142,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::union (ONE) with (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -153,8 +153,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::intersect (ONE) with (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -164,8 +164,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::difference (ONE) with (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -177,8 +177,8 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::symmetric difference (ONE) with (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -188,21 +188,20 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::flat (SET) with depth (DEPTH)",
             inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
+                "SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue),
                 "DEPTH": InputValue.try_as_input(depth, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
 
     @staticmethod
-    def to_string(set: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def to_string(set: INPUT_COMPATIBLE_T, format: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&dogeiscutSet::stringify (SET) (FORMAT)",
-            inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
-                "FORMAT": InputValue.try_as_input(format, p.SRBlockOnlyInputValue),
+            opcode="&dogeiscutSet::stringify (SET) [FORMAT]",
+            inputs={"SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue)},
+            dropdowns={
+                "FORMAT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, format)
             },
-            dropdowns={},
         )
 
     @staticmethod
@@ -214,7 +213,7 @@ class dogeiscutSet:
         return p.SRBlock(
             opcode="&dogeiscutSet::for {:V:} of (SET) {SUBSTACK}",
             inputs={
-                "SET": InputValue.try_as_input(set, p.SRBlockOnlyInputValue),
+                "SET": InputValue.try_as_input(set, p.SRBlockAndTextInputValue),
                 "V": InputValue.try_as_input(
                     InputValue(dogeiscutSet.for_each_v()), p.SREmbeddedBlockInputValue
                 ),

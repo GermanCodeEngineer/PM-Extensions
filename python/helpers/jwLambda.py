@@ -26,7 +26,9 @@ class jwLambda:
     def raw_lambda_input(field: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwLambda::(FIELD)",
-            inputs={"FIELD": InputValue.try_as_input(field, p.SRBlockOnlyInputValue)},
+            inputs={
+                "FIELD": InputValue.try_as_input(field, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -47,7 +49,7 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::execute (LAMBDA) with (ARG) {{id=jwLambda_executeR}}",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue),
+                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockAndTextInputValue),
                 "ARG": InputValue.try_as_input(arg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -62,7 +64,7 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::times (LAMBDA) executed",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue)
+                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -72,7 +74,7 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::execute (LAMBDA) with (ARG) {{id=jwLambda_execute}}",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue),
+                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockAndTextInputValue),
                 "ARG": InputValue.try_as_input(arg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},

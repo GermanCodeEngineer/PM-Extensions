@@ -17,7 +17,7 @@ class divIterator:
     def iter_advance(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::advance (ITER)",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -25,7 +25,7 @@ class divIterator:
     def iter_next(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::next item from (ITER)",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -43,7 +43,7 @@ class divIterator:
     def iter_done(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) is done?",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -51,7 +51,7 @@ class divIterator:
     def iter_clone(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::clone (ITER)",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -59,7 +59,7 @@ class divIterator:
     def iter_clonable(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) is clonable?",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -68,7 +68,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::branch (ITER) into (NUM) branches",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -81,7 +81,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::for {:I:} of (ITER) {SUBSTACK}",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue
                 ),
@@ -161,7 +161,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then map {:I:} (MAP)",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue
                 ),
@@ -177,7 +177,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then keep {:I:} if <PRED>",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue
                 ),
@@ -190,7 +190,7 @@ class divIterator:
     def iter_adapter_enum(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then enumerate items",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -198,7 +198,7 @@ class divIterator:
     def iter_adapter_cycle(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then cycle items",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -209,7 +209,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then take (COUNT) items",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "COUNT": InputValue.try_as_input(count, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -222,7 +222,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then skip (COUNT) items",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "COUNT": InputValue.try_as_input(count, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -235,7 +235,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then step by (STEP) items",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "STEP": InputValue.try_as_input(step, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -248,8 +248,8 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER1) then chain with (ITER2)",
             inputs={
-                "ITER1": InputValue.try_as_input(iter1, p.SRBlockOnlyInputValue),
-                "ITER2": InputValue.try_as_input(iter2, p.SRBlockOnlyInputValue),
+                "ITER1": InputValue.try_as_input(iter1, p.SRBlockAndTextInputValue),
+                "ITER2": InputValue.try_as_input(iter2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -261,8 +261,8 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER1) then zip with (ITER2)",
             inputs={
-                "ITER1": InputValue.try_as_input(iter1, p.SRBlockOnlyInputValue),
-                "ITER2": InputValue.try_as_input(iter2, p.SRBlockOnlyInputValue),
+                "ITER1": InputValue.try_as_input(iter1, p.SRBlockAndTextInputValue),
+                "ITER2": InputValue.try_as_input(iter2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -274,8 +274,8 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER1) then cross with (ITER2)",
             inputs={
-                "ITER1": InputValue.try_as_input(iter1, p.SRBlockOnlyInputValue),
-                "ITER2": InputValue.try_as_input(iter2, p.SRBlockOnlyInputValue),
+                "ITER1": InputValue.try_as_input(iter1, p.SRBlockAndTextInputValue),
+                "ITER2": InputValue.try_as_input(iter2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -287,7 +287,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) then inspect {:I:} {SUBSTACK}",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue
                 ),
@@ -300,7 +300,7 @@ class divIterator:
     def iter_collect_to(iter: INPUT_COMPATIBLE_T, type: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) finally collect to [TYPE]",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={"TYPE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, type)},
         )
 
@@ -308,7 +308,7 @@ class divIterator:
     def iter_term_count(iter: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divIterator::(ITER) finally count items",
-            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue)},
+            inputs={"ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -319,7 +319,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) finally reduce (INIT) with {:A:} {:I:} (FOLD)",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "INIT": InputValue.try_as_input(init, p.SRBlockAndTextInputValue),
                 "FOLD": InputValue.try_as_input(fold, p.SRBlockAndTextInputValue),
                 "A": InputValue.try_as_input(
@@ -337,7 +337,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) finally any {:I:} <PRED>",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "PRED": InputValue.try_as_input(pred, p.SRBlockAndBoolInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue
@@ -351,7 +351,7 @@ class divIterator:
         return p.SRBlock(
             opcode="&divIterator::(ITER) finally all {:I:} <PRED>",
             inputs={
-                "ITER": InputValue.try_as_input(iter, p.SRBlockOnlyInputValue),
+                "ITER": InputValue.try_as_input(iter, p.SRBlockAndTextInputValue),
                 "PRED": InputValue.try_as_input(pred, p.SRBlockAndBoolInputValue),
                 "I": InputValue.try_as_input(
                     InputValue(divIterator.iter_item()), p.SREmbeddedBlockInputValue

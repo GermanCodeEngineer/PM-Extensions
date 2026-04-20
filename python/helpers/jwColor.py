@@ -92,12 +92,14 @@ class jwColor:
         option: INPUT_COMPATIBLE_T,
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwColor::interpolate (A) to (B) by (I) using (OPTION)",
+            opcode="&jwColor::interpolate (A) to (B) by (I) using ([OPTION])",
             inputs={
                 "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
                 "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
                 "I": InputValue.try_as_input(i, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "OPTION": InputValue.try_as_input(
+                    option, p.SRBlockAndDropdownInputValue
+                ),
             },
             dropdowns={},
         )
@@ -105,10 +107,12 @@ class jwColor:
     @staticmethod
     def get(color: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwColor::get (OPTION) (COLOR)",
+            opcode="&jwColor::get ([OPTION]) (COLOR)",
             inputs={
                 "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "OPTION": InputValue.try_as_input(
+                    option, p.SRBlockAndDropdownInputValue
+                ),
             },
             dropdowns={},
         )
@@ -118,11 +122,13 @@ class jwColor:
         color: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwColor::set (OPTION) (COLOR) to (VALUE)",
+            opcode="&jwColor::set ([OPTION]) (COLOR) to (VALUE)",
             inputs={
                 "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "OPTION": InputValue.try_as_input(
+                    option, p.SRBlockAndDropdownInputValue
+                ),
             },
             dropdowns={},
         )

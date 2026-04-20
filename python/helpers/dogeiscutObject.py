@@ -74,7 +74,9 @@ class dogeiscutObject:
     def builder_set(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutObject::set builder to (OBJECT)",
-            inputs={"OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue)},
+            inputs={
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -83,7 +85,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::get (KEY) in (OBJECT)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "KEY": InputValue.try_as_input(key, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -94,7 +96,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::get path (ARRAY) in (OBJECT)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "ARRAY": InputValue.try_as_input(array, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -105,7 +107,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::(OBJECT) has key (KEY)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "KEY": InputValue.try_as_input(key, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -115,7 +117,9 @@ class dogeiscutObject:
     def size(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutObject::size of (OBJECT)",
-            inputs={"OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue)},
+            inputs={
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -126,7 +130,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::set (KEY) in (OBJECT) to (VALUE)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "KEY": InputValue.try_as_input(key, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
@@ -140,7 +144,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::set path (ARRAY) in (OBJECT) to (VALUE)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
                 "ARRAY": InputValue.try_as_input(array, p.SRBlockAndTextInputValue),
             },
@@ -152,7 +156,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::delete key (KEY) from (OBJECT)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "KEY": InputValue.try_as_input(key, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -165,7 +169,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::delete at path (ARRAY) from (OBJECT)",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "ARRAY": InputValue.try_as_input(array, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -176,28 +180,31 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::merge (ONE) into (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
 
     @staticmethod
-    def to_string(object: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def to_string(object: INPUT_COMPATIBLE_T, format: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&dogeiscutObject::stringify (OBJECT) (FORMAT)",
+            opcode="&dogeiscutObject::stringify (OBJECT) [FORMAT]",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
-                "FORMAT": InputValue.try_as_input(format, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
             },
-            dropdowns={},
+            dropdowns={
+                "FORMAT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, format)
+            },
         )
 
     @staticmethod
     def keys(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutObject::keys of (OBJECT)",
-            inputs={"OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue)},
+            inputs={
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -205,7 +212,9 @@ class dogeiscutObject:
     def values(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutObject::values of (OBJECT)",
-            inputs={"OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue)},
+            inputs={
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -213,7 +222,9 @@ class dogeiscutObject:
     def entries(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutObject::entries of (OBJECT)",
-            inputs={"OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue)},
+            inputs={
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue)
+            },
             dropdowns={},
         )
 
@@ -240,7 +251,7 @@ class dogeiscutObject:
         return p.SRBlock(
             opcode="&dogeiscutObject::for {:K:} {:V:} of (OBJECT) {SUBSTACK}",
             inputs={
-                "OBJECT": InputValue.try_as_input(object, p.SRBlockOnlyInputValue),
+                "OBJECT": InputValue.try_as_input(object, p.SRBlockAndTextInputValue),
                 "K": InputValue.try_as_input(
                     InputValue(dogeiscutObject.for_each_k()),
                     p.SREmbeddedBlockInputValue,
