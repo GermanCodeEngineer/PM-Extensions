@@ -2833,21 +2833,39 @@ class GCEOOPBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
-    addFuncsScopesExtension() {
-        if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
-            Scratch.vm.extensionManager.loadExtensionURL(
+    async _isLocalhostAvailable(url) {
+        try {
+            const controller = new AbortController()
+            const timeout = setTimeout(() => controller.abort(), 500)
+            const response = await fetch(url, { method: "HEAD", signal: controller.signal })
+            clearTimeout(timeout)
+            return response.ok
+        } catch {
+            return false
+        }
+    }
+
+    async _addLocalhostOrProdExtension(localUrl, prodUrl) {
+        const url = (await this._isLocalhostAvailable(localUrl)) ? localUrl : prodUrl
+        Scratch.vm.extensionManager.loadExtensionURL(url)
+    }
+
+    addFuncsScopesExtension() { // BUTTON
+        if (isRuntimeEnv && !Scratch.vm.extensionManager.isExtensionLoaded("gceFuncsScopes")) {
+            this._addLocalhostOrProdExtension(
                 "http://localhost:5173/extensions/gceFuncsScopes.js",
+                "https://germancodeengineer.github.io/PM-Extensions/extensions/gceFuncsScopes.js"
             )
         }
     }
     
-    addArrayExtension() {
+    addArrayExtension() { // BUTTON
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("jwArray")) {
             Scratch.vm.extensionManager.loadExtensionIdSync("jwArray")
         }
     }
 
-    addObjectExtension() {
+    addObjectExtension() { // BUTTON
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("dogeiscutObject")) {
             Scratch.vm.extensionManager.loadExtensionURL(
                 "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js"

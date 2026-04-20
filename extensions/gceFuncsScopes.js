@@ -414,10 +414,28 @@ class GCEFuncsScopesBlocks {
     *                                       Blocks                                      *
     ************************************************************************************/
 
+    async _isLocalhostAvailable(url) {
+        try {
+            const controller = new AbortController()
+            const timeout = setTimeout(() => controller.abort(), 500)
+            const response = await fetch(url, { method: "HEAD", signal: controller.signal })
+            clearTimeout(timeout)
+            return response.ok
+        } catch {
+            return false
+        }
+    }
+
+    async _addLocalhostOrProdExtension(localUrl, prodUrl) {
+        const url = (await this._isLocalhostAvailable(localUrl)) ? localUrl : prodUrl
+        Scratch.vm.extensionManager.loadExtensionURL(url)
+    }
+
     addOOPExtension() { // BUTTON
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
-            Scratch.vm.extensionManager.loadExtensionURL(
-                "http://localhost:5173/extensions/gceOOP.js",
+            this._addLocalhostOrProdExtension(
+                "http://localhost:5173/extensions/gceFuncsScopes.js",
+                "https://germancodeengineer.github.io/PM-Extensions/extensions/gceOOP.js"
             )
         }
     }
