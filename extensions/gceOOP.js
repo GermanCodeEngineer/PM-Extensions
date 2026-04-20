@@ -1058,11 +1058,11 @@ class TypeChecker {
      * @param {*} value
      * @returns {boolean}
      */
-    static is_ddeDateFormat(value) {
+    static is_ddeDateFormat(value) { // TODO: update gallery version
         TypeChecker._assertRuntimeEnv()
         if (runtime.ext_ddeDateFormat) {
             try {
-                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate()).constructor
                 if (value instanceof dateType) return true
             } catch {}
         }
@@ -1072,11 +1072,11 @@ class TypeChecker {
      * @param {*} value
      * @returns {boolean}
      */
-    static is_ddeDateFormatV2(value) {
+    static is_ddeDateFormatV2(value) { // TODO: update gallery version
         TypeChecker._assertRuntimeEnv()
         if (runtime.ext_ddeDateFormatV2) {
             try {
-                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate()).constructor
                 if (value instanceof dateType) return true
             } catch {}
         }

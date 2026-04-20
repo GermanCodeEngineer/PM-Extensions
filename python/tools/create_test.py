@@ -99,7 +99,12 @@ def test_TypeChecker(output_path: Path) -> None:
             t.assert_(o.typeof_value_is_menu("777", "Number")),
             t.assert_(o.typeof_value_is_menu("hello", "String")),
             labels.label_command("Custom Extension Types"),
-            t.assert_(o.typeof_value_is_menu(h.agBuffer.new_buffer("0"), "Buffer (AndrewGaming587)")),
+            t.assert_(o.typeof_value_is_menu(h.agBuffer.new_buffer("1"), "Buffer (AndrewGaming587)")),
+            t.assert_(o.typeof_value_is_menu(h.agBuffer.create_pointer(
+                "0", False, h.agBuffer.new_buffer("1"), "Uint8",
+            ), "Buffer Pointer (AndrewGaming587)")),
+            t.assert_(o.typeof_value_is_menu(h.ddeDateFormat.current_date(), "Date (Old Version) (ddededodediamante)")),
+            t.assert_(o.typeof_value_is_menu(h.ddeDateFormatV2.current_date(), "Date (ddededodediamante)")),
         ])
     )
     extensions = GCE_EXTENSIONS | {
