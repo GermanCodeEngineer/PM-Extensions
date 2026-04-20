@@ -29,6 +29,10 @@ class InputValue:
                     return input_type(block=self.value, dropdown=None)
                 elif isinstance(self.value, p.SRDropdownValue):
                     return input_type(block=None, dropdown=self.value)
+                elif isinstance(self.value, str):
+                    return input_type(block=None, dropdown=p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.value,
+                    ))
                 else: raise ValueError(self.value)
 
             case p.SRBlockAndBoolInputValue:

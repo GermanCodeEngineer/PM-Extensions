@@ -3538,6 +3538,7 @@ if (!isRuntimeEnv) {
  * + - finish project tests
  * + - consider different architecture for storing block implementations
  * + - consider splitting "OOP" extension again
+ * + - german translation possibly
  *
  * + MID PRIORITY
  * + - maybe reorganize block cagegories
@@ -3549,6 +3550,8 @@ if (!isRuntimeEnv) {
  * + - "delete member of class" block
  * + - reconsider to standardize stacks and scopes index order style
  * + - convert call super init method to call super special method
+ * + - "delete", "has", "all" blocks for attributes
+ * + - think about other missing blocks accross features
  *
  * + LOW PRIORITY (optional in future)
  * + - button on blocks that opens a section in the documentation about that block

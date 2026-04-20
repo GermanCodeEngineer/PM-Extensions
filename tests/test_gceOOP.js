@@ -16,7 +16,7 @@ if (!ext) {
 
 const {
     VariableManager, ThreadUtil, ScopeStackManager, ScopeStack,
-    CONFIG, Cast, CustomType, BaseCallableType, FunctionType, MethodType,
+    CONFIG, Cast, CustomType, BaseCallableType, FunctionType, InstanceMethodType,
     GetterMethodType, SetterMethodType, OperatorMethodType,
     ClassType, ClassInstanceType, NothingType, Nothing,
 } = ext.environment
@@ -93,7 +93,7 @@ function makeFunctionType(name, body = function* () { return Nothing }, config =
 }
 
 function makeMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
-    return new MethodType(name, body, new ScopeStack(), config)
+    return new InstanceMethodType(name, body, new ScopeStack(), config)
 }
 
 function makeGetterMethodType(name, body = function* () { return Nothing }, config = noArgsConfig()) {
@@ -1360,10 +1360,10 @@ describe("FunctionType", () => {
     })
 })
 
-describe("MethodType", () => {
+describe("InstanceMethodType", () => {
     describe("enterContext", () => {
         test("pushes method scope with self and args", () => {
-            const method = new MethodType(
+            const method = new InstanceMethodType(
                 "myMethod",
                 function* () { return Nothing },
                 new ScopeStack(),
@@ -1642,7 +1642,7 @@ describe("ClassType", () => {
             cls.setMember(
                 CONFIG.INIT_METHOD_NAME,
                 "instance method",
-                new MethodType(
+                new InstanceMethodType(
                     CONFIG.INIT_METHOD_NAME,
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
@@ -1666,7 +1666,7 @@ describe("ClassType", () => {
             cls.setMember(
                 CONFIG.INIT_METHOD_NAME,
                 "instance method",
-                new MethodType(
+                new InstanceMethodType(
                     CONFIG.INIT_METHOD_NAME,
                     function* (thread) {
                         ThreadUtil.getStackManager(thread).prepareReturn()
@@ -1784,7 +1784,7 @@ describe("ClassInstanceType", () => {
             base.setMember(
                 "speak",
                 "instance method",
-                new MethodType(
+                new InstanceMethodType(
                     "speak",
                     function* (thread) {
                         const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
@@ -1798,7 +1798,7 @@ describe("ClassInstanceType", () => {
             sub.setMember(
                 "speak",
                 "instance method",
-                new MethodType(
+                new InstanceMethodType(
                     "speak",
                     function* (thread) {
                         const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
