@@ -303,6 +303,7 @@ function throwInternal(code, additionalMsg = "") {
 }
 
 /**
+ * Ensure that no unintended types are handed to the user.
  * @template T
  * @param {string} errorCode 
  * @param {new (...args: any[]) => T} type
@@ -1033,7 +1034,7 @@ class TypeChecker {
 
     // My Types
     // FunctionType
-    // MethodType
+    // InstanceMethodType
     // ClassType
     // ClassInstanceType
     // NothingType
@@ -1182,7 +1183,7 @@ class TypeChecker {
     static stringTypeof(value) {
         // My Types
         if (value instanceof FunctionType) return "Function (GCE)"
-        if (value instanceof MethodType) return "Instance Method (GCE)"
+        if (value instanceof InstanceMethodType) return "Instance Method (GCE)"
         if (value instanceof GetterMethodType) return "Getter Method (GCE)"
         if (value instanceof SetterMethodType) return "Setter Method (GCE)"
         if (value instanceof OperatorMethodType) return "Operator Method (GCE)"
@@ -1279,12 +1280,12 @@ class Cast extends Scratch.Cast {
     /**
      * @param {*} value
      * @param {?Thread} thread
-     * @param {typeof CustomType} expectedType
+     * @param {(value: any) => boolean} isValidVal
      * @param {string} expectedDescription
      * @returns {*}
      */
-    static _toTypeFromValueOrVariable(value, thread, expectedType, expectedDescription) {
-        if (value instanceof expectedType) return value
+    static _toTypeFromValueOrVariable(value, thread, isValidVal, expectedDescription) { // TODO: update tests
+        if (isValidVal(value)) return value
         if (TypeChecker.isMissingValue(value)) {
             throw new Error(`Expected a ${expectedDescription}, but got no input value.`)
         }
@@ -1298,7 +1299,7 @@ class Cast extends Scratch.Cast {
         } catch {
             throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
         }
-        if (varValue instanceof expectedType) return varValue
+        if (isValidVal(varValue)) return varValue
         throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.stringTypeof(varValue)}.`)
     }
 
@@ -1310,7 +1311,7 @@ class Cast extends Scratch.Cast {
      * @returns {ClassType}
      */
     static toClass(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, ClassType, "class or class variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassType, "class or class variable name")
     }
 
     /**
@@ -1319,7 +1320,7 @@ class Cast extends Scratch.Cast {
      * @returns {ClassInstanceType}
      */
     static toClassInstance(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, ClassInstanceType, "class instance or class instance variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassInstanceType, "class instance or class instance variable name")
     }
 
     /**
@@ -1328,11 +1329,15 @@ class Cast extends Scratch.Cast {
      * @returns {FunctionType}
      */
     static toFunction(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, FunctionType, "function or function variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof FunctionType, "function or function variable name")
     }
 
     // Menus
 
+    /**
+     * @param {*} value 
+     * @returns {string}
+     */
     static toMenuClassProperty(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.CLASS_PROPERTY.includes(value)) {
@@ -1341,6 +1346,10 @@ class Cast extends Scratch.Cast {
         return value
     }
 
+    /**
+     * @param {*} value 
+     * @returns {string}
+     */
     static toMenuOperatorMethod(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.OPERATOR_METHOD.map((item) => item.text).includes(value)) {
@@ -1349,6 +1358,10 @@ class Cast extends Scratch.Cast {
         return value
     }
 
+    /**
+     * @param {*} value 
+     * @returns {string}
+     */
     static toMenuSpecialMethod(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.SPECIAL_METHOD.map((item) => item.text).includes(value)) {
@@ -1357,6 +1370,10 @@ class Cast extends Scratch.Cast {
         return value
     }
 
+    /**
+     * @param {*} value 
+     * @returns {string}
+     */
     static toMenuTypeofType(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.TYPEOF_MENU.includes(value)) {
@@ -1506,8 +1523,8 @@ class BaseCallableType extends CustomType {
         let name
         let prefix
 
-        if (this instanceof MethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = "Initializing object"
-        else if (this instanceof MethodType) prefix = `Calling method ${quote(this.name)}`
+        if (this instanceof InstanceMethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = "Initializing object"
+        else if (this instanceof InstanceMethodType) prefix = `Calling method ${quote(this.name)}`
         else prefix = `Calling function ${quote(this.name)}`
 
         // Ensure there are not too many arguments
@@ -1556,9 +1573,9 @@ class FunctionType extends BaseCallableType {
     }
 }
 
-class MethodType extends BaseCallableType {
+class InstanceMethodType extends BaseCallableType {
     customId = "gceMethod"
-    className = "Method"
+    className = "Instance Method"
 
     /**
      * @param {Thread} thread
@@ -1572,7 +1589,7 @@ class MethodType extends BaseCallableType {
     }
 }
 
-class GetterMethodType extends MethodType {
+class GetterMethodType extends InstanceMethodType {
     customId = "gceGetterMethod"
     className = "Getter Method"
 
@@ -1584,7 +1601,7 @@ class GetterMethodType extends MethodType {
         ThreadUtil.getStackManager(thread).enterGetterMethodCall(this, instance)
     }
 }
-class SetterMethodType extends MethodType {
+class SetterMethodType extends InstanceMethodType {
     customId = "gceSetterMethod"
     className = "Setter Method"
 
@@ -1605,7 +1622,7 @@ class SetterMethodType extends MethodType {
     }
 }
 
-class OperatorMethodType extends MethodType {
+class OperatorMethodType extends InstanceMethodType {
     customId = "gceOperatorMethod"
     className = "Operator Method"
 
@@ -1838,7 +1855,7 @@ class ClassInstanceType extends CustomType {
      * @returns {*} the return value of the method
      */
     *executeInstanceMethod(thread, name, posArgs) {
-        /** @type {MethodType} */
+        /** @type {InstanceMethodType} */
         const method = this.cls.getMemberOfType(name, "instance method")
         return yield* method.execute(thread, this, posArgs)
     }
@@ -1852,7 +1869,7 @@ class ClassInstanceType extends CustomType {
     *executeSuperMethod(thread, name, posArgs) {
         if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
 
-        /** @type {MethodType} */
+        /** @type {InstanceMethodType} */
         const method = this.cls.superCls.getMemberOfType(name, "instance method")
         return yield* method.execute(thread, this, posArgs)
     }
@@ -1961,7 +1978,10 @@ const gceFunction = {
     },
 }
 const gceMethod = {
-    Type: MethodType,
+    Type: InstanceMethodType,
+    GetterType: GetterMethodType,
+    SetterType: SetterMethodType,
+    OperatorType: OperatorMethodType,
     Block: {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.ARROW,
@@ -2005,6 +2025,11 @@ const gceClassInstance = {
         shape: "gceOOP-doublePlus",
         exemptFromNormalization: true,
         check: ["gceClassInstance"],
+    },
+    ArgumentClassOrVarName: {
+        type: ArgumentType.STRING,
+        defaultValue: "myInstance",
+        exemptFromNormalization: true,
     },
 }
 if (!CUSTOM_SHAPE) {
@@ -2619,11 +2644,11 @@ class GCEOOPBlocks {
                 // Define Instance Methods
                 defineInstanceMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "instance method", false)
                 },
                 defineSpecialMethod: (node, compiler, imports) => {
                     const nameCode = `${CAST_PREFIX}.toMenuSpecialMethod(${quote(node.SPECIAL_METHOD)})`
-                    createMethodDefinition(node, compiler, imports, nameCode, "MethodType", "instance method", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "instance method", false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
@@ -2787,7 +2812,7 @@ class GCEOOPBlocks {
             quote, escapeHTML, span, throwInternal, assertType,
             VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, MENU_ITEMS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
-            MethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
+            InstanceMethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
             gceFunction, gceMethod, gceClass, gceClassInstance, gceNothing,
         }
@@ -2816,7 +2841,7 @@ class GCEOOPBlocks {
         this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
-        commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new MethodType(
+        commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new InstanceMethodType(
             CONFIG.INIT_METHOD_NAME,
             function* (thread) {
                 ThreadUtil.getStackManager(thread).prepareReturn()
@@ -3278,7 +3303,7 @@ class GCEOOPBlocks {
         if (!(object instanceof ClassInstanceType)) return object.toString()
         let method
         try {
-            /** @type {MethodType} */
+            /** @type {InstanceMethodType} */
             method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
         } catch {}
         if (!method) return object.toString()
@@ -3328,8 +3353,8 @@ class GCEOOPBlocks {
      * @param {Thread} thread
      * @param {*} left
      * @param {*} right
-     * @param {string} method
      * @param {string} oppositeMethod
+     * @param {string} method
      * @param {string} nodeKind
      * @returns {boolean|null}
      */
