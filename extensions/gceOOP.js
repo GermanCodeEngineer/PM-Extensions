@@ -3541,6 +3541,7 @@ if (!isRuntimeEnv) {
  * + - update test runner in gallery
  *
  * + MID PRIORITY
+ * + - maybe use better custom block shape (example: divIterators.js)
  * + - maybe reorganize block cagegories
  * + - option to exclude super classes when asking for members
  * + - implement right-click switch options for similar blocks

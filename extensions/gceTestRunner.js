@@ -794,9 +794,9 @@ class TestRunner {
 }
 
 const testRunnerInstance = new TestRunner()
+const runtime = Scratch.vm.runtime
 
 if (isRuntimeEnv) {
-    const runtime = Scratch.vm.runtime
     const oldConvertBlock = runtime._convertBlockForScratchBlocks.bind(runtime)
     if (!oldConvertBlock.tooltipImplementationAdded) {
         /**

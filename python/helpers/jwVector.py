@@ -172,9 +172,9 @@ class jwVector:
         return p.SRBlock(opcode="&jwVector::mouse position", inputs={}, dropdowns={})
 
     @staticmethod
-    def multiply_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def divide_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwVector::(X) * (Y) {{id=jwVector_multiplyA}}",
+            opcode="&jwVector::(X) / (Y) {{id=jwVector_divideA}}",
             inputs={
                 "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
                 "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
@@ -183,9 +183,9 @@ class jwVector:
         )
 
     @staticmethod
-    def divide_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def multiply_a(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwVector::(X) / (Y) {{id=jwVector_divideA}}",
+            opcode="&jwVector::(X) * (Y) {{id=jwVector_multiplyA}}",
             inputs={
                 "X": InputValue.try_as_input(x, p.SRBlockOnlyInputValue),
                 "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
