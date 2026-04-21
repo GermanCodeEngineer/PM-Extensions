@@ -134,7 +134,7 @@ class TypeChecker {
         TypeChecker._assertRuntimeEnv()
         if (runtime.ext_ddeDateFormat) {
             try {
-                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate())
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormat.currentDate()).constructor
                 if (value instanceof dateType) return true
             } catch {}
         }
@@ -148,7 +148,7 @@ class TypeChecker {
         TypeChecker._assertRuntimeEnv()
         if (runtime.ext_ddeDateFormatV2) {
             try {
-                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate())
+                const dateType = Object.getPrototypeOf(runtime.ext_ddeDateFormatV2.currentDate()).constructor
                 if (value instanceof dateType) return true
             } catch {}
         }
