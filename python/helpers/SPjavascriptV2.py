@@ -106,14 +106,6 @@ class SPjavascriptV2:
         )
 
     @staticmethod
-    def js_command(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&SPjavascriptV2::run (CODE) {{id=SPjavascriptV2_jsCommand}}",
-            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
-
-    @staticmethod
     def js_command_binded(args: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsCommandBinded}}",
@@ -123,5 +115,13 @@ class SPjavascriptV2:
                 ),
                 "ARGS": InputValue.try_as_input(args, p.SRBlockAndTextInputValue),
             },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def js_command(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&SPjavascriptV2::run (CODE) {{id=SPjavascriptV2_jsCommand}}",
+            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )

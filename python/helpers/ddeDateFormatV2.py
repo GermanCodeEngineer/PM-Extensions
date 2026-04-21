@@ -26,7 +26,7 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::format (date) as (format)",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "format": InputValue.try_as_input(format, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -39,7 +39,7 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::format (date) as ([type]) locale",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "type": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
@@ -52,7 +52,7 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::format (date) as ([type])",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "type": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
@@ -62,7 +62,7 @@ class ddeDateFormatV2:
     def iso_format_date(date: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::format (date) as ISO string",
-            inputs={"date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue)},
+            inputs={"date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -70,7 +70,7 @@ class ddeDateFormatV2:
     def is_valid(date: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::is (date) valid?",
-            inputs={"date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue)},
+            inputs={"date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -83,11 +83,11 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::is (date1) ([operation]) [date2]?",
             inputs={
-                "date1": InputValue.try_as_input(date1, p.SRBlockAndTextInputValue),
+                "date1": InputValue.try_as_input(date1, p.SRBlockOnlyInputValue),
                 "operation": InputValue.try_as_input(
                     operation, p.SRBlockAndDropdownInputValue
                 ),
-                "date2": InputValue.try_as_input(date2, p.SRBlockAndTextInputValue),
+                "date2": InputValue.try_as_input(date2, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -99,7 +99,7 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::is (date) [property]?",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "property": InputValue.try_as_input(
                     property, p.SRBlockAndDropdownInputValue
                 ),
@@ -114,8 +114,8 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::get ([unit]) between (date1) and (date2)",
             inputs={
-                "date1": InputValue.try_as_input(date1, p.SRBlockAndTextInputValue),
-                "date2": InputValue.try_as_input(date2, p.SRBlockAndTextInputValue),
+                "date1": InputValue.try_as_input(date1, p.SRBlockOnlyInputValue),
+                "date2": InputValue.try_as_input(date2, p.SRBlockOnlyInputValue),
                 "unit": InputValue.try_as_input(unit, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
@@ -127,7 +127,7 @@ class ddeDateFormatV2:
             opcode="&ddeDateFormatV2::get UTC ([part]) of (date)",
             inputs={
                 "part": InputValue.try_as_input(part, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -140,7 +140,7 @@ class ddeDateFormatV2:
             opcode="&ddeDateFormatV2::get ([part]) of (date)",
             inputs={
                 "part": InputValue.try_as_input(part, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -153,7 +153,7 @@ class ddeDateFormatV2:
             opcode="&ddeDateFormatV2::set ([part]) of (date) to (value)",
             inputs={
                 "part": InputValue.try_as_input(part, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "value": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -168,7 +168,7 @@ class ddeDateFormatV2:
             inputs={
                 "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue),
                 "unit": InputValue.try_as_input(unit, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -178,7 +178,7 @@ class ddeDateFormatV2:
         return p.SRBlock(
             opcode="&ddeDateFormatV2::round (date) to nearest ([unit])",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "date": InputValue.try_as_input(date, p.SRBlockOnlyInputValue),
                 "unit": InputValue.try_as_input(unit, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},

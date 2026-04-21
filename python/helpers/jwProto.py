@@ -71,19 +71,19 @@ class jwProto:
         )
 
     @staticmethod
-    def placeholder_command() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwProto::... {{id=jwProto_placeholderCommand}}",
-            inputs={},
-            dropdowns={},
-        )
-
-    @staticmethod
     def label_hat(label: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwProto::// (LABEL) {{id=jwProto_labelHat}}",
             inputs={
                 "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue)
             },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def placeholder_command() -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&jwProto::... {{id=jwProto_placeholderCommand}}",
+            inputs={},
             dropdowns={},
         )

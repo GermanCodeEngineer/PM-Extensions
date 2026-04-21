@@ -331,6 +331,7 @@ def create_helpers() -> None:
     cfg = p.get_default_config()
     handler = lambda url: url.startswith("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/")
     cfg.ext_info_gen.is_trusted_extension_origin_handler = handler
+    cfg.ext_info_gen.node_js_exec_timeout = 10.0
     p.init_config(cfg)
 
     added_categories = set()
@@ -350,12 +351,12 @@ def create_helpers() -> None:
         # agBufferPointer: vm.agBuffer.PointerType
         "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
         "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
-        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
+        "divAlgEffects": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
         # divEffect: vm.divAlgEffects.Effect
         "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
         # divIterator: vm.divIterator.Type
         "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
-        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
+        "dogeiscutRegularExpressions": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
         # dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
         "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
         "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",

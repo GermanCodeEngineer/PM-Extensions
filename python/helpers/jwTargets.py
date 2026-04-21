@@ -16,12 +16,8 @@ class jwTargets:
     @staticmethod
     def from_name(sprite: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwTargets::([SPRITE]) target",
-            inputs={
-                "SPRITE": InputValue.try_as_input(
-                    sprite, p.SRBlockAndDropdownInputValue
-                )
-            },
+            opcode="&jwTargets::(SPRITE) target",
+            inputs={"SPRITE": InputValue.try_as_input(sprite, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -29,19 +25,17 @@ class jwTargets:
     def clone_origin(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::origin of (TARGET)",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
     @staticmethod
     def get(target: INPUT_COMPATIBLE_T, menu: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwTargets::(TARGET) ([MENU])",
+            opcode="&jwTargets::(TARGET) (MENU)",
             inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue),
-                "MENU": InputValue.try_as_input(menu, p.SRBlockAndDropdownInputValue),
+                "TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue),
+                "MENU": InputValue.try_as_input(menu, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -51,10 +45,10 @@ class jwTargets:
         target: INPUT_COMPATIBLE_T, menu: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwTargets::set (TARGET) ([MENU]) to (VALUE)",
+            opcode="&jwTargets::set (TARGET) (MENU) to (VALUE)",
             inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue),
-                "MENU": InputValue.try_as_input(menu, p.SRBlockAndDropdownInputValue),
+                "TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue),
+                "MENU": InputValue.try_as_input(menu, p.SRBlockOnlyInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -64,29 +58,19 @@ class jwTargets:
     def is_clone(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::is (TARGET) a clone",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
     @staticmethod
-    def is_touching(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
+    def is_touching_object(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&jwTargets::is (A) touching (B)",
+            opcode="&jwTargets::is (A) touching (B) {{id=jwTargets_isTouchingObject}}",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": InputValue.try_as_input(a, p.SRBlockOnlyInputValue),
+                "B": InputValue.try_as_input(b, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
-        )
-
-    @staticmethod
-    def is_touching_object(a: INPUT_COMPATIBLE_T, b: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwTargets::is (A) touching [B]",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={"B": p.SRDropdownValue(p.DropdownValueKind.STANDARD, b)},
         )
 
     @staticmethod
@@ -94,7 +78,7 @@ class jwTargets:
         return p.SRBlock(
             opcode="&jwTargets::var (NAME) of (TARGET)",
             inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue),
+                "TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -107,7 +91,7 @@ class jwTargets:
         return p.SRBlock(
             opcode="&jwTargets::set var (NAME) of (TARGET) to (VALUE)",
             inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue),
+                "TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
@@ -118,9 +102,7 @@ class jwTargets:
     def clone_r(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::create clone of (TARGET) {{id=jwTargets_cloneR}}",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -128,9 +110,7 @@ class jwTargets:
     def delete_clone(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::delete clone (TARGET)",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -142,9 +122,7 @@ class jwTargets:
     def touching(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::targets touching (TARGET)",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -152,9 +130,7 @@ class jwTargets:
     def clones(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::clones of (TARGET)",
-            inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
-            },
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -165,8 +141,8 @@ class jwTargets:
         return p.SRBlock(
             opcode="&jwTargets::(ARRAY) has clone of (TARGET)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockAndTextInputValue),
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue),
+                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
+                "TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -175,8 +151,17 @@ class jwTargets:
     def clone(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwTargets::create clone of (TARGET) {{id=jwTargets_clone}}",
+            inputs={"TARGET": InputValue.try_as_input(target, p.SRBlockOnlyInputValue)},
+            dropdowns={},
+        )
+
+    @staticmethod
+    def is_touching(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&jwTargets::is (A) touching (B) {{id=jwTargets_isTouching}}",
             inputs={
-                "TARGET": InputValue.try_as_input(target, p.SRBlockAndTextInputValue)
+                "A": InputValue.try_as_input(a, p.SRBlockOnlyInputValue),
+                "B": InputValue.try_as_input(b, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )

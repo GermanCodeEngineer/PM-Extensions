@@ -5,8 +5,10 @@ from .control import control
 from .data import data
 from .ddeDateFormat import ddeDateFormat
 from .ddeDateFormatV2 import ddeDateFormatV2
+from .divAlgEffects import divAlgEffects
 from .divIterator import divIterator
 from .dogeiscutObject import dogeiscutObject
+from .dogeiscutRegularExpressions import dogeiscutRegularExpressions
 from .dogeiscutSet import dogeiscutSet
 from .event import event
 from .fruitsPaintUtils import fruitsPaintUtils
