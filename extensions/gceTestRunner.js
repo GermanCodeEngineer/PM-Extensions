@@ -88,7 +88,7 @@ class TestError extends Error {
 
 
 class TypeChecker {
-    // All custom types (using `customId`) one can get from a reporter in PM
+    // All custom types (using `customId`) in PM (you can access most from a reporter)
     // (PenguinMod-Vm, PenguinMod-ExtensionsGallery, SharkPools-Extensions) (as of 14.04.2026)
     // agBuffer (AndrewGaming587)
     // agBufferPointer (AndrewGaming587)
@@ -188,10 +188,8 @@ class TypeChecker {
      */
     static is_paintUtilsColour(value) {
         TypeChecker._assertRuntimeEnv()
-        if (!runtime.ext_fruitsPaintUtils || typeof runtime.ext_fruitsPaintUtils.getColour !== "function") return false
-
         try {
-            const proto = Object.getPrototypeOf(runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"}))
+            const proto = Object.getPrototypeOf(runtime.ext_fruitsPaintUtils.getColour({COLOUR_NAME: "orange"})).constructor
             return value instanceof proto
         } catch {
             return false
@@ -507,6 +505,7 @@ class TestRunner {
                         "Lambda (jwklong)",
                         "Number (jwklong)",
                         "Target (jwklong)",
+                        "Vector (jwklong)",
                         "XML (jwklong)",
                         "Canvas (RedMan13)",
                         "Paint Utils Colour (Fruits555000)",

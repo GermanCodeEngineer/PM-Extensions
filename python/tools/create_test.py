@@ -9,15 +9,10 @@ import copy
 import pmp_manip as p
 from gceutils import AbstractTreePath
 
-from helpers.operator import operator
-from helpers.event import event
-from helpers.operator import operator
 from helpers.gceFuncsScopes import gceFuncsScopes
 from helpers.gceOOP import gceOOP
 from helpers.gceTestRunner import gceTestRunner as t
-from helpers.jwArray import jwArray as array
 from helpers.jwProto import jwProto as labels
-from helpers.SPjavascriptV2 import SPjavascriptV2
 import helpers as h
 
 
@@ -78,24 +73,25 @@ def create_test_project(extensions: dict[str, str | None], scripts: list[p.SRScr
     project.validate(AbstractTreePath(), p.info_api)
     project.extensions = extensions_before
 
-    frproject = project.to_first(p.info_api)
+    # TODO: return frproject
     output_file.parent.mkdir(parents=True, exist_ok=True)
+    frproject = project.to_first(p.info_api)
     frproject.to_file(str(output_file))
 
 def test_TypeChecker(output_path: Path) -> None:
     script = create_script(
-        event.whenflagclicked(),
+        h.event.whenflagclicked(),
         t.test_scope("TypeChecker", [
             labels.label_command("My Types"),
             t.assert_(o.typeof_value_is_menu(o.create_function_named("myFn", []), "Function (GCE)")),
             labels.label_command("Methods can not be accessed from a reporter"),
             t.assert_(o.typeof_value_is_menu(o.create_class_named("MyClass", []), "Class (GCE)")),
-            t.assert_(o.typeof_value_is_menu(o.create_instance(o.create_class_named("MyClass", []), array.blank()), "Class Instance (GCE)")),
+            t.assert_(o.typeof_value_is_menu(o.create_instance(o.create_class_named("MyClass", []), h.jwArray.blank()), "Class Instance (GCE)")),
             t.assert_(o.typeof_value_is_menu(o.nothing(), "Nothing (GCE)")),
             labels.label_command("Common/Safe JS data types"),
-            t.assert_(o.typeof_value_is_menu(SPjavascriptV2.js_reporter("undefined"), "JavaScript Undefined")),
-            t.assert_(o.typeof_value_is_menu(SPjavascriptV2.js_reporter("null"), "JavaScript Null")),
-            t.assert_(o.typeof_value_is_menu(operator.true_boolean(), "Boolean")),
+            t.assert_(o.typeof_value_is_menu(h.SPjavascriptV2.js_reporter("return undefined"), "JavaScript Undefined")),
+            t.assert_(o.typeof_value_is_menu(h.SPjavascriptV2.js_reporter("return null"), "JavaScript Null")),
+            t.assert_(o.typeof_value_is_menu(h.operator.true_boolean(), "Boolean")),
             t.assert_(o.typeof_value_is_menu("777", "Number")),
             t.assert_(o.typeof_value_is_menu("hello", "String")),
             labels.label_command("Custom Extension Types"),
@@ -105,6 +101,26 @@ def test_TypeChecker(output_path: Path) -> None:
             ), "Buffer Pointer (AndrewGaming587)")),
             t.assert_(o.typeof_value_is_menu(h.ddeDateFormat.current_date(), "Date (Old Version) (ddededodediamante)")),
             t.assert_(o.typeof_value_is_menu(h.ddeDateFormatV2.current_date(), "Date (ddededodediamante)")),
+            labels.label_command("You can't access a div effect type from any reporter"),            
+            t.assert_(o.typeof_value_is_menu(h.divIterator.iter_builder("", []), "Iterator (Div)")),
+            t.assert_(o.typeof_value_is_menu(h.dogeiscutObject.blank(), "Object (DogeisCut)")),
+            t.assert_(o.typeof_value_is_menu(h.dogeiscutRegularExpressions.regex("(.*)", "gm"), "Regular Expression (DogeisCut)")),
+            t.assert_(o.typeof_value_is_menu(h.dogeiscutSet.blank(), "Set (DogeisCut)")),
+            labels.label_command("You can't access a timer type from any reporter"),
+            t.assert_(o.typeof_value_is_menu(h.jwArray.blank(), "Array (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwColor.new_color("#ff0000"), "Color (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwDate.now(), "Date (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwLambda.new_lambda([]), "Lambda (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwNum.add("1", "2"), "Number (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwTargets.this(), "Target (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwVector.new_vector("1", "2"), "Vector (jwklong)")),
+            t.assert_(o.typeof_value_is_menu(h.jwXML.new_node("test"), "XML (jwklong)")),
+            labels.label_function("For this to work please create a canvas variable named 'myCanvasVar', then enable the condition", [
+                h.control.if_(False, [
+                    t.assert_(o.typeof_value_is_menu(h.newCanvas.canvas_getter("myCanvasVar"), "Canvas (RedMan13)")),
+                ]),
+            ]),
+            t.assert_(o.typeof_value_is_menu(h.fruitsPaintUtils.get_colour("orange"), "Paint Utils Colour (Fruits555000)")),
         ])
     )
     extensions = GCE_EXTENSIONS | {
@@ -113,12 +129,12 @@ def test_TypeChecker(output_path: Path) -> None:
         # agBufferPointer: vm.agBuffer.PointerType
         "ddeDateFormat": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormat.js",
         "ddeDateFormatV2": "https://extensions.penguinmod.com/extensions/ddededodediamante/dateFormatV2.js",
-        "divEffect": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
+        "divAlgEffects": "https://extensions.penguinmod.com/extensions/Div/divAlgEffects.js",
         # divEffect: vm.divAlgEffects.Effect
         "divIterator": "https://extensions.penguinmod.com/extensions/Div/divIterators.js",
         # divIterator: vm.divIterator.Type
         "dogeiscutObject": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutObject.js",
-        "dogeiscutRegularExpression": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
+        "dogeiscutRegularExpressions": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutRegularExpressions.js",
         # dogeiscutRegularExpression: vm.dogeiscutRegularExpression.Type
         "dogeiscutSet": "https://extensions.penguinmod.com/extensions/DogeisCut/dogeiscutSet.js",
         "fruitsPaintUtils": "https://extensions.penguinmod.com/extensions/Fruits555000/PaintUtils.js",

@@ -59,6 +59,7 @@ const TYPEOF_MENU = [
     "Lambda (jwklong)",
     "Number (jwklong)",
     "Target (jwklong)",
+    "Vector (jwklong)",
     "XML (jwklong)",
     "Canvas (RedMan13)",
     "Paint Utils Colour (Fruits555000)",
