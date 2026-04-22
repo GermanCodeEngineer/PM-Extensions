@@ -1119,7 +1119,7 @@ describe("Cast", () => {
         test("returns matching instances unchanged", () => {
             const cls = new ClassType("DirectClass", null)
             assert.strictEqual(
-                Cast._toTypeFromValueOrVariable(cls, {}, ClassType, "class or class variable name"),
+                Cast._toTypeFromValueOrVariable(cls, {}, v => v instanceof ClassType, "class or class variable name"),
                 cls
             )
         })
@@ -1135,14 +1135,33 @@ describe("Cast", () => {
             s.setScopeVar(name, fn)
 
             assert.strictEqual(
-                Cast._toTypeFromValueOrVariable(name, thread, FunctionType, "function or function variable name"),
+                Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof FunctionType, "function or function variable name"),
                 fn
+            )
+        })
+
+        test("accepts variable names that are numbers or booleans (classic Scratch values)", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const numName = 123
+            const boolName = true
+            const fn1 = makeFunctionType("fn1")
+            const fn2 = makeFunctionType("fn2")
+            s.setScopeVar(String(numName), fn1)
+            s.setScopeVar(String(boolName), fn2)
+            assert.strictEqual(
+                Cast._toTypeFromValueOrVariable(numName, thread, v => v instanceof FunctionType, "function or function variable name"),
+                fn1
+            )
+            assert.strictEqual(
+                Cast._toTypeFromValueOrVariable(boolName, thread, v => v instanceof FunctionType, "function or function variable name"),
+                fn2
             )
         })
 
         test("throws for missing variable names", () => {
             assertThrows(
-                () => Cast._toTypeFromValueOrVariable("__missing_class__", {}, ClassType, "class or class variable name"),
+                () => Cast._toTypeFromValueOrVariable("__missing_class__", {}, v => v instanceof ClassType, "class or class variable name"),
                 "is not defined"
             )
         })
@@ -1154,21 +1173,54 @@ describe("Cast", () => {
             s.setScopeVar(name, 123)
 
             assertThrows(
-                () => Cast._toTypeFromValueOrVariable(name, thread, ClassType, "class or class variable name"),
+                () => Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name"),
                 "is a Number"
             )
         })
 
         test("throws for null or undefined", () => {
             assertThrows(() => {
-                Cast._toTypeFromValueOrVariable(null, {}, ClassType, "class or class variable name"),
-                "got no input value"
-            })
+                Cast._toTypeFromValueOrVariable(null, {}, v => v instanceof ClassType, "class or class variable name")
+            }, "got no input value")
             assertThrows(() => {
-                Cast._toTypeFromValueOrVariable(undefined, {}, ClassType, "class or class variable name"),
-                "got no input value"
-            })
+                Cast._toTypeFromValueOrVariable(undefined, {}, v => v instanceof ClassType, "class or class variable name")
+            }, "got no input value")
         })
+
+        test("throws for non-classic Scratch values (object, array, function, symbol, etc.)", () => {
+            const notClassic = [[], {}, () => {}, Symbol("x")]
+            for (const val of notClassic) {
+                assertThrows(
+                    () => Cast._toTypeFromValueOrVariable(val, {}, v => v instanceof ClassType, "class or class variable name"),
+                    "not a"
+                )
+            }
+        })
+
+        test("throws when variable exists but is wrong type (object, array, etc.)", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const name = v("wrong_type_obj")
+            s.setScopeVar(name, { foo: 1 })
+            assertThrows(
+                () => Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name"),
+                "is a JavaScript Object (generic)"
+            )
+        })
+
+        test("error messages mention expected and actual types", () => {
+            const thread = {}
+            const s = ThreadUtil.getCurrentStack(thread)
+            const name = v("wrong_type_msg")
+            s.setScopeVar(name, 42)
+            try {
+                Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name")
+            } catch (e) {
+                assert.ok(e.message.includes("Expected a class or class variable name"))
+                assert.ok(e.message.includes("is a Number"))
+            }
+        })
+    })
     })
 
     describe("toClass", () => {
@@ -1245,7 +1297,6 @@ describe("Cast", () => {
             assertThrows(() => Cast.toMenuTypeofType("not-a-typeof-type"), "Invalid typeof type")
         })
     })
-})
 
 describe("CustomType", () => {
     describe("subclassing", () => {

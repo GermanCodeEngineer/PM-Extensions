@@ -1299,7 +1299,10 @@ class Cast extends Scratch.Cast {
             throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
         }
         if (isValidVal(varValue)) return varValue
-        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a ${TypeChecker.stringTypeof(varValue)}.`)
+        let varValueName
+        if (isRuntimeEnv) varValueName = TypeChecker.stringTypeof(varValue)
+        else varValueName = "Unknown (non-runtime environment)"
+        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a(n) ${varValueName}.`)
     }
 
     // Own
@@ -3535,6 +3538,7 @@ if (!isRuntimeEnv) {
  *
  * + HIGH PRIORITY
  * + - finish project tests
+ * + - allow strings for class instance inputs
  * + - consider different architecture for storing block implementations
  * + - consider splitting "OOP" extension again
  * + - german translation possibly

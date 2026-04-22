@@ -181,11 +181,21 @@ def test_Cast() -> p.FRProject:
     script = create_script(
         h.event.whenflagclicked(),
         t.test_scope("Cast", [
-            t.test_scope("Foreign", [
-                t.assert_type(o.all_variables("all scopes"), "Array (jwklong)"),
-    
-            ])
-        ])
+            t.test_scope("toArray", [o.create_var_scope([
+                o.set_scope_var("my var", "hello"),
+                o.set_scope_var("var list", o.all_variables("all scopes")),
+                t.assert_type(o.get_scope_var("var list"), "Array (jwklong)"),
+                t.assert_unstrict_equal(o.get_scope_var("var list"), '["my var"]')
+            ])]),
+            t.test_scope("toObject", [o.create_var_scope([
+                o.create_class_at("MyClass", []),
+                o.set_scope_var("instance var", o.create_instance(o.create_class_named("MyClass", []), None)),
+                o.set_attribute(o.get_scope_var("instance var"), "my attribute", "hello"),
+                o.set_scope_var("attributes", o.get_all_attributes(o.get_scope_var("instance var"))),
+                t.assert_type(o.get_scope_var("attributes"), "Object (DogeisCut)"),
+                t.assert_unstrict_equal(o.get_scope_var("attributes"), '{"my attribute":"hello"}'),
+            ])]),
+        ]),
     )
     
     return create_test_project(scripts=[script], extension_ids=[

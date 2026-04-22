@@ -3,7 +3,7 @@ from gceutils import grepr_dataclass, enforce_argument_types
 from typing import Any
 import pmp_manip as p
 
-INPUT_COMPATIBLE_T = list[p.SRBlock] | p.SRBlock | str | bool | p.SRDropdownValue
+INPUT_COMPATIBLE_T = list[p.SRBlock] | p.SRBlock | str | bool | p.SRDropdownValue | None
 
 
 @grepr_dataclass()
@@ -43,7 +43,7 @@ class InputValue:
                 else: raise ValueError(self.value)
 
             case p.SRBlockOnlyInputValue | p.SREmbeddedBlockInputValue:
-                if isinstance(self.value, p.SRBlock):
+                if isinstance(self.value, p.SRBlock) or self.value is None:
                     return input_type(block=self.value)
                 else: raise ValueError(self.value)
 
@@ -59,7 +59,7 @@ class InputValue:
     @enforce_argument_types
     @staticmethod
     def try_as_input[_T: p.SRInputValue](value: INPUT_COMPATIBLE_T | InputValue | Any, input_type: type[_T]) -> _T | Any:
-        if isinstance(value, (list, p.SRBlock, str, bool, p.SRDropdownValue)):
+        if isinstance(value, (list, p.SRBlock, str, bool, p.SRDropdownValue, type(None))):
             return InputValue(value).as_type(input_type)
         elif isinstance(value, InputValue):
             return value.as_type(input_type)
