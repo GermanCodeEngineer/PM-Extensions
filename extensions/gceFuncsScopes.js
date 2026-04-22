@@ -22,7 +22,7 @@
  */
 const isRuntimeEnv = !Scratch.extensions.isTestingEnv
 if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
-    throw new Error("Functions and Scoped Variables Extension must run unsandboxed.")
+    throwError("Functions and Scoped Variables Extension must run unsandboxed.")
 }
 
 /************************************************************************************
@@ -74,16 +74,25 @@ const TYPEOF_MENU = [
 ]
 
 /**
+ * @param {string} message
+ * @returns {never}
+ */
+function throwError(message) {
+    throw new Error(message)
+}
+
+/**
  * @param {string} code
  * @param {string} additionalMsg
  * @returns {never}
  */
 function throwInternal(code, additionalMsg = "") {
-    throw new Error(
+    throwError(
         `An internal error occured in the Functions and Scopes extension. `+
         `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
     )
 }
+
 const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
@@ -503,7 +512,7 @@ class GCEFuncsScopesBlocks {
         // Acess actual implementation at runtime
         return (function bridgeToOOPExtension(...args) {
             if (!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
-                throw new Error(`The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.`)
+                throwError(`The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.`)
             }
             let func
             try {

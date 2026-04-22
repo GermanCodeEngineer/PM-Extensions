@@ -22,7 +22,261 @@
  */
 const isRuntimeEnv = !Scratch.extensions.isTestingEnv
 if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
-    throw new Error("OOP Extension must run unsandboxed.")
+    throwError("OOP Extension must run unsandboxed.")
+}
+
+/************************************************************************************
+*                                   Translations                                    *
+************************************************************************************/
+const TRANSLATIONS = {
+  de: {
+    // Errors in chronological order of appearance
+    "_OOP Extension must run unsandboxed.": "Die OOP Erweiterung muss ohne Sandbox laufen.",
+    "_[OOP Extension] Failed to create custom shape": "[OOP Erweiterung] Fehler beim Erstellen einer benutzerdefinierten Form",
+    "_An internal error occured in the OOP extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]": "Ein interner Fehler ist in der OOP Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. ${additionalMsg} [FEHLERCODE: ${code}]",
+    "_Variable {name} already exists in the current scope, can not bind variable with the same name.": "Variable {name} existiert bereits im aktuellen Bereich, kann keine Variable mit demselben Namen binden.",
+    "_Variable {name} is not defined.": "Variable {name} ist nicht definiert.",
+    "_self can only be used within an instance, getter or setter method.": "_self kann nur innerhalb einer Instanz-, Getter- oder Setter-Methode verwendet werden.",
+    "_setter value can only be used within a setter method.": "_setter-Wert kann nur innerhalb einer Setter-Methode verwendet werden.",
+    "_operator value can only be used within an operator method.": "_operator-Wert kann nur innerhalb einer Operator-Methode verwendet werden.",
+    '_{blockText} can only be used within a class definition or "on class" block.': '{blockText} kann nur innerhalb einer Klassendefinition oder eines "Mit Klasse"-Blocks verwendet werden.',
+    "_return can only be used within a function or method.": "_return kann nur innerhalb einer Funktion oder Methode verwendet werden.",
+    "_There can only be as many default values as argument names.": "Es darf nur so viele Standardwerte wie Argumentnamen geben.",
+    "_Can not set a variable in a scope, which does not support variables (e.g. a class definition).": "Kann keine Variable in einem Bereich setzen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+    "_Can not delete a variable in a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable in einem Bereich löschen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+    "_No global variable named {name} found.": "Keine globale Variable mit dem Namen {name} gefunden.",
+    "_Can not bind a variable to a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable an einen Bereich binden, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+    "_No non-local variable named {name} found.": "Keine nicht-lokale Variable mit dem Namen {name} gefunden.",
+    "_Type checking for extension types is not available in a non-runtime environment.": "Typüberprüfung für Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
+    "_Casting to extension types is not available in a non-runtime environment.": "Umwandlung in Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
+    "_Object extension was not loaded properly.": "Die Objekt-Erweiterung wurde nicht richtig geladen.",
+    "_Array extension was not loaded properly.": "Die Array-Erweiterung wurde nicht richtig geladen.",
+    "_Expected a {expectedDescription}, but got no input value.": "Erwartet wurde ein(e) {expectedDescription}, aber es wurde kein Eingabewert übergeben.",
+    "_Expected a {expectedDescription} not a {actualDescription}.": "Erwartet wurde ein(e) {expectedDescription}, nicht ein(e) {actualDescription}.",
+    "_Expected a {expectedDescription}, but variable {value} is not defined.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist nicht definiert.",
+    "_Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist ein(e) {varValueName}.",
+    "_Invalid class property: {value}": "Ungültige Klassen-Eigenschaft: {value}",
+    "_Invalid operator method: {value}": "Ungültige Operator-Methode: {value}",
+    "_Invalid special method: {value}": "Ungültige Spezialmethode: {value}",
+    "_Invalid typeof type: {value}": "Ungültiger typeof-Typ: {value}",
+    "_Setter methods must return {nothingValue}.": "Setter-Methoden müssen {nothingValue} zurückgeben.",
+    "_Undefined {expectedMemberType} {name}.": "Nicht definierte(r/s) {expectedMemberType} {name}.",
+    "_Class Method or Variable {name} is not a {expectedMemberType} but a {type}.": "Klassenmethode oder -variable {name} ist kein(e) {expectedMemberType}, sondern ein(e) {type}.",
+    "_Can not assign {newMemberType}: {currentMemberType} already exists with the same name {name}.": "Kann {newMemberType} nicht zuweisen: {currentMemberType} mit demselben Namen {name} existiert bereits.",
+    "_Initialization methods must return {nothingValue}.": "Initialisierungsmethoden müssen {nothingValue} zurückgeben.",
+    "_Can not call super instance method: class has no superclass.": "Kann Super-Instanzmethode nicht aufrufen: Die Klasse hat keine Superklasse.",
+    "_{instanceValue} has no attribute or getter method for {name}.": "{instanceValue} hat kein Attribut oder keine Getter-Methode für {name}.",
+    "_Can not set attribute {name} of {instanceValue}: attribute only has a getter method.": "Kann Attribut {name} von {instanceValue} nicht setzen: Das Attribut hat nur eine Getter-Methode.",
+    "_As String methods must always return a string.": "As-String-Methoden müssen immer einen String zurückgeben.",
+    "_Comparison Operator methods must always return a boolean.": "Vergleichsoperator-Methoden müssen immer einen Wahrheitswert (Boolean) zurückgeben.",
+
+    // TERMS
+    "equals": "gleich",
+    "not equals": "ungleich",
+    "greater than": "größer als",
+    "greater or equal": "größer oder gleich",
+    "less than": "kleiner als",
+    "less or equal": "kleiner oder gleich",
+
+    // TYPEOF_MENU
+    "Boolean": "Boolescher Wert",
+    "Number": "Zahl",
+    "String": "Zeichenfolge",
+
+    "Function (GCE)": "Funktion (GCE)",
+    "Instance Method (GCE)": "Instanzmethode (GCE)",
+    "Getter Method (GCE)": "Getter-Methode (GCE)",
+    "Setter Method (GCE)": "Setter-Methode (GCE)",
+    "Operator Method (GCE)": "Operator-Methode (GCE)",
+    "Class (GCE)": "Klasse (GCE)",
+    "Class Instance (GCE)": "Klasseninstanz (GCE)",
+    "Nothing (GCE)": "Nichts (GCE)",
+
+    "Buffer (AndrewGaming587)": "Puffer (AndrewGaming587)",
+    "Buffer Pointer (AndrewGaming587)": "Pufferzeiger (AndrewGaming587)",
+    "Date (Old Version) (ddededodediamante)": "Datum (alte Version) (ddededodediamante)",
+    "Date (ddededodediamante)": "Datum (ddededodediamante)",
+    "Effect (Div)": "Effekt (Div)",
+    "Iterator (Div)": "Iterator (Div)",
+    "Object (DogeisCut)": "Objekt (DogeisCut)",
+    "Regular Expression (DogeisCut)": "Regulärer Ausdruck (DogeisCut)",
+    "Set (DogeisCut)": "Menge (DogeisCut)",
+    "External Timer (steve0greatness)": "Externer Timer (steve0greatness)",
+    "Array (jwklong)": "Array (jwklong)",
+    "Color (jwklong)": "Farbe (jwklong)",
+    "Date (jwklong)": "Datum (jwklong)",
+    "Lambda (jwklong)": "Lambda (jwklong)",
+    "Number (jwklong)": "Zahl (jwklong)",
+    "Target (jwklong)": "Ziel (jwklong)",
+    "Vector (jwklong)": "Vektor (jwklong)",
+    "XML (jwklong)": "XML (jwklong)",
+    "Canvas (RedMan13)": "Leinwand (RedMan13)",
+    "Paint Utils Colour (Fruits555000)": "Paint Utils Farbe (Fruits555000)",
+
+    "JavaScript Undefined": "JavaScript Undefiniert",
+    "JavaScript Null": "JavaScript Null",
+    "JavaScript BigInt": "JavaScript BigInt",
+    "JavaScript Symbol": "JavaScript Symbol",
+    "JavaScript Function": "JavaScript Funktion",
+    "JavaScript Object (generic)": "JavaScript Objekt (generisch)",
+    "Unknown (rare)": "Unbekannt (selten)",
+
+    // CONFIG
+    "left add": "linke Addition",
+    "right add": "rechte Addition",
+    "left subtract": "linke Subtraktion",
+    "right subtract": "rechte Subtraktion",
+    "left multiply": "linke Multiplikation",
+    "right multiply": "rechte Multiplikation",
+    "left divide": "linke Division",
+    "right divide": "rechte Division",
+    "left power": "linke Potenzierung",
+    "right power": "rechte Potenzierung",
+    "left mod": "linkes Modulo",
+    "right mod": "rechtes Modulo",
+
+    // MENU_ITEMS
+    "instance method": "Instanzmethode",
+    "static method": "statische Methode",
+    "getter method": "Getter-Methode",
+    "setter method": "Setter-Methode",
+    "operator method": "Operator-Methode",
+    "class variable": "Klassenvariable",
+
+    "init": "initialisierung",
+    "as string": "als Zeichenfolge",
+
+    // CAST
+    "Unknown (non-runtime environment)": "Unbekannt (Nicht-Laufzeitumgebung)",
+    "class or class variable name": "Klasse oder Klassenvariablenname",
+    "class instance or class instance variable name": "Klasseninstanz oder Klasseninstanzvariablenname",
+    "function or function variable name": "Funktion oder Funktionsvariablenname",
+
+    // Custom Types
+    "Unknown": "Unbekannt",
+    "Callable": "Aufrufbare",
+    "{className} can not be serialized.": "{className} kann nicht serialisiert werden.",
+    "Initializing object": "Objekt wird initialisiert",
+    "Calling method {name}": "Methode {name} wird aufgerufen",
+    "Calling function {name}": "Funktion {name} wird aufgerufen",
+    "Function": "Funktion",
+    "Instance Method": "Instanzmethode",
+    "Getter Method": "Getter-Methode",
+    "Setter Method": "Setter-Methode",
+    "Operator Method": "Operator-Methode",
+    "Class": "Klasse",
+    "<Class {name}>": "<Klasse {name}>",
+    "Class Instance": "Klasseninstanz",
+    "<Instance of {name}>": "<Instanz von {name}>",
+    "Nothing": "Nichts",
+
+    // getInfo defaults
+    "MyClass": "MeineKlasse",
+    "myInstance": "meineInstanz",
+    "myMethod": "meineMethode",
+    "myClassVariable": "meineKlassenvariable",
+    "myAttr": "meinAttribut",
+
+    // getInfo block texts
+    "Missing Extensions?": null,
+    "Add Functions & Scopes Extension": null,
+    "Add Array Extension": null,
+    "Add Object Extension": null,
+    "Define Classes": null,
+    "create class at var [NAME] [SHADOW]": null,
+    "Creates a new class, stores it in the chosen variable.": null,
+    "create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]": null,
+    "Creates a subclass with the given superclass, stores it in a variable.": null,
+    "create class named [NAME] [SHADOW]": null,
+    "Creates and returns a new class with the given name.": null,
+    "create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]": null,
+    "Creates and returns a new subclass with the given superclass.": null,
+    "on class [CLASS] [SHADOW]": "Mit Klasse [CLASS] [SHADOW]",
+    "Runs the enclosed blocks as if they were inside the selected class definition. This allows you to e.g. add methods to already defined classes.": null,
+    "current class": null,
+    "Returns the class currently being defined.": null,
+    "Use Classes": null,
+    "is [SUBCLASS] a subclass of [SUPERCLASS] ?": null,
+    "Checks whether one class inherits from another.": null,
+    "get superclass of [CLASS]": null,
+    "Returns the superclass of a class, or Nothing if it has none.": null,
+    "Class Members": null,
+    "Define Instance Methods": null,
+    "define instance method [NAME] [SHADOW]": null,
+    "Defines an instance method on the current class.": null,
+    "define [SPECIAL_METHOD] instance method [SHADOW]": null,
+    "Defines a special instance method.": null,
+    "self": null,
+    "Reports the current instance inside a method.": null,
+    "call super method [NAME] with positional args [POSARGS]": null,
+    "Calls an instance method from the superclass of the current object.": null,
+    "call super init method with positional args [POSARGS]": null,
+    "Calls the superclass init method for the current object.": null,
+    "Define Getters & Setters": null,
+    "define getter [NAME] [SHADOW]": null,
+    "Defines a getter method for an attribute on the current class.": null,
+    "define setter [NAME] [SHADOW1] [SHADOW2]": null,
+    "Defines a setter method for an attribute on the current class.": null,
+    "operator value": null,
+    "Reports the incoming value inside a setter method.": null,
+    "Define Operator Methods": null,
+    "define operator method [OPERATOR_KIND] [SHADOW]": null,
+    "Defines custom behavior for an operator on instances of the current class.": null,
+    "operator value": null,
+    "Reports the other operand inside an operator method.": null,
+    "Define Static Methods & Class Variables": null,
+    "on [CLASS] set class var [NAME] to [VALUE]": null,
+    "Sets a class variable on the selected class.": null,
+    "get class var [NAME] of [CLASS]": null,
+    "Gets a class variable from the selected class.": null,
+    "on [CLASS] delete class var [NAME]": null,
+    "Deletes a class variable from the selected class.": null,
+    "define static method [NAME]": null,
+    "Defines a static method on the current class.": null,
+    "[PROPERTY] names of class [CLASS]": null,
+    "Returns the names of members of the selected type for a class.": null,
+    "Working with Instances": null,
+    "Create & Inspect": null,
+    "create instance of class [CLASS] with positional args [POSARGS]": null,
+    "Creates an instance of a class and passes the given positional arguments to its init method.": null,
+    "is [INSTANCE] an instance of [CLASS] ?": null,
+    "Checks whether an instance belongs to a class or one of its subclasses.": null,
+    "get class of [INSTANCE]": null,
+    "Returns the class that created an instance.": null,
+    "Attributes": null,
+    "on [INSTANCE] set attribute [NAME] to [VALUE]": null,
+    "Sets an attribute on an instance or calls its setter if one exists.": null,
+    "attribute [NAME] of [INSTANCE]": null,
+    "Gets an attribute from an instance or calls its getter if one exists.": null,
+    "all attributes of [INSTANCE]": null,
+    "Returns all direct instance attributes as an object.": null,
+    "Call Methods": null,
+    "on [INSTANCE] call method [NAME] with positional args [POSARGS]": null,
+    "Calls an instance method on an object with positional arguments.": null,
+    "on [CLASS] call static method [NAME] with positional args [POSARGS]": null,
+    "Calls a static method on a class with positional arguments.": null,
+    "get static method [NAME] of [CLASS] as function": null,
+    "Returns a static method from a class as a callable function value.": null,
+
+    // TODO: add underscores everywhere
+  },
+}
+Scratch.translate.setup(TRANSLATIONS);
+
+const TERMS = {
+    EQUALS: translatedMsg("equals"),
+    NOT_EQUALS: translatedMsg("not equals"),
+    GREATER_THAN: translatedMsg("greater than"),
+    GREATER_OR_EQUAL: translatedMsg("greater or equal"),
+    LESS_THAN: translatedMsg("less than"),
+    LESS_OR_EQUAL: translatedMsg("less or equal"),
+    
+    INSTANCE_METHOD: translatedMsg("instance method"),
+    STATIC_METHOD: translatedMsg("static method"),
+    GETTER_METHOD: translatedMsg("getter method"),
+    SETTER_METHOD: translatedMsg("setter method"),
+    OPERATOR_METHOD: translatedMsg("operator method"),
+    CLASS_VARIABLE: translatedMsg("class variable"),
 }
 
 /************************************************************************************
@@ -66,7 +320,7 @@ if (isRuntimeEnv) {
         },
     }
     } catch (error) {
-        console.error("[OOP Extension] Failed to create custom shape", error)
+        console.error(translatedMsg("[OOP Extension] Failed to create custom shape"), error)
     }
 }
 
@@ -163,20 +417,20 @@ function applyInternalWrappers(Scratch) {
                 case "op.ltorequal":
                     left = this.descendInput(node.left)
                     right = this.descendInput(node.right)
-                    if      (node.kind === "op.equals") leftMethod = "equals"
-                    else if (node.kind === "op.notequal") leftMethod = "not equals"
-                    else if (node.kind === "op.greater") leftMethod = "greater than"
-                    else if (node.kind === "op.gtorequal") leftMethod = "greater or equal"
-                    else if (node.kind === "op.less") leftMethod = "less than"
-                    else if (node.kind === "op.ltorequal") leftMethod = "less or equal"
+                    if      (node.kind === "op.equals") leftMethod = TERMS.EQUALS
+                    else if (node.kind === "op.notequal") leftMethod = TERMS.NOT_EQUALS
+                    else if (node.kind === "op.greater") leftMethod = TERMS.GREATER_THAN
+                    else if (node.kind === "op.gtorequal") leftMethod = TERMS.GREATER_OR_EQUAL
+                    else if (node.kind === "op.less") leftMethod = TERMS.LESS_THAN
+                    else if (node.kind === "op.ltorequal") leftMethod = TERMS.LESS_OR_EQUAL
                     // Python uses reflected operators: a < b tries b > a as fallback
                     rightMethod = {
-                        "equals": "equals",
-                        "not equals": "not equals",
-                        "greater than": "less than",
-                        "greater or equal": "less or equal",
-                        "less than": "greater than",
-                        "less or equal": "greater or equal",
+                        [TERMS.EQUALS]: TERMS.EQUALS,
+                        [TERMS.NOT_EQUALS]: TERMS.NOT_EQUALS,
+                        [TERMS.GREATER_THAN]: TERMS.LESS_THAN,
+                        [TERMS.GREATER_OR_EQUAL]: TERMS.LESS_OR_EQUAL,
+                        [TERMS.LESS_THAN]: TERMS.GREATER_THAN,
+                        [TERMS.LESS_OR_EQUAL]: TERMS.GREATER_OR_EQUAL,
                     }[leftMethod]
                     // I cannot really use optimizations here
                     return new TypedInput(`(yield* runtime.ext_gceOOP._comparisonOperator(thread, ${left.asUnknown()}, ${right.asUnknown()}, `+
@@ -253,7 +507,7 @@ const TYPEOF_MENU = [
     "JavaScript Function",
     "JavaScript Object (generic)",
     "Unknown (rare)"
-]
+].map((name) => translatedMsg(name))
 
 /**
  * @param {string} s
@@ -292,14 +546,41 @@ function span(text) {
 }
 
 /**
+ * Translates and replaces placeholders in the format {key} with corresponding values from an object.
+ * * @param {string} englishMessageTemplate - The english string containing {key} placeholders.
+ * @param {Object<string, *>} values - Key-value pairs to inject.
+ * @returns {string}
+ */
+function translatedMsg(englishMessageTemplate, values) {
+    // Let format-message handle interpolation
+    // Check if translation exists in TRANSLATIONS.de
+    const key = englishMessageTemplate;
+    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+    // If the key or key with leading underscore is not found, throw
+    if (!deTranslations || (deTranslations[key] === undefined && deTranslations["_" + key] === undefined)) {
+        throw new Error(`Missing German translation for: ${key}`);
+    }
+    return Scratch.translate(englishMessageTemplate, values);
+}
+
+/**
+ * Translates an error message and throws it as an Error. Placeholders in the format {key} can be replaced with corresponding values from an object.
+ * @param {string} message
+ * @param {Object<string, *>} values - Key-value pairs to inject.
+ * @returns {never}
+ */
+function throwError(message, values = {}) {
+    throw new Error(translatedMsg(message, values))
+}
+
+/**
  * @param {string} code
  * @param {string} additionalMsg
  * @returns {never}
  */
 function throwInternal(code, additionalMsg = "") {
-    throw new Error(
-        `An internal error occured in the OOP extension. `+
-        `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
+    throwError(
+        "An internal error occured in the OOP extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]", {additionalMsg, code}
     )
 }
 
@@ -371,7 +652,7 @@ class VariableManager {
      */
     setHolder(name, holder) {
         if (this.has(name)) {
-            throw new Error(`Variable ${quote(name)} already exists in the current scope, can not bind variable with the same name.`)
+            throwError("Variable {name} already exists in the current scope, can not bind variable with the same name."), {name: quote(name)}
         }
         this._variables[name] = holder
     }
@@ -385,7 +666,7 @@ class VariableManager {
             this._variables[name].isDeleted = true // Mark the variable deleted for all scopes
             delete this._variables[name]
         } else if (throwOnNotFound) {
-            throw new Error(`Variable ${quote(name)} is not defined.`)
+            throwError("Variable {name} is not defined.", {name: quote(name)})
         }
     }
 
@@ -404,7 +685,7 @@ class VariableManager {
     get(name, throwOnNotFound = true) {
         if (!this.has(name)) {
             if (!throwOnNotFound) return undefined
-            throw new Error(`Variable ${quote(name)} is not defined.`)
+            throwError("Variable {name} is not defined.", {name: quote(name)})
         }
         return this._variables[name].value
     }
@@ -426,7 +707,7 @@ class VariableManager {
      */
     getHolder(name) {
         if (!this.has(name)) {
-            throw new Error(`Variable ${quote(name)} is not defined.`)
+            throwError("Variable {name} is not defined.", {name: quote(name)})
         }
         return this._variables[name]
     }
@@ -572,14 +853,14 @@ class ScopeStackManager {
     /**
      * @param {BaseCallableType} callable
      * @param {ClassInstanceType} self
-     * @param {*} other
+     * @param {*} operatorValue
      */
-    enterOperatorMethodCall(callable, self, other) {
+    enterOperatorMethodCall(callable, self, operatorValue) {
         this.insertScopeAndPushStack(callable, {
             type: ScopeStack.OPERATOR_METHOD,
-            supportsSelf: true, supportsOtherValue: true, isCallable: true,
+            supportsSelf: true, supportsOperatorValue: true, isCallable: true,
             supportsVars: true,
-            self, other, vars: new VariableManager(),
+            self, operatorValue, vars: new VariableManager(),
         })
     }
 
@@ -701,7 +982,7 @@ class ScopeStack {
     getSelfOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsSelf)
         if (!scope) {
-            throw new Error("self can only be used within an instance, getter or setter method.")
+            throwError("self can only be used within an instance, getter or setter method.")
         }
         return scope.self
     }
@@ -712,7 +993,7 @@ class ScopeStack {
     getSetterValueOrThrow() {
         const scope = this._getQualifiedScope(scope => scope.supportsSetterValue)
         if (!scope) {
-            throw new Error("setter value can only be used within a setter method.")
+            throwError("setter value can only be used within a setter method.")
         }
         return scope.setterValue
     }
@@ -720,12 +1001,12 @@ class ScopeStack {
     /**
      * @returns {*}
      */
-    getOtherValueOrThrow() {
-        const scope = this._getQualifiedScope(scope => scope.supportsOtherValue)
+    getOperatorValueOrThrow() {
+        const scope = this._getQualifiedScope(scope => scope.supportsOperatorValue)
         if (!scope) {
-            throw new Error("other value can only be used within an operator method.")
+            throwError("operator value can only be used within an operator method.")
         }
-        return scope.other
+        return scope.operatorValue
     }
 
     /**
@@ -735,7 +1016,7 @@ class ScopeStack {
     getClsOrThrow(blockText) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsCls) {
-            throw new Error(`${blockText} can only be used within a class definition or "on class" block.`)
+            throwError('{blockText} can only be used within a class definition or "on class" block.', {blockText})
         }
         return innermost.cls
     }
@@ -744,7 +1025,7 @@ class ScopeStack {
     assertCanReturn() {
         const innermost = this._getInnermostScope()
         if (!innermost.isCallable) {
-            throw new Error("return can only be used within a function or method.")
+            throwError("return can only be used within a function or method.")
         }
     }
     exitClassDefScope() {
@@ -788,7 +1069,7 @@ class ScopeStack {
     setNextFuncConfig(config) {
         config = config || ScopeStack.getDefaultFuncConfig()
         if (config.argDefaults.length > config.argNames.length) {
-            throw new Error("There can only be as many default values as argument names.")
+            throwError("There can only be as many default values as argument names.")
         }
         this.nextFuncConfig = config
     }
@@ -818,7 +1099,7 @@ class ScopeStack {
     setScopeVar(name, value) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error("Can not set a variable in a scope, which does not support variables (e.g. a class definition).")
+            throwError("Can not set a variable in a scope, which does not support variables (e.g. a class definition).")
         }
         innermost.vars.set(name, value)
     }
@@ -860,7 +1141,7 @@ class ScopeStack {
     deleteScopeVar(name) {
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error("Can not delete a variable in a scope, which does not support variables(e.g. a class definition).")
+            throwError("Can not delete a variable in a scope, which does not support variables(e.g. a class definition).")
         }
         innermost.vars.delete(name)
     }
@@ -874,12 +1155,12 @@ class ScopeStack {
             throwInternal("calm-seal")
         }
         if (!globalScope.vars.has(name)) {
-            throw new Error(`No global variable named ${quote(name)} found.`)
+            throwError("No global variable named {name} found.", {name: quote(name)})
         }
 
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
+            throwError("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
         }
         innermost.vars.setHolder(name, globalScope.vars.getHolder(name))
     }
@@ -892,12 +1173,12 @@ class ScopeStack {
         try { // skip innermost(current) and global scope, as nonlocal variables can not be in either
             varScope = this._getScopeOfVar(name, 1, 1)
         } catch {
-            throw new Error(`No non-local variable named ${quote(name)} found.`)
+            throwError("No non-local variable named {name} found.", {name: quote(name)})
         }
 
         const innermost = this._getInnermostScope()
         if (!innermost.supportsVars) {
-            throw new Error("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
+            throwError("Can not bind a variable to a scope, which does not support variables(e.g. a class definition).")
         }
         innermost.vars.setHolder(name, varScope.vars.getHolder(name))
     }
@@ -982,6 +1263,7 @@ const CONFIG = {
     "greater than", "greater or equal",
     "less than", "less or equal",
 ]).forEach((publicName) => {
+    publicName = translatedMsg(publicName)
     const internalName = `__operator_${publicName.replaceAll(" ", "_")}__`
     CONFIG.INTERNAL_OP_NAMES[publicName] = internalName
     CONFIG.PUBLIC_OP_NAMES[internalName] = publicName
@@ -989,16 +1271,16 @@ const CONFIG = {
 
 const MENU_ITEMS = {
     CLASS_PROPERTY: [
-        "instance method",
-        "static method",
-        "getter method",
-        "setter method",
-        "operator method",
-        "class variable",
+        translatedMsg("instance method"),
+        translatedMsg("static method"),
+        translatedMsg("getter method"),
+        translatedMsg("setter method"),
+        translatedMsg("operator method"),
+        translatedMsg("class variable"),
     ],
     SPECIAL_METHOD: [
-        {text: "init", value: CONFIG.INIT_METHOD_NAME},
-        {text: "as string", value: CONFIG.AS_STRING_METHOD_NAME},
+        {text: translatedMsg("init"), value: CONFIG.INIT_METHOD_NAME},
+        {text: translatedMsg("as string"), value: CONFIG.AS_STRING_METHOD_NAME},
     ],
     TYPEOF_MENU: TYPEOF_MENU,
     OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
@@ -1129,7 +1411,7 @@ class TypeChecker {
 
     static _assertRuntimeEnv() {
         if (!isRuntimeEnv) {
-            throw new Error("Type checking for extension types is not available in a non-runtime environment.")
+            throwError("Type checking for extension types is not available in a non-runtime environment.")
         }
     }
 
@@ -1144,7 +1426,7 @@ class TypeChecker {
             if (!isRuntimeEnv) return false
             const typeInfo = Scratch.vm[typeId]
             if (!typeInfo) {
-                if (typeMissingErrorMsg) throw new Error(typeMissingErrorMsg)
+                if (typeMissingErrorMsg) throwError(typeMissingErrorMsg)
                 return false
             }
 
@@ -1152,7 +1434,7 @@ class TypeChecker {
             try {
                 typeClass = overrideTypeProperty ? typeInfo[overrideTypeProperty] : typeInfo.Type
             } catch {
-                if (typeMissingErrorMsg) throw new Error(typeMissingErrorMsg)
+                if (typeMissingErrorMsg) throwError(typeMissingErrorMsg)
                 return false
             }
             return value instanceof typeClass
@@ -1234,7 +1516,7 @@ class TypeChecker {
 class Cast extends Scratch.Cast {
     static _assertRuntimeEnv() {
         if (!isRuntimeEnv) {
-            throw new Error("Casting to extension types is not available in a non-runtime environment.")
+            throwError("Casting to extension types is not available in a non-runtime environment.")
         }
     }
 
@@ -1246,7 +1528,7 @@ class Cast extends Scratch.Cast {
      */
     static toArray(value) {
         Cast._assertRuntimeEnv()
-        if (!Scratch.vm.jwArray) throw new Error("Array extension was not loaded properly.")
+        if (!Scratch.vm.jwArray) throwError("Array extension was not loaded properly.")
         return Scratch.vm.jwArray.Type.toArray(value)
     }
 
@@ -1257,7 +1539,7 @@ class Cast extends Scratch.Cast {
      */
     static toObject(value, copy = false) {
         Cast._assertRuntimeEnv()
-        if (!Scratch.vm.dogeiscutObject) throw new Error("Object extension was not loaded properly.")
+        if (!Scratch.vm.dogeiscutObject) throwError("Object extension was not loaded properly.")
         return Scratch.vm.dogeiscutObject.Type.toObject(value, copy)
     }
 
@@ -1286,23 +1568,23 @@ class Cast extends Scratch.Cast {
     static _toTypeFromValueOrVariable(value, thread, isValidVal, expectedDescription) { // TODO: update tests
         if (isValidVal(value)) return value
         if (TypeChecker.isMissingValue(value)) {
-            throw new Error(`Expected a ${expectedDescription}, but got no input value.`)
+            throwError("Expected a {expectedDescription}, but got no input value.", {expectedDescription})
         }
         if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
-            throw new Error(`Expected a ${expectedDescription} not a ${TypeChecker.stringTypeof(value)}.`)
+            throwError("Expected a {expectedDescription} not a {actualDescription}.", {expectedDescription, actualDescription: TypeChecker.stringTypeof(value)})
         }
         const name = Cast.toString(value)
         let varValue
         try {
             varValue = Cast._getNamedValue(name, thread)
         } catch {
-            throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is not defined.`)
+            throwError("Expected a {expectedDescription}, but variable {value} is not defined.", {expectedDescription, value: quote(value)})
         }
         if (isValidVal(varValue)) return varValue
         let varValueName
         if (isRuntimeEnv) varValueName = TypeChecker.stringTypeof(varValue)
-        else varValueName = "Unknown (non-runtime environment)"
-        throw new Error(`Expected a ${expectedDescription}, but variable ${quote(value)} is a(n) ${varValueName}.`)
+        else varValueName = translatedMsg("Unknown (non-runtime environment)")
+        throwError("Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.", {expectedDescription, value: quote(value), varValueName})
     }
 
     // Own
@@ -1313,7 +1595,7 @@ class Cast extends Scratch.Cast {
      * @returns {ClassType}
      */
     static toClass(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassType, "class or class variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassType, translatedMsg("class or class variable name"))
     }
 
     /**
@@ -1322,7 +1604,7 @@ class Cast extends Scratch.Cast {
      * @returns {ClassInstanceType}
      */
     static toClassInstance(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassInstanceType, "class instance or class instance variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof ClassInstanceType, translatedMsg("class instance or class instance variable name"))
     }
 
     /**
@@ -1331,7 +1613,7 @@ class Cast extends Scratch.Cast {
      * @returns {FunctionType}
      */
     static toFunction(value, thread = null) {
-        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof FunctionType, "function or function variable name")
+        return Cast._toTypeFromValueOrVariable(value, thread, v => v instanceof FunctionType, translatedMsg("function or function variable name"))
     }
 
     // Menus
@@ -1343,7 +1625,7 @@ class Cast extends Scratch.Cast {
     static toMenuClassProperty(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.CLASS_PROPERTY.includes(value)) {
-            throw new Error(`Invalid class property: ${value}`)
+            throwError("Invalid class property: {value}", {value})
         }
         return value
     }
@@ -1355,7 +1637,7 @@ class Cast extends Scratch.Cast {
     static toMenuOperatorMethod(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.OPERATOR_METHOD.map((item) => item.text).includes(value)) {
-            throw new Error(`Invalid operator method: ${value}`)
+            throwError("Invalid operator method: {value}", {value})
         }
         return value
     }
@@ -1367,7 +1649,7 @@ class Cast extends Scratch.Cast {
     static toMenuSpecialMethod(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.SPECIAL_METHOD.map((item) => item.text).includes(value)) {
-            throw new Error(`Invalid special method: ${value}`)
+            throwError("Invalid special method: {value}", {value})
         }
         return value
     }
@@ -1379,7 +1661,7 @@ class Cast extends Scratch.Cast {
     static toMenuTypeofType(value) {
         value = Cast.toString(value)
         if (!MENU_ITEMS.TYPEOF_MENU.includes(value)) {
-            throw new Error(`Invalid typeof type: ${value}`)
+            throwError("Invalid typeof type: {value}", {value})
         }
         return value
     }
@@ -1423,8 +1705,17 @@ const dogeiscutObjectStub = {
 }
 
 class CustomType {
+    className = translatedMsg("Unknown")
+
     toMonitorContent() {
         return span(this.toString())
+    }
+
+    /**
+     * @returns {string}
+     */
+    toJSON() {
+        return translatedMsg("{className} can not be serialized.", {className: this.className})
     }
 
     // Prevent dogeiscut rendering my custom types as objects
@@ -1439,7 +1730,7 @@ class CustomType {
 }
 
 class BaseCallableType extends CustomType {
-    className = "Callable"
+    className = translatedMsg("Callable")
     // Technically this name will never be shown, as only subclasses actually have instances
     // Should allow s-plural
 
@@ -1463,13 +1754,6 @@ class BaseCallableType extends CustomType {
      */
     toString() {
         return `<${this.className} ${quote(this.name)}>`
-    }
-
-    /**
-     * @returns {string}
-     */
-    toJSON() {
-        return `${this.className}s can not be serialized.`
     }
 
     /**
@@ -1525,13 +1809,13 @@ class BaseCallableType extends CustomType {
         let name
         let prefix
 
-        if (this instanceof InstanceMethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = "Initializing object"
-        else if (this instanceof InstanceMethodType) prefix = `Calling method ${quote(this.name)}`
-        else prefix = `Calling function ${quote(this.name)}`
+        if (this instanceof InstanceMethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = translatedMsg("Initializing object")
+        else if (this instanceof InstanceMethodType) prefix = translatedMsg("Calling method {name}", {name: quote(this.name)})
+        else prefix = translatedMsg("Calling function {name}", {name: quote(this.name)})
 
         // Ensure there are not too many arguments
         if (posArgs.length > this.argNames.length) {
-            throw new Error(`${prefix}: expected at most ${this.argNames.length}, but got ${posArgs.length} arguments.`)
+            throwError("{prefix}: expected at most {maxArgCount}, but got {argCount} arguments.", {prefix, argCount: posArgs.length, maxArgCount: this.argNames.length})
         }
 
         // Count how many arguments do NOT have defaults
@@ -1539,7 +1823,7 @@ class BaseCallableType extends CustomType {
 
         // Ensure enough positional arguments
         if (posArgs.length < posOnlyCount) {
-            throw new Error(`${prefix}: expected at least ${posOnlyCount} positional arguments, but got only ${posArgs.length}.`)
+            throwError("{prefix}: expected at least {posOnlyCount} positional arguments, but got only {argCount}.", {prefix, posOnlyCount, argCount: posArgs.length})
         }
 
         // Assign positional arguments
@@ -1562,7 +1846,7 @@ class BaseCallableType extends CustomType {
 
 class FunctionType extends BaseCallableType {
     customId = "gceFunction"
-    className = "Function"
+    className = translatedMsg("Function")
 
     /**
      * @param {Thread} thread
@@ -1577,7 +1861,7 @@ class FunctionType extends BaseCallableType {
 
 class InstanceMethodType extends BaseCallableType {
     customId = "gceMethod"
-    className = "Instance Method"
+    className = translatedMsg("Instance Method")
 
     /**
      * @param {Thread} thread
@@ -1593,7 +1877,7 @@ class InstanceMethodType extends BaseCallableType {
 
 class GetterMethodType extends InstanceMethodType {
     customId = "gceGetterMethod"
-    className = "Getter Method"
+    className = translatedMsg("Getter Method")
 
     /**
      * @param {Thread} thread
@@ -1605,7 +1889,7 @@ class GetterMethodType extends InstanceMethodType {
 }
 class SetterMethodType extends InstanceMethodType {
     customId = "gceSetterMethod"
-    className = "Setter Method"
+    className = translatedMsg("Setter Method")
 
     /**
      * @param {Thread} thread
@@ -1620,13 +1904,13 @@ class SetterMethodType extends InstanceMethodType {
      * @param {*} output
      */
     checkOutputValue(output) {
-        if (output !== Nothing) throw new Error(`Setter methods must return ${Nothing}.`)
+        if (output !== Nothing) throwError("Setter methods must return {nothingValue}.", {nothingValue: Nothing})
     }
 }
 
 class OperatorMethodType extends InstanceMethodType {
     customId = "gceOperatorMethod"
-    className = "Operator Method"
+    className = translatedMsg("Operator Method")
 
     /**
      * @param {Thread} thread
@@ -1640,6 +1924,7 @@ class OperatorMethodType extends InstanceMethodType {
 
 class ClassType extends CustomType {
     customId = "gceClass"
+    className = translatedMsg("Class")
 
     /**
      * @param {string} name
@@ -1661,15 +1946,7 @@ class ClassType extends CustomType {
      * @returns string
      */
     toString() {
-        const suffix = this.superCls ? `(super ${quote(this.superCls.name)})` : ""
-        return `<Class ${quote(this.name)}${suffix}>`
-    }
-
-    /**
-     * @returns string
-     */
-    toJSON() {
-        return "Classes can not be serialized."
+        return translatedMsg("<Class {name}>", {name: quote(this.name)})
     }
 
     /**
@@ -1679,16 +1956,16 @@ class ClassType extends CustomType {
      * @returns {{type: ?string, value: *}}
      */
     getMember(name, recursive, preferSetter) {
-        if (name in this.instanceMethods) return {type: "instance method", value: this.instanceMethods[name]}
-        else if (name in this.staticMethods) return {type: "static method", value: this.staticMethods[name]}
+        if (name in this.instanceMethods) return {type: TERMS.INSTANCE_METHOD, value: this.instanceMethods[name]}
+        else if (name in this.staticMethods) return {type: TERMS.STATIC_METHOD, value: this.staticMethods[name]}
         else if ((name in this.getters) && (name in this.setters)) {
-            if (preferSetter) return {type: "setter method", value: this.setters[name]}
-            else return {type: "getter method", value: this.getters[name]}
+            if (preferSetter) return {type: TERMS.SETTER_METHOD, value: this.setters[name]}
+            else return {type: TERMS.GETTER_METHOD, value: this.getters[name]}
         }
-        else if (name in this.getters) return {type: "getter method", value: this.getters[name]}
-        else if (name in this.setters) return {type: "setter method", value: this.setters[name]}
-        else if (name in this.operatorMethods) return {type: "operator method", value: this.operatorMethods[name]}
-        else if (this.clsVariables.has(name)) return {type: "class variable", value: this.clsVariables.get(name)}
+        else if (name in this.getters) return {type: TERMS.GETTER_METHOD, value: this.getters[name]}
+        else if (name in this.setters) return {type: TERMS.SETTER_METHOD, value: this.setters[name]}
+        else if (name in this.operatorMethods) return {type: TERMS.OPERATOR_METHOD, value: this.operatorMethods[name]}
+        else if (this.clsVariables.has(name)) return {type: TERMS.CLASS_VARIABLE, value: this.clsVariables.get(name)}
         if (recursive) {
             if (!this.superCls) return {type: null}
             return this.superCls.getMember(name, recursive, preferSetter)
@@ -1703,9 +1980,9 @@ class ClassType extends CustomType {
      * @returns {*}
      */
     getMemberOfType(name, expectedMemberType) {
-        const {type, value} = this.getMember(name, true, expectedMemberType === "setter method")
-        if (!type) throw new Error(`Undefined ${expectedMemberType} ${quote(name)}.`)
-        if (type !== expectedMemberType) throw new Error(`Class Method or Variable ${quote(name)} is not a ${expectedMemberType} but a ${type}.`)
+        const {type, value} = this.getMember(name, true, expectedMemberType === TERMS.SETTER_METHOD)
+        if (!type) throwError("Undefined {expectedMemberType} {name}.", {expectedMemberType, name: quote(name)})
+        if (type !== expectedMemberType) throwError("Class Method or Variable {name} is not a {expectedMemberType} but a {type}.", {name: quote(name), expectedMemberType, type})
         return value
     }
 
@@ -1745,17 +2022,17 @@ class ClassType extends CustomType {
     setMember(name, newMemberType, value) {
         const currentMemberType = this.getMember(name, false, false).type // preference does not matter
         if (currentMemberType && (currentMemberType !== newMemberType) && !(
-            ((currentMemberType === "getter method") && (newMemberType === "setter method")) ||
-            ((currentMemberType === "setter method") && (newMemberType === "getter method"))
+            ((currentMemberType === TERMS.GETTER_METHOD) && (newMemberType === TERMS.SETTER_METHOD)) ||
+            ((currentMemberType === TERMS.SETTER_METHOD) && (newMemberType === TERMS.GETTER_METHOD))
         )) {
-            throw new Error(`Can not assign ${newMemberType}: ${currentMemberType} already exists with the same name ${quote(name)}.`)
+            throwError("Can not assign {newMemberType}: {currentMemberType} already exists with the same name {name}.", {newMemberType, currentMemberType, name: quote(name)})
         }
-        if (newMemberType === "instance method") this.instanceMethods[name] = value
-        else if (newMemberType === "static method") this.staticMethods[name] = value
-        else if (newMemberType === "getter method") this.getters[name] = value
-        else if (newMemberType === "setter method") this.setters[name] = value
-        else if (newMemberType === "operator method") this.operatorMethods[name] = value
-        else if (newMemberType === "class variable") this.clsVariables.set(name, value)
+        if (newMemberType === TERMS.INSTANCE_METHOD) this.instanceMethods[name] = value
+        else if (newMemberType === TERMS.STATIC_METHOD) this.staticMethods[name] = value
+        else if (newMemberType === TERMS.GETTER_METHOD) this.getters[name] = value
+        else if (newMemberType === TERMS.SETTER_METHOD) this.setters[name] = value
+        else if (newMemberType === TERMS.OPERATOR_METHOD) this.operatorMethods[name] = value
+        else if (newMemberType === TERMS.CLASS_VARIABLE) this.clsVariables.set(name, value)
     }
 
     /**
@@ -1765,22 +2042,22 @@ class ClassType extends CustomType {
     deleteMemberOfType(name, memberType) {
         this.getMemberOfType(name, memberType) // check if member exists and is of the right type, will throw an error if not
         switch (memberType) {
-            case "instance method":
+            case TERMS.INSTANCE_METHOD:
                 delete this.instanceMethods[name]
                 break
-            case "static method":
+            case TERMS.STATIC_METHOD:
                 delete this.staticMethods[name]
                 break
-            case "getter method":
+            case TERMS.GETTER_METHOD:
                 delete this.getters[name]
                 break
-            case "setter method":
+            case TERMS.SETTER_METHOD:
                 delete this.setters[name]
                 break
-            case "operator method":
+            case TERMS.OPERATOR_METHOD:
                 delete this.operatorMethods[name]
                 break
-            case "class variable":
+            case TERMS.CLASS_VARIABLE:
                 this.clsVariables.delete(name)
                 break
         }
@@ -1794,7 +2071,7 @@ class ClassType extends CustomType {
     *createInstance(thread, posArgs) {
         const instance = new ClassInstanceType(this)
         const output = yield* instance.executeInstanceMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs) // an init method always exists
-        if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
+        if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return instance
     }
 
@@ -1814,7 +2091,7 @@ class ClassType extends CustomType {
      * @returns {FunctionType}
      */
     getStaticMethod(name) {
-        return assertType("quiet-fox", FunctionType, this.getMemberOfType(name, "static method"))
+        return assertType("quiet-fox", FunctionType, this.getMemberOfType(name, TERMS.STATIC_METHOD))
     }
 
     /**
@@ -1834,6 +2111,7 @@ class ClassType extends CustomType {
 
 class ClassInstanceType extends CustomType {
     customId = "gceClassInstance"
+    className = translatedMsg("Class Instance")
 
     /**
      * @param {ClassType} cls
@@ -1843,11 +2121,9 @@ class ClassInstanceType extends CustomType {
         this.cls = cls
         this.attributes = {}
     }
+
     toString() {
-        return `<Instance of ${quote(this.cls.name)}>`
-    }
-    toJSON() {
-        return "Class Instances can not be serialized."
+        return translatedMsg("<Instance of {name}>", {name: quote(this.cls.name)})
     }
 
     /**
@@ -1858,7 +2134,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeInstanceMethod(thread, name, posArgs) {
         /** @type {InstanceMethodType} */
-        const method = this.cls.getMemberOfType(name, "instance method")
+        const method = this.cls.getMemberOfType(name, TERMS.INSTANCE_METHOD)
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -1869,10 +2145,10 @@ class ClassInstanceType extends CustomType {
      * @returns {*} the return value of the method
      */
     *executeSuperMethod(thread, name, posArgs) {
-        if (!this.cls.superCls) throw new Error("Can not call super instance method: class has no superclass.")
+        if (!this.cls.superCls) throwError("Can not call super instance method: class has no superclass.")
 
         /** @type {InstanceMethodType} */
-        const method = this.cls.superCls.getMemberOfType(name, "instance method")
+        const method = this.cls.superCls.getMemberOfType(name, TERMS.INSTANCE_METHOD)
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -1884,7 +2160,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeSuperInitMethod(thread, name, posArgs) {
         const output = yield* this.executeSuperMethod(thread, name, posArgs)
-        if (output !== Nothing) throw new Error(`Initialization methods must return ${Nothing}.`)
+        if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return output
     }
 
@@ -1896,7 +2172,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeOperatorMethod(thread, name, other) {
         /** @type {OperatorMethodType} */
-        const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
+        const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], TERMS.OPERATOR_METHOD)
         return yield* method.execute(thread, this, other)
     }
 
@@ -1907,7 +2183,7 @@ class ClassInstanceType extends CustomType {
      */
     *getAttribute(thread, name) {
         const {type, value} = this.cls.getMember(name, true, false)
-        if (type === "getter method") {
+        if (type === TERMS.GETTER_METHOD) {
             /** @type {GetterMethodType} */
             const getterMethod = value
             return (yield* getterMethod.execute(thread, this))
@@ -1915,7 +2191,7 @@ class ClassInstanceType extends CustomType {
         if (name in this.attributes) {
             return this.attributes[name]
         }
-        throw new Error(`${this} has no attribute or getter method for ${quote(name)}.`)
+        throwError("{instanceValue} has no attribute or getter method for {name}.", {instanceValue: this, name: quote(name)})
     }
 
     /**
@@ -1925,10 +2201,10 @@ class ClassInstanceType extends CustomType {
      */
     *setAttribute(thread, name, value) {
         const methodMember = this.cls.getMember(name, true, true)
-        if (methodMember && methodMember.type === "setter method") {
+        if (methodMember && methodMember.type === TERMS.SETTER_METHOD) {
             yield* methodMember.value.execute(thread, this, value)
-        } else if (methodMember && methodMember.type === "getter method") {
-            throw new Error(`Can not set attribute ${quote(name)} of ${this}: attribute only has a getter method.`)
+        } else if (methodMember && methodMember.type === TERMS.GETTER_METHOD) {
+            throwError("Can not set attribute {name} of {instanceValue}: attribute only has a getter method.", {name: quote(name), instanceValue: this})
         } else {
             this.attributes[name] = value
         }
@@ -1940,7 +2216,7 @@ class ClassInstanceType extends CustomType {
      */
     *hasOperatorMethod(name) {
         try {
-            this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], "operator method")
+            this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], TERMS.OPERATOR_METHOD)
             return true
         } catch {
             return false
@@ -1950,9 +2226,10 @@ class ClassInstanceType extends CustomType {
 
 class NothingType extends CustomType {
     customId = "gceNothing"
+    className = translatedMsg("Nothing")
 
     toString() {
-        return "<Nothing>"
+        return `<${translatedMsg("Nothing")}>`
     }
     toJSON() {
         return this.toString()
@@ -2011,7 +2288,7 @@ const gceClass = {
     },
     ArgumentClassOrVarName: {
         type: ArgumentType.STRING,
-        defaultValue: "MyClass",
+        defaultValue: translatedMsg("MyClass"),
         exemptFromNormalization: true,
     },
 }
@@ -2030,7 +2307,7 @@ const gceClassInstance = {
     },
     ArgumentClassOrVarName: {
         type: ArgumentType.STRING,
-        defaultValue: "myInstance",
+        defaultValue: translatedMsg("myInstance"),
         exemptFromNormalization: true,
     },
 }
@@ -2058,19 +2335,19 @@ const gceNothing = {
 const commonArguments = {
     classVarName: {
         type: ArgumentType.STRING,
-        defaultValue: "MyClass",
+        defaultValue: translatedMsg("MyClass"),
     },
     methodName: {
         type: ArgumentType.STRING,
-        defaultValue: "myMethod",
+        defaultValue: translatedMsg("myMethod"),
     },
     classVariableName: {
         type: ArgumentType.STRING,
-        defaultValue: "myVariable",
+        defaultValue: translatedMsg("myClassVariable"),
     },
     attributeName: {
         type: ArgumentType.STRING,
-        defaultValue: "myAttr",
+        defaultValue: translatedMsg("myAttr"),
     },
     allowAnything: {
         type: ArgumentType.STRING,
@@ -2113,7 +2390,7 @@ class GCEOOPBlocks {
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
-                makeLabel("Missing Extensions?"),
+                makeLabel(translatedMsg("Missing Extensions?")),
                 { // BUTTON
                     blockType: BlockType.BUTTON,
                     opcode: "addFuncsScopesExtension",
@@ -2294,7 +2571,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "defineSetterValue",
-                    text: "value",
+                    text: "operator value",
                     tooltip: "Reports the incoming value inside a setter method.",
                     hideFromPalette: true,
                     canDragDuplicate: true,
@@ -2308,13 +2585,13 @@ class GCEOOPBlocks {
                     tooltip: "Defines custom behavior for an operator on instances of the current class.",
                     arguments: {
                         OPERATOR_KIND: {type: ArgumentType.STRING, menu: "operatorMethod"},
-                        SHADOW: {fillIn: "operatorOtherValue"},
+                        SHADOW: {fillIn: "operatorOperatorValue"},
                     },
                 },
                 {
                     ...commonBlocks.returnsAnything,
-                    opcode: "operatorOtherValue",
-                    text: "other value",
+                    opcode: "operatorOperatorValue",
+                    text: "operator value",
                     tooltip: "Reports the other operand inside an operator method.",
                     hideFromPalette: true,
                     canDragDuplicate: true,
@@ -2420,7 +2697,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "getAttribute",
-                    text: "attribute [NAME] of [INSTANCE]",
+                    text: "attribute [NAME] of [INSTANCE]", // TODO: change order of INSTANCE and NAME
                     tooltip: "Gets an attribute from an instance or calls its getter if one exists.",
                     arguments: {
                         NAME: commonArguments.attributeName,
@@ -2810,8 +3087,8 @@ class GCEOOPBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
-            doublePlusShape: CUSTOM_SHAPE, applyInternalWrappers,
-            quote, escapeHTML, span, throwInternal, assertType,
+            doublePlusShape: CUSTOM_SHAPE, TRANSLATIONS, TERMS, applyInternalWrappers,
+            quote, escapeHTML, span, translatedMsg, throwError, throwInternal, assertType,
             VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, MENU_ITEMS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             InstanceMethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
@@ -3096,8 +3373,8 @@ class GCEOOPBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
-    operatorOtherValue(args, util) {
-        return ThreadUtil.getCurrentStack(util.thread).getOtherValueOrThrow()
+    operatorOperatorValue(args, util) {
+        return ThreadUtil.getCurrentStack(util.thread).getOperatorValueOrThrow()
     }
 
     // Define Static Methods & Class Variables
@@ -3310,7 +3587,7 @@ class GCEOOPBlocks {
         } catch {}
         if (!method) return object.toString()
         const output = yield* method.execute(thread, object, [])
-        if (typeof output !== "string") throw new Error(`As String methods must always return a string.`)
+        if (typeof output !== "string") throwError("As String methods must always return a string.")
         return output
     }
 
@@ -3371,7 +3648,7 @@ class GCEOOPBlocks {
             output = yield* right.executeOperatorMethod(thread, oppositeMethod, left)
         }
         if (foundMethod) {
-            if (typeof output !== "boolean") throw new Error(`Comparison Operator methods must always return a boolean.`)
+            if (typeof output !== "boolean") throwError("Comparison Operator methods must always return a boolean.")
             return output
         }
         // default implementation(see scratch3_operators.js)
@@ -3503,7 +3780,7 @@ if (!isRuntimeEnv) {
  * @property {boolean} [supportsVars]
  * @property {boolean} [supportsSelf]
  * @property {boolean} [supportsSetterValue]
- * @property {boolean} [supportsOtherValue]
+ * @property {boolean} [supportsOperatorValue]
  * @property {boolean} [supportsCls]
  * @property {VariableManager} [vars]
  * @property {ClassInstanceType} [self]
@@ -3523,7 +3800,7 @@ if (!isRuntimeEnv) {
  */
 
 /**
- * @typedef {Object<string, *>} BlockArgs
+ * @typedef {Object} BlockArgs
  */
 
 /**
@@ -3542,6 +3819,9 @@ if (!isRuntimeEnv) {
  * + - consider different architecture for storing block implementations
  * + - consider splitting "OOP" extension again
  * + - german translation possibly
+ * + - ~ inline todos
+ * + - ~ apply all changes to gceFuncsScopes
+ * + - consider removing translatedMsg to replace with Scratch.translate
  * + - update test runner in gallery
  *
  * + MID PRIORITY
