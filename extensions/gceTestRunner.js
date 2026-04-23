@@ -113,7 +113,7 @@ class TypeChecker {
 
     static is_agBuffer = TypeChecker._createVMTypeCheck("agBuffer")
     static is_agBufferPointer = TypeChecker._createVMTypeCheck("agBuffer", "PointerType")
-    
+
     /**
      * @param {*} value
      * @returns {boolean}
@@ -139,7 +139,7 @@ class TypeChecker {
             } catch {}
         }
     }
-    
+
     /**
      * @param {*} value
      * @returns {boolean}
@@ -181,7 +181,7 @@ class TypeChecker {
     static is_jwTarget = TypeChecker._createVMTypeCheck("jwTargets")
     static is_jwVector = TypeChecker._createVMTypeCheck("jwVector")
     static is_jwXML = TypeChecker._createVMTypeCheck("jwXML")
-    
+
     /**
      * @param {*} value
      * @returns {boolean}
@@ -206,8 +206,8 @@ class TypeChecker {
 
     /**
      * @param {string} typeId
-     * @param {?string} overrideTypeProperty
-     * @param {string} [errMsg] - optional error message if type missing
+     * @param {?string} [overrideTypeProperty]
+     * @param {?string} [errMsg] - optional error message if type missing
      * @returns {(value: *) => boolean}
      */
     static _createVMTypeCheck(typeId, overrideTypeProperty = null, typeMissingErrorMsg = null) {
@@ -232,18 +232,9 @@ class TypeChecker {
 
     /**
      * @param {*} value
-     * @returns {boolean}
-     */
-    static isClassicScratchValue(value) {
-        return ((value === undefined) || (value === null) ||
-        (typeof value === "boolean") || (typeof value === "number") || (typeof value === "string"))
-    }
-
-    /**
-     * @param {*} value
      * @returns {string}
      */
-    static englishStringTypeof(value) {
+    static stringTypeof(value) {
         // Common/Safe JS data types
         if (value === undefined) return "JavaScript Undefined"
         if (value === null) return "JavaScript Null"
@@ -251,7 +242,7 @@ class TypeChecker {
         if (typeof value === "number") return "Number"
         if (typeof value === "string") return "String"
 
-        // Custom Extension Types 
+        // Custom Extension Types
         if (TypeChecker.is_agBuffer(value)) return "Buffer (AndrewGaming587)"
         if (TypeChecker.is_agBufferPointer(value)) return "Buffer Pointer (AndrewGaming587)"
         if (TypeChecker.is_ddeDateFormat(value)) return "Date (Old Version) (ddededodediamante)"
@@ -280,15 +271,6 @@ class TypeChecker {
         if (typeof value === "object") return "JavaScript Object (generic)"
 
         return "Unknown (rare)"
-    }
-
-    /**
-     * @param {*} value
-     * @returns {string}
-     */
-    static stringTypeof(value) {
-        // TODO: add translation
-        return TypeChecker.englishStringTypeof(value)
     }
 }
 
@@ -493,6 +475,7 @@ class TestRunner {
             menus: {
                 expectedType: {
                     acceptReporters: true,
+                    acceptReporters: true,
                     items: [
                         "Boolean",
                         "Number",
@@ -518,7 +501,7 @@ class TestRunner {
                         "XML (jwklong)",
                         "Canvas (RedMan13)",
                         "Paint Utils Colour (Fruits555000)",
-                        
+
                         "JavaScript Undefined",
                         "JavaScript Null",
                         "JavaScript BigInt",
@@ -734,7 +717,7 @@ class TestRunner {
     }
 
 
-    
+
     /**
      * @param {*} error
      * @returns {string}
@@ -785,7 +768,7 @@ class TestRunner {
      * @returns {TestError}
      */
     _errorWithCause (message, cause, scopePrefix = null, actualMessage = null) {
-        return new TestError(message, { 
+        return new TestError(message, {
             cause,
             scopePrefix,
             actualMessage: TestError.preserveActualMessage(actualMessage, cause)
