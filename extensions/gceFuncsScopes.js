@@ -34,7 +34,7 @@ const TRANSLATIONS = {
         "_Functions and Scoped Variables Extension must run unsandboxed.": "Die Funktionen- und Variablen-Erweiterung muss ohne Sandbox laufen.",
         "_An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]": "Ein interner Fehler ist in der Funktionen- und Variablen-Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. ${additionalMsg} [FEHLERCODE: ${code}]",
         '_The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.': 'Die Funktionen- und Variablen-Erweiterung benötigt die OOP-Erweiterung, um zu funktionieren. Bitte klicke auf die Schaltfläche "OOP-Erweiterung hinzufügen".',
-        
+
         // TYPEOF_MENU
         "_Boolean": "Boolescher Wert",
         "_Number": "Zahl",
@@ -189,7 +189,7 @@ const TYPEOF_MENU = [
     "JavaScript Function",
     "JavaScript Object (generic)",
     "Unknown (rare)"
-].map((name) => translatedMsg(name))
+]
 
 /**
  * Translates and replaces placeholders in the format {key} with corresponding values from an object.
@@ -536,17 +536,17 @@ class GCEFuncsScopesBlocks {
                 variableAvailableKind: {
                     acceptReporters: true,
                     items: [
-                        translatedMsg("all scopes"),
-                        translatedMsg("local scope"),
-                        translatedMsg("global scope"),
-                    ],
+                        "all scopes",
+                        "local scope",
+                        "global scope",
+                    ].map((name) => ({text: translatedMsg(name), value: name})),
                 },
                 bindVarOriginKind: {
                     acceptReporters: true,
                     items: [
-                        translatedMsg("non-local"),
-                        translatedMsg("global"),
-                    ],
+                        "non-local",
+                        "global",
+                    ].map((name) => ({text: translatedMsg(name), value: name})),
                 },
                 typeofMenu: {
                     acceptReporters: true,

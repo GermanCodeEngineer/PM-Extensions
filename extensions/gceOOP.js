@@ -78,49 +78,6 @@ const TRANSLATIONS = {
         "_less than": "kleiner als",
         "_less or equal": "kleiner oder gleich",
 
-        // TYPEOF_MENU
-        "_Boolean": "Boolescher Wert",
-        "_Number": "Zahl",
-        "_String": "Zeichenfolge",
-
-        "_Function (GCE)": "Funktion (GCE)",
-        "_Instance Method (GCE)": "Instanzmethode (GCE)",
-        "_Getter Method (GCE)": "Getter-Methode (GCE)",
-        "_Setter Method (GCE)": "Setter-Methode (GCE)",
-        "_Operator Method (GCE)": "Operator-Methode (GCE)",
-        "_Class (GCE)": "Klasse (GCE)",
-        "_Class Instance (GCE)": "Klasseninstanz (GCE)",
-        "_Nothing (GCE)": "Nichts (GCE)",
-
-        "_Buffer (AndrewGaming587)": "Puffer (AndrewGaming587)",
-        "_Buffer Pointer (AndrewGaming587)": "Pufferzeiger (AndrewGaming587)",
-        "_Date (Old Version) (ddededodediamante)": "Datum (alte Version) (ddededodediamante)",
-        "_Date (ddededodediamante)": "Datum (ddededodediamante)",
-        "_Effect (Div)": "Effekt (Div)",
-        "_Iterator (Div)": "Iterator (Div)",
-        "_Object (DogeisCut)": "Objekt (DogeisCut)",
-        "_Regular Expression (DogeisCut)": "Regulärer Ausdruck (DogeisCut)",
-        "_Set (DogeisCut)": "Menge (DogeisCut)",
-        "_External Timer (steve0greatness)": "Externer Timer (steve0greatness)",
-        "_Array (jwklong)": "Array (jwklong)",
-        "_Color (jwklong)": "Farbe (jwklong)",
-        "_Date (jwklong)": "Datum (jwklong)",
-        "_Lambda (jwklong)": "Lambda (jwklong)",
-        "_Number (jwklong)": "Zahl (jwklong)",
-        "_Target (jwklong)": "Figur (jwklong)",
-        "_Vector (jwklong)": "Vektor (jwklong)",
-        "_XML (jwklong)": "XML (jwklong)",
-        "_Canvas (RedMan13)": "Leinwand (RedMan13)",
-        "_Paint Utils Colour (Fruits555000)": "Paint Utils Farbe (Fruits555000)",
-
-        "_JavaScript Undefined": "JavaScript Undefiniert",
-        "_JavaScript Null": "JavaScript Null",
-        "_JavaScript BigInt": "JavaScript BigInt",
-        "_JavaScript Symbol": "JavaScript Symbol",
-        "_JavaScript Function": "JavaScript Funktion",
-        "_JavaScript Object (generic)": "JavaScript Objekt (generisch)",
-        "_Unknown (rare)": "Unbekannt (selten)",
-
         // CONFIG
         "_left add": "linke Addition",
         "_right add": "rechte Addition",
@@ -463,50 +420,6 @@ function applyInternalWrappers(Scratch) {
 /************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
-
-const TYPEOF_MENU = [
-    "Boolean",
-    "Number",
-    "String",
-
-    "Function (GCE)",
-    "Instance Method (GCE)",
-    "Getter Method (GCE)",
-    "Setter Method (GCE)",
-    "Operator Method (GCE)",
-    "Class (GCE)",
-    "Class Instance (GCE)",
-    "Nothing (GCE)",
-
-    "Buffer (AndrewGaming587)",
-    "Buffer Pointer (AndrewGaming587)",
-    "Date (Old Version) (ddededodediamante)",
-    "Date (ddededodediamante)",
-    "Effect (Div)",
-    "Iterator (Div)",
-    "Object (DogeisCut)",
-    "Regular Expression (DogeisCut)",
-    "Set (DogeisCut)",
-    "External Timer (steve0greatness)",
-    "Array (jwklong)",
-    "Color (jwklong)",
-    "Date (jwklong)",
-    "Lambda (jwklong)",
-    "Number (jwklong)",
-    "Target (jwklong)",
-    "Vector (jwklong)",
-    "XML (jwklong)",
-    "Canvas (RedMan13)",
-    "Paint Utils Colour (Fruits555000)",
-    
-    "JavaScript Undefined",
-    "JavaScript Null",
-    "JavaScript BigInt",
-    "JavaScript Symbol",
-    "JavaScript Function",
-    "JavaScript Object (generic)",
-    "Unknown (rare)"
-].map((name) => translatedMsg(name))
 
 /**
  * @param {string} s
@@ -1241,10 +1154,54 @@ class ScopeStack {
     }
 }
 
+// TODO: add tests
+/**
+ * Properly manages menus, the translation between internal and public names and input validation
+ */
+class MenuManager {
+    /**
+     * @param {Array<{value: string, text: string}>} menuItems 
+     * @param {string} invalidPublicValueError
+     */
+    constructor(menuItems, invalidPublicValueError) {
+        this._menuItems = menuItems
+        this._interalToPublic = Object.fromEntries(menuItems.map(item => [item.value, item.text]))
+        this._publicToInternal = Object.fromEntries(menuItems.map(item => [item.text, item.value]))
+        this._invalidPublicValueError = invalidPublicValueError
+    }
+
+    /**
+     * @return {Array<{value: string, text: string}>}
+     */
+    getMenuItems() {
+        return this._menuItems
+    }
+
+    /**
+     * @param {string} public
+     * @returns {string}
+     * @throws if value is not in the menu
+     */
+    publicToInternal(public) {
+        if (!(public in this._publicToInternal)) {
+            throwError(this._invalidPublicValueError, {value: quote(public)})
+        }
+        return this._publicToInternal[public]
+    }
+
+    /**
+     * @param {string} 
+     * @returns {string}
+     */
+    internalToPublic(internal) {
+        return this._interalToPublic[internal]
+    }
+}
+
 const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
-const CONFIG = {
+const CONFIG = { // TODO: remove all these
     INIT_METHOD_NAME: "__special_init__",
     AS_STRING_METHOD_NAME: "__special_as_string__",
     INTERNAL_OP_NAMES: {}, // see below
@@ -1262,29 +1219,71 @@ const CONFIG = {
     "greater than", "greater or equal",
     "less than", "less or equal",
 ]).forEach((publicName) => {
-    publicName = translatedMsg(publicName)
     const internalName = `__operator_${publicName.replaceAll(" ", "_")}__`
-    CONFIG.INTERNAL_OP_NAMES[publicName] = internalName
-    CONFIG.PUBLIC_OP_NAMES[internalName] = publicName
+    const translatedPublicName = translatedMsg(publicName)
+    CONFIG.INTERNAL_OP_NAMES[translatedPublicName] = internalName
+    CONFIG.PUBLIC_OP_NAMES[internalName] = translatedPublicName
 })
 
-const MENU_ITEMS = {
-    CLASS_PROPERTY: [
-        translatedMsg("instance method"),
-        translatedMsg("static method"),
-        translatedMsg("getter method"),
-        translatedMsg("setter method"),
-        translatedMsg("operator method"),
-        translatedMsg("class variable"),
-    ],
-    SPECIAL_METHOD: [
+const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
+    CLASS_PROPERTY: new MenuManager([
+        {value: "CP_INSTANCE_METHOD", text: translatedMsg("instance method")},
+        {value: "CP_STATIC_METHOD", text: translatedMsg("static method")},
+        {value: "CP_GETTER_METHOD", text: translatedMsg("getter method")},
+        {value: "CP_SETTER_METHOD", text: translatedMsg("setter method")},
+        {value: "CP_OPERATOR_METHOD", text: translatedMsg("operator method")},
+        {value: "CP_CLASS_VARIABLE", text: translatedMsg("class variable")},
+    ]),
+    SPECIAL_METHOD: new MenuManager([
         {text: translatedMsg("init"), value: CONFIG.INIT_METHOD_NAME},
         {text: translatedMsg("as string"), value: CONFIG.AS_STRING_METHOD_NAME},
+    ]),
+    TYPEOF_MENU: TYPEOF_MENU = [
+        {value: "TO_BOOL", text: "Boolean"},
+        {value: "TO_NUM", text: "Number"},
+        {value: "TO_STR", text: "String"},
+
+        {value: "TO_FUNCTION_GCE", text: "Function (GCE)"},
+        {value: "TO_INSTANCE_METHOD_GCE", text: "Instance Method (GCE)"},
+        {value: "TO_GETTER_METHOD_GCE", text: "Getter Method (GCE)"},
+        {value: "TO_SETTER_METHOD_GCE", text: "Setter Method (GCE)"},
+        {value: "TO_OPERATOR_METHOD_GCE", text: "Operator Method (GCE)"},
+        {value: "TO_CLASS_GCE", text: "Class (GCE)"},
+        {value: "TO_INSTANCE_GCE", text: "Class Instance (GCE)"},
+        {value: "TO_NOTHING_GCE", text: "Nothing (GCE)"},
+        
+        {value: "TO_BUFFER_AG587", text: "Buffer (AndrewGaming587)"},
+        {value: "TO_BUFFER_POINTER_AG587", text: "Buffer Pointer (AndrewGaming587)"},
+        {value: "TO_DATE_OLD_DDEDEDODEDIAMANTE", text: "Date (Old Version) (ddededodediamante)"},
+        {value: "TO_DATE_DDEDEDODEDIAMANTE", text: "Date (ddededodediamante)"},
+        {value: "TO_EFFECT_DIV", text: "Effect (Div)"},
+        {value: "TO_ITERATOR_DIV", text: "Iterator (Div)"},
+        {value: "TO_OBJECT_DOGEISCUT", text: "Object (DogeisCut)"},
+        {value: "TO_REGEXP_DOGEISCUT", text: "Regular Expression (DogeisCut)"},
+        {value: "TO_SET_DOGEISCUT", text: "Set (DogeisCut)"},
+        {value: "TO_EXTERNAL_TIMER_STEVE0GREATNESS", text: "External Timer (steve0greatness)"},
+        {value: "TO_ARRAY_JWKLONG", text: "Array (jwklong)"},
+        {value: "TO_COLOR_JWKLONG", text: "Color (jwklong)"},
+        {value: "TO_DATE_JWKLONG", text: "Date (jwklong)"},
+        {value: "TO_LAMBDA_JWKLONG", text: "Lambda (jwklong)"},
+        {value: "TO_NUMBER_JWKLONG", text: "Number (jwklong)"},
+        {value: "TO_TARGET_JWKLONG", text: "Target (jwklong)"},
+        {value: "TO_VECTOR_JWKLONG", text: "Vector (jwklong)"},
+        {value: "TO_XML_JWKLONG", text: "XML (jwklong)"},
+        {value: "TO_CANVAS_REDMAN13", text: "Canvas (RedMan13)"},
+        {value: "TO_PAINT_UTILS_COLOUR_FRUITS555000", text: "Paint Utils Colour (Fruits555000)"},
+        
+        {value: "TO_UNDEFINED_JS", text: "JavaScript Undefined"},
+        {value: "TO_NULL_JS", text: "JavaScript Null"},
+        {value: "TO_BIGINT_JS", text: "JavaScript BigInt"},
+        {value: "TO_SYMBOL_JS", text: "JavaScript Symbol"},
+        {value: "TO_FUNCTION_JS", text: "JavaScript Function"},
+        {value: "TO_OBJECT_JS", text: "JavaScript Object (generic)"},
+        {value: "TO_UNKNOWN_JS", text: "Unknown (rare)"},
     ],
-    TYPEOF_MENU: TYPEOF_MENU,
     OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
-        ([publicName, internalName]) => (
-            {text: publicName, value: internalName}
+        ([translatedPublicName, internalName]) => (
+            {text: translatedPublicName, value: internalName}
         )
     ),
 }
@@ -1631,7 +1630,7 @@ class Cast extends Scratch.Cast {
      */
     static toMenuClassProperty(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.CLASS_PROPERTY.includes(value)) {
+        if (!MENUS.CLASS_PROPERTY.map((item) => item.value).includes(value)) {
             throwError("Invalid class property: {value}", {value})
         }
         return value
@@ -1643,7 +1642,7 @@ class Cast extends Scratch.Cast {
      */
     static toMenuOperatorMethod(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.OPERATOR_METHOD.map((item) => item.text).includes(value)) {
+        if (!MENUS.OPERATOR_METHOD.map((item) => item.text).includes(value)) {
             throwError("Invalid operator method: {value}", {value})
         }
         return value
@@ -1655,7 +1654,7 @@ class Cast extends Scratch.Cast {
      */
     static toMenuSpecialMethod(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.SPECIAL_METHOD.map((item) => item.text).includes(value)) {
+        if (!MENUS.SPECIAL_METHOD.map((item) => item.text).includes(value)) {
             throwError("Invalid special method: {value}", {value})
         }
         return value
@@ -1667,7 +1666,7 @@ class Cast extends Scratch.Cast {
      */
     static toMenuTypeofType(value) {
         value = Cast.toString(value)
-        if (!MENU_ITEMS.TYPEOF_MENU.includes(value)) {
+        if (!MENUS.TYPEOF_MENU.includes(value)) {
             throwError("Invalid typeof type: {value}", {value})
         }
         return value
@@ -2757,20 +2756,16 @@ class GCEOOPBlocks {
             ],
             menus: {
                 classProperty: {
-                    acceptReporters: true,
-                    items: MENU_ITEMS.CLASS_PROPERTY,
+                    acceptReporters: false,
+                    items: MENUS.CLASS_PROPERTY.getMenuItems(),
                 },
                 operatorMethod: {
                     acceptReporters: false,
-                    items: MENU_ITEMS.OPERATOR_METHOD,
+                    items: MENUS.OPERATOR_METHOD.getMenuItems(),
                 },
                 specialMethod: {
                     acceptReporters: false,
-                    items: MENU_ITEMS.SPECIAL_METHOD,
-                },
-                typeofMenu: {
-                    acceptReporters: true,
-                    items: MENU_ITEMS.TYPEOF_MENU,
+                    items: MENUS.SPECIAL_METHOD.getMenuItems(),
                 },
             },
         }
@@ -3107,7 +3102,7 @@ class GCEOOPBlocks {
         this.environment = {
             doublePlusShape: CUSTOM_SHAPE, TRANSLATIONS, TERMS, applyInternalWrappers,
             quote, escapeHTML, span, translatedMsg, throwError, throwInternal, assertType,
-            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, CONFIG, MENU_ITEMS,
+            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager, CONFIG, MENU_ITEMS: MENUS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             InstanceMethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
@@ -3844,6 +3839,7 @@ if (!isRuntimeEnv) {
  * + - why no error raised in funcs scopes (german locale)
  * + - ensure all menu values that are translated have {text, value}
  * + - => or remove translation for menus
+ * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
