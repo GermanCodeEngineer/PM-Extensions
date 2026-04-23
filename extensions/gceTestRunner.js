@@ -243,7 +243,7 @@ class TypeChecker {
      * @param {*} value
      * @returns {string}
      */
-    static stringTypeof(value) {
+    static englishStringTypeof(value) {
         // Common/Safe JS data types
         if (value === undefined) return "JavaScript Undefined"
         if (value === null) return "JavaScript Null"
@@ -280,6 +280,15 @@ class TypeChecker {
         if (typeof value === "object") return "JavaScript Object (generic)"
 
         return "Unknown (rare)"
+    }
+
+    /**
+     * @param {*} value
+     * @returns {string}
+     */
+    static stringTypeof(value) {
+        // TODO: add translation
+        return TypeChecker.englishStringTypeof(value)
     }
 }
 

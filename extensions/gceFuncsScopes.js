@@ -26,6 +26,124 @@ if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
 }
 
 /************************************************************************************
+*                                   Translations                                    *
+************************************************************************************/
+const TRANSLATIONS = {
+    de: {
+        // Errors in chronological order of appearance
+        "_Functions and Scoped Variables Extension must run unsandboxed.": "Die Funktionen- und Variablen-Erweiterung muss ohne Sandbox laufen.",
+        "_An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]": "Ein interner Fehler ist in der Funktionen- und Variablen-Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. ${additionalMsg} [FEHLERCODE: ${code}]",
+        '_The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.': 'Die Funktionen- und Variablen-Erweiterung benötigt die OOP-Erweiterung, um zu funktionieren. Bitte klicke auf die Schaltfläche "OOP-Erweiterung hinzufügen".',
+        
+        // TYPEOF_MENU
+        "_Boolean": "Boolescher Wert",
+        "_Number": "Zahl",
+        "_String": "Zeichenfolge",
+
+        "_Function (GCE)": "Funktion (GCE)",
+        "_Instance Method (GCE)": "Instanzmethode (GCE)",
+        "_Getter Method (GCE)": "Getter-Methode (GCE)",
+        "_Setter Method (GCE)": "Setter-Methode (GCE)",
+        "_Operator Method (GCE)": "Operator-Methode (GCE)",
+        "_Class (GCE)": "Klasse (GCE)",
+        "_Class Instance (GCE)": "Klasseninstanz (GCE)",
+        "_Nothing (GCE)": "Nichts (GCE)",
+
+        "_Buffer (AndrewGaming587)": "Puffer (AndrewGaming587)",
+        "_Buffer Pointer (AndrewGaming587)": "Pufferzeiger (AndrewGaming587)",
+        "_Date (Old Version) (ddededodediamante)": "Datum (alte Version) (ddededodediamante)",
+        "_Date (ddededodediamante)": "Datum (ddededodediamante)",
+        "_Effect (Div)": "Effekt (Div)",
+        "_Iterator (Div)": "Iterator (Div)",
+        "_Object (DogeisCut)": "Objekt (DogeisCut)",
+        "_Regular Expression (DogeisCut)": "Regulärer Ausdruck (DogeisCut)",
+        "_Set (DogeisCut)": "Menge (DogeisCut)",
+        "_External Timer (steve0greatness)": "Externer Timer (steve0greatness)",
+        "_Array (jwklong)": "Array (jwklong)",
+        "_Color (jwklong)": "Farbe (jwklong)",
+        "_Date (jwklong)": "Datum (jwklong)",
+        "_Lambda (jwklong)": "Lambda (jwklong)",
+        "_Number (jwklong)": "Zahl (jwklong)",
+        "_Target (jwklong)": "Figur (jwklong)",
+        "_Vector (jwklong)": "Vektor (jwklong)",
+        "_XML (jwklong)": "XML (jwklong)",
+        "_Canvas (RedMan13)": "Leinwand (RedMan13)",
+        "_Paint Utils Colour (Fruits555000)": "Paint Utils Farbe (Fruits555000)",
+
+        "_JavaScript Undefined": "JavaScript Undefiniert",
+        "_JavaScript Null": "JavaScript Null",
+        "_JavaScript BigInt": "JavaScript BigInt",
+        "_JavaScript Symbol": "JavaScript Symbol",
+        "_JavaScript Function": "JavaScript Funktion",
+        "_JavaScript Object (generic)": "JavaScript Objekt (generisch)",
+        "_Unknown (rare)": "Unbekannt (selten)",
+
+        // MENUS
+        "_all scopes": "alle Bereiche",
+        "_local scope": "lokaler Bereich",
+        "_global scope": "globaler Bereich",
+
+        "_non-local": "nicht-lokale",
+        "_global": "globale",
+
+        // getInfo defaults
+        "_myFunction": "meineFunktion",
+        "_myVar": "meineVariable",
+        '_["name"]': '["name"]',
+        '_[]': '[]',
+
+        // getInfo block texts
+        "_Functions & Scopes": "Funktionen & Variablen",
+        "_Missing OOP Extension?": "Fehlende OOP-Erweiterung?",
+        "_Add OOP Extension": "OOP-Erweiterung hinzufügen",
+        "_Scoped Variables": "Bereichsvariablen",
+        "_set var [NAME] to [VALUE] in current scope": "Setze Variable [NAME] auf [VALUE] im aktuellen Bereich",
+        "_Creates or updates a variable in the current scope.": "Erstellt oder aktualisiert eine Variable im aktuellen Bereich.",
+        "_get var [NAME]": "Lese Variable [NAME]",
+        "_Gets the value of a variable visible from the current or outer scopes.": "Liest den Wert einer Variable, die im aktuellen oder äußeren Bereich sichtbar ist.",
+        "_var [NAME] exists in [KIND]?": "Existiert Variable [NAME] in [KIND]?",
+        "_Checks whether a variable exists in the selected scope range.": "Prüft, ob eine Variable im ausgewählten Bereich existiert.",
+        "_delete var [NAME] in current scope": "Lösche Variable [NAME] im aktuellen Bereich",
+        "_Deletes a variable from the current scope.": "Löscht eine Variable aus dem aktuellen Bereich.",
+        "_all variables in [KIND]": "Alle Variablen in [KIND]",
+        "_Returns all variable names visible in the selected scope range as an array.": "Gibt alle Variablennamen zurück, die im ausgewählten Bereich sichtbar sind, als Array.",
+        "_create local variable scope": "Erstelle lokalen Variablenbereich",
+        "_Runs the enclosed blocks inside a new local variable scope.": "Führt die eingeschlossenen Blöcke in einem neuen lokalen Variablenbereich aus.",
+        "_bind [KIND] variable [NAME] to current scope": "Binde [KIND]-Variable [NAME] an den aktuellen Bereich",
+        "_Links a global or non-local variable into the current scope.": "Verknüpft eine globale oder nicht-lokale Variable mit dem aktuellen Bereich.",
+        "_Functions": "Funktionen",
+        "_Configure Before Define": "Vorher konfigurieren",
+        "_configure next function: argument names [ARGNAMES] defaults [ARGDEFAULTS]": "Konfiguriere nächste Funktion: Argumentnamen [ARGNAMES] Standardwerte [ARGDEFAULTS]",
+        "_Configures the argument names and default values used by the next function or method definition.": "Konfiguriert die Argumentnamen und Standardwerte, die von der nächsten Funktions- oder Methodendefinition verwendet werden.",
+        "_Define": "Definieren",
+        "_create function at var [NAME]": "Erstelle Funktion bei Variable [NAME]",
+        "_Creates a function and stores it in the chosen variable.": "Erstellt eine Funktion und speichert sie in der gewählten Variable.",
+        "_create function named [NAME]": "Erstelle Funktion mit Namen [NAME]",
+        "_Creates and returns a function with the given name.": "Erstellt und gibt eine Funktion mit dem angegebenen Namen zurück.",
+        "_Inside Functions & Methods": "Innerhalb von Funktionen & Methoden",
+        "_return [VALUE]": "Gib [VALUE] zurück",
+        "_Returns a value from the current function or method and exits it.": "Gibt einen Wert aus der aktuellen Funktion oder Methode zurück und beendet sie.",
+        "_Use Functions": "Funktionen verwenden",
+        "_call function [FUNC] with positional args [POSARGS]": "Rufe Funktion [FUNC] mit Positionsargumenten [POSARGS] auf",
+        "_Calls a function value with positional arguments.": "Ruft einen Funktionswert mit Positionsargumenten auf.",
+        "_Utilities": "Dienstprogramme",
+        "_[VALUE] as string": "[VALUE] als Zeichenfolge",
+        "_Converts a value to its string form, using a class's special as string method when available.": "Wandelt einen Wert in seine Zeichenfolgendarstellung um und verwendet bei Bedarf die spezielle As-String-Methode einer Klasse.",
+        "_typeof [VALUE]": "typeof [VALUE]",
+        "_Returns a readable type name for a value.": "Gibt einen lesbaren Typnamen für einen Wert zurück.",
+        "_typeof [VALUE] is [TYPE] ?": "typeof [VALUE] ist [TYPE]?",
+        "_Check if a value is of a specific type.": "Prüft, ob ein Wert von einem bestimmten Typ ist.",
+        "_[VALUE1] is [VALUE2] ?": "[VALUE1] ist [VALUE2]?",
+        "_Checks whether two values are exactly the same value (the same instance).": "Prüft, ob zwei Werte genau derselbe Wert (dasselbe Objekt) sind.",
+        "_Nothing": "Nichts",
+        "_Returns the cool Nothing value like None in python.": "Gibt den coolen Nothing-Wert zurück, wie None in Python.",
+        "_execute expression [EXPR]": "Führe Ausdruck [EXPR] aus",
+        "_Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.": "Wertet den Eingabeausdruck aus, ohne zusätzliche Aktion auszuführen. So kannst du z.B. den Funktionsaufruf-Block (einen Reporter) in einem Skript verwenden.",
+    },
+}
+Scratch.translate.setup(TRANSLATIONS);
+
+/************************************************************************************
 *                            Internal Types and Constants                           *
 ************************************************************************************/
 
@@ -71,14 +189,34 @@ const TYPEOF_MENU = [
     "JavaScript Function",
     "JavaScript Object (generic)",
     "Unknown (rare)"
-]
+].map((name) => translatedMsg(name))
 
 /**
+ * Translates and replaces placeholders in the format {key} with corresponding values from an object.
+ * * @param {string} englishMessageTemplate - The english string containing {key} placeholders.
+ * @param {Object<string, *>} values - Key-value pairs to inject.
+ * @returns {string}
+ */
+function translatedMsg(englishMessageTemplate, values) {
+    // Let format-message handle interpolation
+    // Check if translation exists in TRANSLATIONS.de
+    const key = englishMessageTemplate;
+    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+    // If the key or key with leading underscore is not found, throw
+    if (!deTranslations || (deTranslations[key] === undefined && deTranslations["_" + key] === undefined)) {
+        throw new Error(`Missing German translation for: ${key}`);
+    }
+    return Scratch.translate(englishMessageTemplate, values);
+}
+
+/**
+ * Translates an error message and throws it as an Error. Placeholders in the format {key} can be replaced with corresponding values from an object.
  * @param {string} message
+ * @param {Object<string, *>} values - Key-value pairs to inject.
  * @returns {never}
  */
-function throwError(message) {
-    throw new Error(message)
+function throwError(message, values = {}) {
+    throw new Error(translatedMsg(message, values))
 }
 
 /**
@@ -88,8 +226,7 @@ function throwError(message) {
  */
 function throwInternal(code, additionalMsg = "") {
     throwError(
-        `An internal error occured in the Functions and Scopes extension. `+
-        `Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]`
+        "An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]", {additionalMsg, code}
     )
 }
 
@@ -129,7 +266,7 @@ const gceFunctionStub = {
     },
     ArgumentFunctionOrVarName: {
         type: ArgumentType.STRING,
-        defaultValue: "myFunction",
+        defaultValue: translatedMsg("myFunction"),
         exemptFromNormalization: true,
     },
 }
@@ -152,21 +289,21 @@ const gceNothingStub = {
 const commonArguments = {
     variableName: {
         type: ArgumentType.STRING,
-        defaultValue: "myVar",
+        defaultValue: translatedMsg("myVar"),
     },
     funcName: {
         type: ArgumentType.STRING,
-        defaultValue: "myFunction",
+        defaultValue: translatedMsg("myFunction"),
     },
     argNames: {
         type: ArgumentType.STRING,
         exemptFromNormalization: true,
-        defaultValue: '["name"]',
+        defaultValue: translatedMsg('["name"]'),
     },
     argDefaults: {
         type: ArgumentType.STRING,
         exemptFromNormalization: true,
-        defaultValue: "[]",
+        defaultValue: translatedMsg("[]"),
     },
     allowAnything: {
         type: ArgumentType.STRING,
@@ -205,7 +342,7 @@ class GCEFuncsScopesBlocks {
         const makeLabel = (text) => ({blockType: BlockType.LABEL, text: text})
         const info = {
             id: "gceFuncsScopes",
-            name: "Functions & Scopes",
+            name: translatedMsg("Functions & Scopes"),
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
             blocks: [
@@ -399,16 +536,16 @@ class GCEFuncsScopesBlocks {
                 variableAvailableKind: {
                     acceptReporters: true,
                     items: [
-                        "all scopes",
-                        "local scope",
-                        "global scope",
+                        translatedMsg("all scopes"),
+                        translatedMsg("local scope"),
+                        translatedMsg("global scope"),
                     ],
                 },
                 bindVarOriginKind: {
                     acceptReporters: true,
                     items: [
-                        "non-local",
-                        "global",
+                        translatedMsg("non-local"),
+                        translatedMsg("global"),
                     ],
                 },
                 typeofMenu: {
@@ -417,6 +554,17 @@ class GCEFuncsScopesBlocks {
                 },
             },
         }
+        info.blocks.forEach((block) => {
+            if (typeof block !== "object") return
+            if (typeof block.text === "string") block.text = translatedMsg(block.text)
+            else if (typeof block.text === "object") {
+                block.text = block.text.map(translatedMsg)
+            }
+            if (typeof block.tooltip === "string") block.tooltip = translatedMsg(block.tooltip)
+            else if (typeof block.tooltip === "object") {
+                block.tooltip = block.tooltip.map(translatedMsg)
+            }
+        })
         return info
     }
 
@@ -444,7 +592,7 @@ class GCEFuncsScopesBlocks {
     addOOPExtension() { // BUTTON
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
             this._addLocalhostOrProdExtension(
-                "http://localhost:5173/extensions/gceFuncsScopes.js",
+                "http://localhost:5173/extensions/gceOOP.js",
                 "https://germancodeengineer.github.io/PM-Extensions/extensions/gceOOP.js"
             )
         }
@@ -512,7 +660,7 @@ class GCEFuncsScopesBlocks {
         // Acess actual implementation at runtime
         return (function bridgeToOOPExtension(...args) {
             if (!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
-                throwError(`The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.`)
+                throwError('The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.')
             }
             let func
             try {
