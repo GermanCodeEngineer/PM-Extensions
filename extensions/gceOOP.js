@@ -1239,9 +1239,9 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         {text: translatedMsg("as string"), value: CONFIG.AS_STRING_METHOD_NAME},
     ]),
     TYPEOF_MENU: TYPEOF_MENU = [
-        {value: "TO_BOOL", text: "Boolean"},
-        {value: "TO_NUM", text: "Number"},
-        {value: "TO_STR", text: "String"},
+        {value: "TO_BOOLEAN", text: "Boolean"},
+        {value: "TO_NUMBER", text: "Number"},
+        {value: "TO_STRING", text: "String"},
 
         {value: "TO_FUNCTION_GCE", text: "Function (GCE)"},
         {value: "TO_INSTANCE_METHOD_GCE", text: "Instance Method (GCE)"},
@@ -1254,14 +1254,14 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         
         {value: "TO_BUFFER_AG587", text: "Buffer (AndrewGaming587)"},
         {value: "TO_BUFFER_POINTER_AG587", text: "Buffer Pointer (AndrewGaming587)"},
-        {value: "TO_DATE_OLD_DDEDEDODEDIAMANTE", text: "Date (Old Version) (ddededodediamante)"},
-        {value: "TO_DATE_DDEDEDODEDIAMANTE", text: "Date (ddededodediamante)"},
+        {value: "TO_DATE_OLD_DDE", text: "Date (Old Version) (ddededodediamante)"},
+        {value: "TO_DATE_DDE", text: "Date (ddededodediamante)"},
         {value: "TO_EFFECT_DIV", text: "Effect (Div)"},
         {value: "TO_ITERATOR_DIV", text: "Iterator (Div)"},
         {value: "TO_OBJECT_DOGEISCUT", text: "Object (DogeisCut)"},
         {value: "TO_REGEXP_DOGEISCUT", text: "Regular Expression (DogeisCut)"},
         {value: "TO_SET_DOGEISCUT", text: "Set (DogeisCut)"},
-        {value: "TO_EXTERNAL_TIMER_STEVE0GREATNESS", text: "External Timer (steve0greatness)"},
+        {value: "TO_EXTERNAL_TIMER_S0G", text: "External Timer (steve0greatness)"},
         {value: "TO_ARRAY_JWKLONG", text: "Array (jwklong)"},
         {value: "TO_COLOR_JWKLONG", text: "Color (jwklong)"},
         {value: "TO_DATE_JWKLONG", text: "Date (jwklong)"},
@@ -1271,7 +1271,7 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         {value: "TO_VECTOR_JWKLONG", text: "Vector (jwklong)"},
         {value: "TO_XML_JWKLONG", text: "XML (jwklong)"},
         {value: "TO_CANVAS_REDMAN13", text: "Canvas (RedMan13)"},
-        {value: "TO_PAINT_UTILS_COLOUR_FRUITS555000", text: "Paint Utils Colour (Fruits555000)"},
+        {value: "TO_PAINT_UTILS_COLOUR_FRUITS", text: "Paint Utils Colour (Fruits555000)"},
         
         {value: "TO_UNDEFINED_JS", text: "JavaScript Undefined"},
         {value: "TO_NULL_JS", text: "JavaScript Null"},
@@ -1279,7 +1279,7 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         {value: "TO_SYMBOL_JS", text: "JavaScript Symbol"},
         {value: "TO_FUNCTION_JS", text: "JavaScript Function"},
         {value: "TO_OBJECT_JS", text: "JavaScript Object (generic)"},
-        {value: "TO_UNKNOWN_JS", text: "Unknown (rare)"},
+        {value: "TO_UNKNOWN", text: "Unknown (rare)"},
     ],
     OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
         ([translatedPublicName, internalName]) => (
@@ -1461,52 +1461,52 @@ class TypeChecker {
      */
     static englishStringTypeof(value) {
         // My Types
-        if (value instanceof FunctionType) return "Function (GCE)"
-        if (value instanceof InstanceMethodType) return "Instance Method (GCE)"
-        if (value instanceof GetterMethodType) return "Getter Method (GCE)"
-        if (value instanceof SetterMethodType) return "Setter Method (GCE)"
-        if (value instanceof OperatorMethodType) return "Operator Method (GCE)"
+        if (value instanceof FunctionType) return "TO_FUNCTION_GCE"
+        if (value instanceof InstanceMethodType) return "TO_INSTANCE_METHOD_GCE"
+        if (value instanceof GetterMethodType) return "TO_GETTER_METHOD_GCE"
+        if (value instanceof SetterMethodType) return "TO_SETTER_METHOD_GCE"
+        if (value instanceof OperatorMethodType) return "TO_OPERATOR_METHOD_GCE"
 
-        if (value instanceof ClassType) return "Class (GCE)"
-        if (value instanceof ClassInstanceType) return "Class Instance (GCE)"
-        if (value instanceof NothingType) return "Nothing (GCE)"
+        if (value instanceof ClassType) return "TO_CLASS_GCE"
+        if (value instanceof ClassInstanceType) return "TO_CLASS_INSTANCE_GCE"
+        if (value instanceof NothingType) return "TO_NOTHING_GCE"
 
         // Common/Safe JS data types
-        if (value === undefined) return "JavaScript Undefined"
-        if (value === null) return "JavaScript Null"
-        if (typeof value === "boolean") return "Boolean"
-        if (typeof value === "number") return "Number"
-        if (typeof value === "string") return "String"
+        if (value === undefined) return "TO_UNDEFINED_JS"
+        if (value === null) return "TO_NULL_JS"
+        if (typeof value === "boolean") return "TO_BOOLEAN"
+        if (typeof value === "number") return "TO_NUMBER"
+        if (typeof value === "string") return "TO_STRING"
 
         // Custom Extension Types 
-        if (TypeChecker.is_agBuffer(value)) return "Buffer (AndrewGaming587)"
-        if (TypeChecker.is_agBufferPointer(value)) return "Buffer Pointer (AndrewGaming587)"
-        if (TypeChecker.is_ddeDateFormat(value)) return "Date (Old Version) (ddededodediamante)"
-        if (TypeChecker.is_ddeDateFormatV2(value)) return "Date (ddededodediamante)"
-        if (TypeChecker.is_divEffect(value)) return "Effect (Div)"
-        if (TypeChecker.is_divIterator(value)) return "Iterator (Div)"
-        if (TypeChecker.is_dogeiscutObject(value)) return "Object (DogeisCut)"
-        if (TypeChecker.is_dogeiscutRegularExpression(value)) return "Regular Expression (DogeisCut)"
-        if (TypeChecker.is_dogeiscutSet(value)) return "Set (DogeisCut)"
-        if (TypeChecker.is_externaltimer(value)) return "External Timer (steve0greatness)"
-        if (TypeChecker.is_jwArray(value)) return "Array (jwklong)"
-        if (TypeChecker.is_jwColor(value)) return "Color (jwklong)"
-        if (TypeChecker.is_jwDate(value)) return "Date (jwklong)"
-        if (TypeChecker.is_jwLambda(value)) return "Lambda (jwklong)"
-        if (TypeChecker.is_jwNum(value)) return "Number (jwklong)"
-        if (TypeChecker.is_jwTarget(value)) return "Target (jwklong)"
-        if (TypeChecker.is_jwVector(value)) return "Vector (jwklong)"
-        if (TypeChecker.is_jwXML(value)) return "XML (jwklong)"
-        if (TypeChecker.is_canvasData(value)) return "Canvas (RedMan13)"
-        if (TypeChecker.is_paintUtilsColour(value)) return "Paint Utils Colour (Fruits555000)"
+        if (TypeChecker.is_agBuffer(value)) return "TO_BUFFER_AG587"
+        if (TypeChecker.is_agBufferPointer(value)) return "TO_BUFFER_POINTER_AG587"
+        if (TypeChecker.is_ddeDateFormat(value)) return "TO_DATE_OLD_DDE"
+        if (TypeChecker.is_ddeDateFormatV2(value)) return "TO_DATE_DDE"
+        if (TypeChecker.is_divEffect(value)) return "TO_EFFECT_DIV"
+        if (TypeChecker.is_divIterator(value)) return "TO_ITERATOR_DIV"
+        if (TypeChecker.is_dogeiscutObject(value)) return "TO_OBJECT_DOGEISCUT"
+        if (TypeChecker.is_dogeiscutRegularExpression(value)) return "TO_REGEXP_DOGEISCUT"
+        if (TypeChecker.is_dogeiscutSet(value)) return "TO_SET_DOGEISCUT"
+        if (TypeChecker.is_externaltimer(value)) return "TO_EXTERNAL_TIMER_S0G"
+        if (TypeChecker.is_jwArray(value)) return "TO_ARRAY_JWKLONG"
+        if (TypeChecker.is_jwColor(value)) return "TO_COLOR_JWKLONG"
+        if (TypeChecker.is_jwDate(value)) return "TO_DATE_JWKLONG"
+        if (TypeChecker.is_jwLambda(value)) return "TO_LAMBDA_JWKLONG"
+        if (TypeChecker.is_jwNum(value)) return "TO_NUMBER_JWKLONG"
+        if (TypeChecker.is_jwTarget(value)) return "TO_TARGET_JWKLONG"
+        if (TypeChecker.is_jwVector(value)) return "TO_VECTOR_JWKLONG"
+        if (TypeChecker.is_jwXML(value)) return "TO_XML_JWKLONG"
+        if (TypeChecker.is_canvasData(value)) return "TO_CANVAS_REDMAN13"
+        if (TypeChecker.is_paintUtilsColour(value)) return "TO_PAINT_UTILS_COLOUR_FRUITS"
 
         // Rare/Overlapping JS data types
-        if (typeof value === "bigint") return "JavaScript BigInt"
-        if (typeof value === "symbol") return "JavaScript Symbol"
-        if (typeof value === "function") return "JavaScript Function"
-        if (typeof value === "object") return "JavaScript Object (generic)"
+        if (typeof value === "bigint") return "TO_BIGINT_JS"
+        if (typeof value === "symbol") return "TO_SYMBOL_JS"
+        if (typeof value === "function") return "TO_FUNCTION_JS"
+        if (typeof value === "object") return "TO_OBJECT_JS"
 
-        return "Unknown (rare)"
+        return "TO_UNKNOWN"
     }
 
     /**
