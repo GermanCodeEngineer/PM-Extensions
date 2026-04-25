@@ -1178,23 +1178,23 @@ class MenuManager {
     }
 
     /**
-     * @param {string} public
+     * @param {string} publicValue
      * @returns {string}
      * @throws if value is not in the menu
      */
-    publicToInternal(public) {
-        if (!(public in this._publicToInternal)) {
-            throwError(this._invalidPublicValueError, {value: quote(public)})
+    publicToInternal(publicValue) {
+        if (!(publicValue in this._publicToInternal)) {
+            throwError(this._invalidPublicValueError, {value: quote(publicValue)})
         }
-        return this._publicToInternal[public]
+        return this._publicToInternal[publicValue]
     }
 
     /**
      * @param {string} 
      * @returns {string}
      */
-    internalToPublic(internal) {
-        return this._interalToPublic[internal]
+    internalToPublic(internalValue) {
+        return this._interalToPublic[internalValue]
     }
 }
 
@@ -1202,8 +1202,8 @@ const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
 const CONFIG = { // TODO: remove all these
-    INIT_METHOD_NAME: "__special_init__",
-    AS_STRING_METHOD_NAME: "__special_as_string__",
+    SM_INIT_METHOD: "__special_init__",
+    SM_AS_STRING: "__special_as_string__",
     INTERNAL_OP_NAMES: {}, // see below
     PUBLIC_OP_NAMES: {}, // see below
 };
@@ -1227,18 +1227,18 @@ const CONFIG = { // TODO: remove all these
 
 const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
     CLASS_PROPERTY: new MenuManager([
-        {value: "CP_INSTANCE_METHOD", text: translatedMsg("instance method")},
-        {value: "CP_STATIC_METHOD", text: translatedMsg("static method")},
-        {value: "CP_GETTER_METHOD", text: translatedMsg("getter method")},
-        {value: "CP_SETTER_METHOD", text: translatedMsg("setter method")},
-        {value: "CP_OPERATOR_METHOD", text: translatedMsg("operator method")},
-        {value: "CP_CLASS_VARIABLE", text: translatedMsg("class variable")},
-    ]),
+        {value: "CP_INSTANCE_METHOD", text: "instance method"},
+        {value: "CP_STATIC_METHOD", text: "static method"},
+        {value: "CP_GETTER_METHOD", text: "getter method"},
+        {value: "CP_SETTER_METHOD", text: "setter method"},
+        {value: "CP_OPERATOR_METHOD", text: "operator method"},
+        {value: "CP_CLASS_VARIABLE", text: "class variable"},
+    ].forEach(item => item.text = translatedMsg(item.text))),
     SPECIAL_METHOD: new MenuManager([
-        {text: translatedMsg("init"), value: CONFIG.INIT_METHOD_NAME},
-        {text: translatedMsg("as string"), value: CONFIG.AS_STRING_METHOD_NAME},
-    ]),
-    TYPEOF_MENU: TYPEOF_MENU = [
+        {value: CONFIG.SM_INIT_METHOD, text: "init"},
+        {value: CONFIG.SM_AS_STRING, text: "as string"},
+    ].forEach(item => item.text = translatedMsg(item.text))),
+    TYPEOF_MENU = new MenuManager([
         {value: "TO_BOOLEAN", text: "Boolean"},
         {value: "TO_NUMBER", text: "Number"},
         {value: "TO_STRING", text: "String"},
@@ -1280,12 +1280,12 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         {value: "TO_FUNCTION_JS", text: "JavaScript Function"},
         {value: "TO_OBJECT_JS", text: "JavaScript Object (generic)"},
         {value: "TO_UNKNOWN", text: "Unknown (rare)"},
-    ],
+    ].forEach(item => item.text = translatedMsg(item.text))),
     OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
         ([translatedPublicName, internalName]) => (
             {text: translatedPublicName, value: internalName}
         )
-    ),
+    ].forEach(item => item.text = translatedMsg(item.text))),
 }
 
 
@@ -1459,7 +1459,7 @@ class TypeChecker {
      * @param {*} value
      * @returns {string}
      */
-    static englishStringTypeof(value) {
+    static typeofCode(value) {
         // My Types
         if (value instanceof FunctionType) return "TO_FUNCTION_GCE"
         if (value instanceof InstanceMethodType) return "TO_INSTANCE_METHOD_GCE"
@@ -1514,7 +1514,7 @@ class TypeChecker {
      * @returns {string}
      */
     static stringTypeof(value) {
-        return translatedMsg(TypeChecker.englishStringTypeof(value))
+        return translatedMsg(MENUS.TYPEOF_MENU.internalToPublic(TypeChecker.typeofCode(value)))
     }
 }
 
@@ -1815,7 +1815,7 @@ class BaseCallableType extends CustomType {
         let name
         let prefix
 
-        if (this instanceof InstanceMethodType && (this.name === CONFIG.INIT_METHOD_NAME)) prefix = translatedMsg("Initializing object")
+        if (this instanceof InstanceMethodType && (this.name === CONFIG.SM_INIT_METHOD)) prefix = translatedMsg("Initializing object")
         else if (this instanceof InstanceMethodType) prefix = translatedMsg("Calling method {name}", {name: quote(this.name)})
         else prefix = translatedMsg("Calling function {name}", {name: quote(this.name)})
 
@@ -2076,7 +2076,7 @@ class ClassType extends CustomType {
      */
     *createInstance(thread, posArgs) {
         const instance = new ClassInstanceType(this)
-        const output = yield* instance.executeInstanceMethod(thread, CONFIG.INIT_METHOD_NAME, posArgs) // an init method always exists
+        const output = yield* instance.executeInstanceMethod(thread, CONFIG.SM_INIT_METHOD, posArgs) // an init method always exists
         if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return instance
     }
@@ -2949,7 +2949,7 @@ class GCEOOPBlocks {
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 callSuperInitMethod: (node, compiler, imports) => {
-                    const nameCode = quote(CONFIG.INIT_METHOD_NAME)
+                    const nameCode = quote(CONFIG.SM_INIT_METHOD)
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
                     const generatedCode = `(yield* ${CURRENT_STACK}.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode}))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
@@ -3133,8 +3133,8 @@ class GCEOOPBlocks {
         this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
-        commonSuperClass.instanceMethods[CONFIG.INIT_METHOD_NAME] = new InstanceMethodType(
-            CONFIG.INIT_METHOD_NAME,
+        commonSuperClass.instanceMethods[CONFIG.SM_INIT_METHOD] = new InstanceMethodType(
+            CONFIG.SM_INIT_METHOD,
             function* (thread) {
                 ThreadUtil.getStackManager(thread).prepareReturn()
                 // Nothing is indepedent of function context, so we can exit context before
@@ -3451,9 +3451,9 @@ class GCEOOPBlocks {
         let names = Object.keys(values)
         if (property == "instance method") {
             let index
-            index = names.indexOf(CONFIG.INIT_METHOD_NAME)
+            index = names.indexOf(CONFIG.SM_INIT_METHOD)
             if (index !== -1) names[index] = "[special] init"
-            index = names.indexOf(CONFIG.AS_STRING_METHOD_NAME)
+            index = names.indexOf(CONFIG.SM_AS_STRING)
             if (index !== -1) names[index] = "[special] as string"
         }
         else if (property === "operator method") {
@@ -3596,7 +3596,7 @@ class GCEOOPBlocks {
         let method
         try {
             /** @type {InstanceMethodType} */
-            method = object.cls.getMemberOfType(CONFIG.AS_STRING_METHOD_NAME, "instance method")
+            method = object.cls.getMemberOfType(CONFIG.SM_AS_STRING, "instance method")
         } catch {}
         if (!method) return object.toString()
         const output = yield* method.execute(thread, object, [])
@@ -3840,6 +3840,7 @@ if (!isRuntimeEnv) {
  * + - ensure all menu values that are translated have {text, value}
  * + - => or remove translation for menus
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
+ * + - update extension_cli_vm.js (Scratch.translate changes)
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)

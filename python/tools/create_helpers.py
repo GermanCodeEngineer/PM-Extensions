@@ -320,7 +320,7 @@ def own_extension_url(filename: str) -> str:
     return f"{EXTENSION_URL_BASE}/{filename}"
 
 GCE_EXTENSIONS = {
-    "gceOOP": own_extension_url("gceOOP.js"),
+    #"gceOOP": own_extension_url("gceOOP.js"),
     "gceFuncsScopes": own_extension_url("gceFuncsScopes.js"),
     "gceTestRunner": own_extension_url("gceTestRunner.js"),
 }
