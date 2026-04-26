@@ -31,193 +31,203 @@ if (isRuntimeEnv && !Scratch.extensions.unsandboxed) {
 const TRANSLATIONS = {
     de: {
         // Errors in chronological order of appearance
-        "_OOP Extension must run unsandboxed.": "Die OOP Erweiterung muss ohne Sandbox laufen.",
-        "_[OOP Extension] Failed to create custom shape": "[OOP Erweiterung] Fehler beim Erstellen einer benutzerdefinierten Form",
-        "_An internal error occured in the OOP extension. Please report it in the PenguinMod discord or on GitHub. [additionalMsg] [ERROR CODE: [code]]": "Ein interner Fehler ist in der OOP Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. [additionalMsg] [FEHLERCODE: [code]]", // TODO: test that [ERROR CODE] works
-        "_Variable [name] already exists in the current scope, can not bind variable with the same name.": "Variable [name] existiert bereits im aktuellen Bereich, kann keine Variable mit demselben Namen binden.",
-        "_Variable [name] is not defined.": "Variable [name] ist nicht definiert.",
-        "_self can only be used within an instance, getter or setter method.": "_self kann nur innerhalb einer Instanz-, Getter- oder Setter-Methode verwendet werden.",
-        "_setter value can only be used within a setter method.": "_setter-Wert kann nur innerhalb einer Setter-Methode verwendet werden.",
-        "_operator value can only be used within an operator method.": "_operator-Wert kann nur innerhalb einer Operator-Methode verwendet werden.",
-        '_[blockText] can only be used within a class definition or "on class" block.': '[blockText] kann nur innerhalb einer Klassendefinition oder eines "Mit Klasse"-Blocks verwendet werden.',
-        "_return can only be used within a function or method.": "_return kann nur innerhalb einer Funktion oder Methode verwendet werden.",
-        "_There can only be as many default values as argument names.": "Es darf nur so viele Standardwerte wie Argumentnamen geben.",
-        "_Can not set a variable in a scope, which does not support variables (e.g. a class definition).": "Kann keine Variable in einem Bereich setzen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
-        "_Can not delete a variable in a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable in einem Bereich löschen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
-        "_No global variable named [name] found.": "Keine globale Variable mit dem Namen [name] gefunden.",
-        "_Can not bind a variable to a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable an einen Bereich binden, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
-        "_No non-local variable named [name] found.": "Keine nicht-lokale Variable mit dem Namen [name] gefunden.",
-        "_Type checking for extension types is not available in a non-runtime environment.": "Typüberprüfung für Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
-        "_Casting to extension types is not available in a non-runtime environment.": "Umwandlung in Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
-        "_Object extension was not loaded properly.": "Die Objekt-Erweiterung wurde nicht richtig geladen.",
-        "_Array extension was not loaded properly.": "Die Array-Erweiterung wurde nicht richtig geladen.",
-        "_Expected a [expectedDescription], but got no input value.": "Erwartet wurde ein(e) [expectedDescription], aber es wurde kein Eingabewert übergeben.",
-        "_Expected a [expectedDescription] not a [actualDescription].": "Erwartet wurde ein(e) [expectedDescription], nicht ein(e) [actualDescription].",
-        "_Expected a [expectedDescription], but variable [value] is not defined.": "Erwartet wurde ein(e) [expectedDescription], aber die Variable [value] ist nicht definiert.",
-        "_Expected a [expectedDescription], but variable [value] is a(n) [varValueName].": "Erwartet wurde ein(e) [expectedDescription], aber die Variable [value] ist ein(e) [varValueName].",
-        "_Invalid class property: [value]": "Ungültige Klassen-Eigenschaft: [value]",
-        "_Invalid operator method: [value]": "Ungültige Operator-Methode: [value]",
-        "_Invalid special method: [value]": "Ungültige Spezialmethode: [value]",
-        "_Invalid typeof type: [value]": "Ungültiger typeof-Typ: [value]",
-        "_[prefix]: expected at most [maxArgCount] positional arguments, but got [argCount].": "[prefix]: erwartet wurden höchstens [maxArgCount] Positionsargumente, aber [argCount] wurden erhalten.",
-        "_[prefix]: expected at least [posOnlyCount] positional arguments, but got only [argCount].": "[prefix]: erwartet wurden mindestens [posOnlyCount] Positionsargumente, aber nur [argCount] wurden erhalten.",
-        "_Setter methods must return [nothingValue].": "Setter-Methoden müssen [nothingValue] zurückgeben.",
-        "_Undefined [expectedMemberType] [name].": "Nicht definierte(r/s) [expectedMemberType] [name].",
-        "_Class Method or Variable [name] is not a [expectedMemberType] but a [type].": "Klassenmethode oder -variable [name] ist kein(e) [expectedMemberType], sondern ein(e) [type].",
-        "_Can not assign [newMemberType]: [currentMemberType] already exists with the same name [name].": "Kann [newMemberType] nicht zuweisen: [currentMemberType] mit demselben Namen [name] existiert bereits.",
-        "_Initialization methods must return [nothingValue].": "Initialisierungsmethoden müssen [nothingValue] zurückgeben.",
-        "_Can not call super instance method: class has no superclass.": "Kann Super-Instanzmethode nicht aufrufen: Die Klasse hat keine Superklasse.",
-        "_[instanceValue] has no attribute or getter method for [name].": "[instanceValue] hat kein Attribut oder keine Getter-Methode für [name].",
-        "_Can not set attribute [name] of [instanceValue]: attribute only has a getter method.": "Kann Attribut [name] von [instanceValue] nicht setzen: Das Attribut hat nur eine Getter-Methode.",
-        "_As String methods must always return a string.": "As-String-Methoden müssen immer einen String zurückgeben.",
-        "_Comparison Operator methods must always return a boolean.": "Vergleichsoperator-Methoden müssen immer einen Wahrheitswert (Boolean) zurückgeben.",
-
-        // TERMS
-        "_equals": "gleich",
-        "_not equals": "ungleich",
-        "_greater than": "größer als",
-        "_greater or equal": "größer oder gleich",
-        "_less than": "kleiner als",
-        "_less or equal": "kleiner oder gleich",
-
-        // CONFIG
-        "_left add": "linke Addition",
-        "_right add": "rechte Addition",
-        "_left subtract": "linke Subtraktion",
-        "_right subtract": "rechte Subtraktion",
-        "_left multiply": "linke Multiplikation",
-        "_right multiply": "rechte Multiplikation",
-        "_left divide": "linke Division",
-        "_right divide": "rechte Division",
-        "_left power": "linke Potenzierung",
-        "_right power": "rechte Potenzierung",
-        "_left mod": "linkes Modulo",
-        "_right mod": "rechtes Modulo",
+        "OOP Extension must run unsandboxed.": "Die OOP Erweiterung muss ohne Sandbox laufen.",
+        "[OOP Extension] Failed to create custom shape": "[OOP Erweiterung] Fehler beim Erstellen einer benutzerdefinierten Form",
+        "An internal error occured in the OOP extension. Please report it in the PenguinMod discord or on GitHub. [additionalMsg] [ERROR CODE: [code]]": "Ein interner Fehler ist in der OOP Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. [additionalMsg] [FEHLERCODE: [code]]", // TODO: test that [ERROR CODE] works
+        "Variable [name] already exists in the current scope, can not bind variable with the same name.": "Variable [name] existiert bereits im aktuellen Bereich, kann keine Variable mit demselben Namen binden.",
+        "Variable [name] is not defined.": "Variable [name] ist nicht definiert.",
+        "self can only be used within an instance, getter or setter method.": "self kann nur innerhalb einer Instanz-, Getter- oder Setter-Methode verwendet werden.",
+        "setter value can only be used within a setter method.": "setter-Wert kann nur innerhalb einer Setter-Methode verwendet werden.",
+        "operator value can only be used within an operator method.": "operator-Wert kann nur innerhalb einer Operator-Methode verwendet werden.",
+        '[blockText] can only be used within a class definition or "on class" block.': '[blockText] kann nur innerhalb einer Klassendefinition oder eines "Mit Klasse"-Blocks verwendet werden.',
+        "return can only be used within a function or method.": "return kann nur innerhalb einer Funktion oder Methode verwendet werden.",
+        "There can only be as many default values as argument names.": "Es darf nur so viele Standardwerte wie Argumentnamen geben.",
+        "Can not set a variable in a scope, which does not support variables (e.g. a class definition).": "Kann keine Variable in einem Bereich setzen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+        "Can not delete a variable in a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable in einem Bereich löschen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+        "No global variable named [name] found.": "Keine globale Variable mit dem Namen [name] gefunden.",
+        "Can not bind a variable to a scope, which does not support variables(e.g. a class definition).": "Kann keine Variable an einen Bereich binden, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
+        "No non-local variable named [name] found.": "Keine nicht-lokale Variable mit dem Namen [name] gefunden.",
+        "Type checking for extension types is not available in a non-runtime environment.": "Typüberprüfung für Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
+        "Casting to extension types is not available in a non-runtime environment.": "Umwandlung in Erweiterungstypen ist in einer Nicht-Laufzeitumgebung nicht verfügbar.",
+        "Object extension was not loaded properly.": "Die Objekt-Erweiterung wurde nicht richtig geladen.",
+        "Array extension was not loaded properly.": "Die Array-Erweiterung wurde nicht richtig geladen.",
+        "Expected a [expectedDescription], but got no input value.": "Erwartet wurde ein(e) [expectedDescription], aber es wurde kein Eingabewert übergeben.",
+        "Expected a [expectedDescription] not a [actualDescription].": "Erwartet wurde ein(e) [expectedDescription], nicht ein(e) [actualDescription].",
+        "Expected a [expectedDescription], but variable [value] is not defined.": "Erwartet wurde ein(e) [expectedDescription], aber die Variable [value] ist nicht definiert.",
+        "Expected a [expectedDescription], but variable [value] is a(n) [varValueName].": "Erwartet wurde ein(e) [expectedDescription], aber die Variable [value] ist ein(e) [varValueName].",
+        "Invalid class property: [value]": "Ungültige Klassen-Eigenschaft: [value]",
+        "Invalid operator method: [value]": "Ungültige Operator-Methode: [value]",
+        "Invalid special method: [value]": "Ungültige Spezialmethode: [value]",
+        "Invalid typeof type: [value]": "Ungültiger typeof-Typ: [value]",
+        "[prefix]: expected at most [maxArgCount] positional arguments, but got [argCount].": "[prefix]: erwartet wurden höchstens [maxArgCount] Positionsargumente, aber [argCount] wurden erhalten.",
+        "[prefix]: expected at least [posOnlyCount] positional arguments, but got only [argCount].": "[prefix]: erwartet wurden mindestens [posOnlyCount] Positionsargumente, aber nur [argCount] wurden erhalten.",
+        "Setter methods must return [nothingValue].": "Setter-Methoden müssen [nothingValue] zurückgeben.",
+        "Undefined [expectedMemberType] [name].": "Nicht definierte(r/s) [expectedMemberType] [name].",
+        "Class Method or Variable [name] is not a [expectedMemberType] but a [type].": "Klassenmethode oder -variable [name] ist kein(e) [expectedMemberType], sondern ein(e) [type].",
+        "Can not assign [newMemberType]: [currentMemberType] already exists with the same name [name].": "Kann [newMemberType] nicht zuweisen: [currentMemberType] mit demselben Namen [name] existiert bereits.",
+        "Initialization methods must return [nothingValue].": "Initialisierungsmethoden müssen [nothingValue] zurückgeben.",
+        "Can not call super instance method: class has no superclass.": "Kann Super-Instanzmethode nicht aufrufen: Die Klasse hat keine Superklasse.",
+        "[instanceValue] has no attribute or getter method for [name].": "[instanceValue] hat kein Attribut oder keine Getter-Methode für [name].",
+        "Can not set attribute [name] of [instanceValue]: attribute only has a getter method.": "Kann Attribut [name] von [instanceValue] nicht setzen: Das Attribut hat nur eine Getter-Methode.",
+        "As String methods must always return a string.": "As-String-Methoden müssen immer einen String zurückgeben.",
+        "Comparison Operator methods must always return a boolean.": "Vergleichsoperator-Methoden müssen immer einen Wahrheitswert (Boolean) zurückgeben.",
 
         // MENUS
-        "_instance method": "Instanzmethode",
-        "_static method": "statische Methode",
-        "_getter method": "Getter-Methode",
-        "_setter method": "Setter-Methode",
-        "_operator method": "Operator-Methode",
-        "_class variable": "Klassenvariable",
+        "instance method": "Instanzmethode",
+        "static method": "statische Methode",
+        "getter method": "Getter-Methode",
+        "setter method": "Setter-Methode",
+        "operator method": "Operator-Methode",
+        "class variable": "Klassenvariable",
 
-        "_init": "initialisierung",
-        "_as string": "als Zeichenfolge",
+        "init": "initialisierung",
+        "as string": "als Zeichenfolge",
+
+        "left add": "linke Addition",
+        "right add": "rechte Addition",
+        "left subtract": "linke Subtraktion",
+        "right subtract": "rechte Subtraktion",
+        "left multiply": "linke Multiplikation",
+        "right multiply": "rechte Multiplikation",
+        "left divide": "linke Division",
+        "right divide": "rechte Division",
+        "left power": "linke Potenzierung",
+        "right power": "rechte Potenzierung",
+        "left mod": "linkes Modulo",
+        "right mod": "rechtes Modulo",
+        "equals": "gleich",
+        "not equals": "ungleich",
+        "greater than": "größer als",
+        "greater or equal": "größer oder gleich",
+        "less than": "kleiner als",
+        "less or equal": "kleiner oder gleich",
 
         // CAST
-        "_Unknown (non-runtime environment)": "Unbekannt (Nicht-Laufzeitumgebung)",
-        "_class or class variable name": "Klasse oder Klassenvariablenname",
-        "_class instance or class instance variable name": "Klasseninstanz oder Klasseninstanzvariablenname",
-        "_function or function variable name": "Funktion oder Funktionsvariablenname",
+        "Unknown (non-runtime environment)": "Unbekannt (Nicht-Laufzeitumgebung)",
+        "class or class variable name": "Klasse oder Klassenvariablenname",
+        "class instance or class instance variable name": "Klasseninstanz oder Klasseninstanzvariablenname",
+        "function or function variable name": "Funktion oder Funktionsvariablenname",
 
         // Custom Types
-        "_Unknown": "Unbekannt",
-        "_Callable": "Aufrufbare",
-        "_[className] can not be serialized.": "[className] kann nicht serialisiert werden.",
-        "_Initializing object": "Objekt wird initialisiert",
-        "_Calling method [name]": "Methode [name] wird aufgerufen",
-        "_Calling function [name]": "Funktion [name] wird aufgerufen",
-        "_Function": "Funktion",
-        "_Instance Method": "Instanzmethode",
-        "_Getter Method": "Getter-Methode",
-        "_Setter Method": "Setter-Methode",
-        "_Operator Method": "Operator-Methode",
-        "_Class": "Klasse",
-        "_<Class [name]>": "<Klasse [name]>",
-        "_Class Instance": "Klasseninstanz",
-        "_<Instance of [name]>": "<Instanz von [name]>",
-        "_Nothing": "Nichts",
+        "Unknown": "Unbekannt",
+        "Callable": "Aufrufbare",
+        "[className] can not be serialized.": "[className] kann nicht serialisiert werden.",
+        "Initializing object": "Objekt wird initialisiert",
+        "Calling method [name]": "Methode [name] wird aufgerufen",
+        "Calling function [name]": "Funktion [name] wird aufgerufen",
+        "Function": "Funktion",
+        "Instance Method": "Instanzmethode",
+        "Getter Method": "Getter-Methode",
+        "Setter Method": "Setter-Methode",
+        "Operator Method": "Operator-Methode",
+        "Class": "Klasse",
+        "<Class [name]>": "<Klasse [name]>",
+        "Class Instance": "Klasseninstanz",
+        "<Instance of [name]>": "<Instanz von [name]>",
+        "Nothing": "Nichts",
 
         // getInfo defaults
-        "_MyClass": "MeineKlasse",
-        "_myInstance": "meineInstanz",
-        "_myMethod": "meineMethode",
-        "_myClassVariable": "meineKlassenvariable",
-        "_myAttr": "meinAttribut",
+        "MyClass": "MeineKlasse",
+        "myInstance": "meineInstanz",
+        "myMethod": "meineMethode",
+        "myClassVariable": "meineKlassenvariable",
+        "myAttr": "meinAttribut",
 
         // getInfo block texts
         "OOP": "OOP",
-        "_Missing Extensions?": "Fehlen Erweiterungen?",
-        "_Add Functions & Scopes Extension": "Funktionen & Variablen Erweiterung hinzufügen",
-        "_Add Array Extension": "Array-Erweiterung hinzufügen",
-        "_Add Object Extension": "Objekt-Erweiterung hinzufügen",
-        "_Define Classes": "Klassen definieren",
-        "_create class at var [NAME] [SHADOW]": "Erstelle Klasse bei Variable [NAME] [SHADOW]",
-        "_Creates a new class, stores it in the chosen variable.": "Erstellt eine neue Klasse und speichert sie in der gewählten Variable.",
-        "_create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]": "Erstelle Unterklasse bei Variable [NAME] mit Oberklasse [SUPERCLASS] [SHADOW]",
-        "_Creates a subclass with the given superclass, stores it in a variable.": "Erstellt eine Unterklasse mit der angegebenen Oberklasse und speichert sie in einer Variable.",
-        "_create class named [NAME] [SHADOW]": "Erstelle Klasse mit Namen [NAME] [SHADOW]",
-        "_Creates and returns a new class with the given name.": "Erstellt und gibt eine neue Klasse mit dem angegebenen Namen zurück.",
-        "_create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]": "Erstelle Unterklasse mit Namen [NAME] und Oberklasse [SUPERCLASS] [SHADOW]",
-        "_Creates and returns a new subclass with the given superclass.": "Erstellt und gibt eine neue Unterklasse mit der angegebenen Oberklasse zurück.",
-        "_on class [CLASS] [SHADOW]": "Mit Klasse [CLASS] [SHADOW]",
-        "_Runs the enclosed blocks as if they were inside the selected class definition. This allows you to e.g. add methods to already defined classes.": "Führt die eingeschlossenen Blöcke aus, als wären sie innerhalb der ausgewählten Klassendefinition. Dies ermöglicht z.B. das Hinzufügen von Methoden zu bereits definierten Klassen.",
-        "_current class": "aktuelle Klasse",
-        "_Returns the class currently being defined.": "Gibt die Klasse zurück, die gerade definiert wird.",
-        "_Use Classes": "Klassen verwenden",
-        "_is [SUBCLASS] a subclass of [SUPERCLASS] ?": "Ist [SUBCLASS] eine Unterklasse von [SUPERCLASS]?",
-        "_Checks whether one class inherits from another.": "Prüft, ob eine Klasse von einer anderen erbt.",
-        "_get superclass of [CLASS]": "Oberklasse von [CLASS] abrufen",
-        "_Returns the superclass of a class, or Nothing if it has none.": "Gibt die Oberklasse einer Klasse zurück oder Nichts, falls keine vorhanden ist.",
-        "_Class Members": "Klassenmitglieder",
-        "_Define Instance Methods": "Instanzmethoden definieren",
-        "_define instance method [NAME] [SHADOW]": "Instanzmethode [NAME] [SHADOW] definieren",
-        "_Defines an instance method on the current class.": "Definiert eine Instanzmethode in der aktuellen Klasse.",
-        "_define [SPECIAL_METHOD] instance method [SHADOW]": "[SPECIAL_METHOD] Instanzmethode [SHADOW] definieren",
-        "_Defines a special instance method.": "Definiert eine spezielle Instanzmethode.",
-        "_self": "self",
-        "_Reports the current instance inside a method.": "Gibt die aktuelle Instanz innerhalb einer Methode zurück.",
-        "_call super method [NAME] with positional args [POSARGS]": "Super-Methode [NAME] mit Positionsargumenten [POSARGS] aufrufen",
-        "_Calls an instance method from the superclass of the current object.": "Ruft eine Instanzmethode der Oberklasse des aktuellen Objekts auf.",
-        "_call super init method with positional args [POSARGS]": "Super-Init-Methode mit Positionsargumenten [POSARGS] aufrufen",
-        "_Calls the superclass init method for the current object.": "Ruft die Init-Methode der Oberklasse für das aktuelle Objekt auf.",
-        "_Define Getters & Setters": "Getter & Setter definieren",
-        "_define getter [NAME] [SHADOW]": "Getter [NAME] [SHADOW] definieren",
-        "_Defines a getter method for an attribute on the current class.": "Definiert eine Getter-Methode für ein Attribut in der aktuellen Klasse.",
-        "_define setter [NAME] [SHADOW1] [SHADOW2]": "Setter [NAME] [SHADOW1] [SHADOW2] definieren",
-        "_Defines a setter method for an attribute on the current class.": "Definiert eine Setter-Methode für ein Attribut in der aktuellen Klasse.",
-        "_operator value": "Operatorwert",
-        "_Reports the incoming value inside a setter method.": "Gibt den eingehenden Wert innerhalb einer Setter-Methode zurück.",
-        "_Define Operator Methods": "Operatormethoden definieren",
-        "_define operator method [OPERATOR_KIND] [SHADOW]": "Operatormethode [OPERATOR_KIND] [SHADOW] definieren",
-        "_Defines custom behavior for an operator on instances of the current class.": "Definiert benutzerdefiniertes Verhalten für einen Operator bei Instanzen der aktuellen Klasse.",
-        "_operator value": "Operatorwert",
-        "_Reports the other operand inside an operator method.": "Gibt den anderen Operanden innerhalb einer Operatormethode zurück.",
-        "_Define Static Methods & Class Variables": "Statische Methoden & Klassenvariablen definieren",
-        "_on [CLASS] set class var [NAME] to [VALUE]": "Setze Klassenvariable [NAME] von [CLASS] auf [VALUE]",
-        "_Sets a class variable on the selected class.": "Setzt eine Klassenvariable in der ausgewählten Klasse.",
-        "_get class var [NAME] of [CLASS]": "Klassenvariable [NAME] von [CLASS] abrufen",
-        "_Gets a class variable from the selected class.": "Liest eine Klassenvariable aus der ausgewählten Klasse aus.",
-        "_on [CLASS] delete class var [NAME]": "Lösche Klassenvariable [NAME] von [CLASS]",
-        "_Deletes a class variable from the selected class.": "Löscht eine Klassenvariable aus der ausgewählten Klasse.",
-        "_define static method [NAME]": "Statische Methode [NAME] definieren",
-        "_Defines a static method on the current class.": "Definiert eine statische Methode in der aktuellen Klasse.",
-        "_[PROPERTY] names of class [CLASS]": "[PROPERTY]-Namen der Klasse [CLASS]",
-        "_Returns the names of members of the selected type for a class.": "Gibt die Namen der Mitglieder des ausgewählten Typs für eine Klasse zurück.",
-        "_Working with Instances": "Mit Instanzen arbeiten",
-        "_Create & Inspect": "Erstellen & Untersuchen",
-        "_create instance of class [CLASS] with positional args [POSARGS]": "Instanz der Klasse [CLASS] mit Positionsargumenten [POSARGS] erstellen",
-        "_Creates an instance of a class and passes the given positional arguments to its init method.": "Erstellt eine Instanz einer Klasse und übergibt die angegebenen Positionsargumente an deren Init-Methode.",
-        "_is [INSTANCE] an instance of [CLASS] ?": "Ist [INSTANCE] eine Instanz von [CLASS]?",
-        "_Checks whether an instance belongs to a class or one of its subclasses.": "Prüft, ob eine Instanz zu einer Klasse oder einer ihrer Unterklassen gehört.",
-        "_get class of [INSTANCE]": "Klasse von [INSTANCE] abrufen",
-        "_Returns the class that created an instance.": "Gibt die Klasse zurück, die eine Instanz erstellt hat.",
-        "_Attributes": "Attribute",
-        "_on [INSTANCE] set attribute [NAME] to [VALUE]": "Setze Attribut [NAME] von [INSTANCE] auf [VALUE]",
-        "_Sets an attribute on an instance or calls its setter if one exists.": "Setzt ein Attribut einer Instanz oder ruft deren Setter auf, falls vorhanden.",
-        "_attribute [NAME] of [INSTANCE]": "Attribut [NAME] von [INSTANCE]",
-        "_Gets an attribute from an instance or calls its getter if one exists.": "Liest ein Attribut einer Instanz aus oder ruft deren Getter auf, falls vorhanden.",
-        "_all attributes of [INSTANCE]": "Alle Attribute von [INSTANCE]",
-        "_Returns all direct instance attributes as an object.": "Gibt alle direkten Instanzattribute als Objekt zurück.",
-        "_Call Methods": "Methoden aufrufen",
-        "_on [INSTANCE] call method [NAME] with positional args [POSARGS]": "Methode [NAME] von [INSTANCE] mit Positionsargumenten [POSARGS] aufrufen",
-        "_Calls an instance method on an object with positional arguments.": "Ruft eine Instanzmethode eines Objekts mit Positionsargumenten auf.",
-        "_on [CLASS] call static method [NAME] with positional args [POSARGS]": "Statische Methode [NAME] von [CLASS] mit Positionsargumenten [POSARGS] aufrufen",
-        "_Calls a static method on a class with positional arguments.": "Ruft eine statische Methode einer Klasse mit Positionsargumenten auf.",
-        "_get static method [NAME] of [CLASS] as function": "Statische Methode [NAME] von [CLASS] als Funktion abrufen",
-        "_Returns a static method from a class as a callable function value.": "Gibt eine statische Methode einer Klasse als aufrufbare Funktion zurück.",
+        "Missing Extensions?": "Fehlen Erweiterungen?",
+        "Add Functions & Scopes Extension": "Funktionen & Variablen Erweiterung hinzufügen",
+        "Add Array Extension": "Array-Erweiterung hinzufügen",
+        "Add Object Extension": "Objekt-Erweiterung hinzufügen",
+        "Define Classes": "Klassen definieren",
+        "create class at var [NAME] [SHADOW]": "Erstelle Klasse bei Variable [NAME] [SHADOW]",
+        "Creates a new class, stores it in the chosen variable.": "Erstellt eine neue Klasse und speichert sie in der gewählten Variable.",
+        "create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]": "Erstelle Unterklasse bei Variable [NAME] mit Oberklasse [SUPERCLASS] [SHADOW]",
+        "Creates a subclass with the given superclass, stores it in a variable.": "Erstellt eine Unterklasse mit der angegebenen Oberklasse und speichert sie in einer Variable.",
+        "create class named [NAME] [SHADOW]": "Erstelle Klasse mit Namen [NAME] [SHADOW]",
+        "Creates and returns a new class with the given name.": "Erstellt und gibt eine neue Klasse mit dem angegebenen Namen zurück.",
+        "create subclass named [NAME] with superclass [SUPERCLASS] [SHADOW]": "Erstelle Unterklasse mit Namen [NAME] und Oberklasse [SUPERCLASS] [SHADOW]",
+        "Creates and returns a new subclass with the given superclass.": "Erstellt und gibt eine neue Unterklasse mit der angegebenen Oberklasse zurück.",
+        "on class [CLASS] [SHADOW]": "Mit Klasse [CLASS] [SHADOW]",
+        "Runs the enclosed blocks as if they were inside the selected class definition. This allows you to e.g. add methods to already defined classes.": "Führt die eingeschlossenen Blöcke aus, als wären sie innerhalb der ausgewählten Klassendefinition. Dies ermöglicht z.B. das Hinzufügen von Methoden zu bereits definierten Klassen.",
+        "current class": "aktuelle Klasse",
+        "Returns the class currently being defined.": "Gibt die Klasse zurück, die gerade definiert wird.",
+        "Use Classes": "Klassen verwenden",
+        "is [SUBCLASS] a subclass of [SUPERCLASS] ?": "Ist [SUBCLASS] eine Unterklasse von [SUPERCLASS]?",
+        "Checks whether one class inherits from another.": "Prüft, ob eine Klasse von einer anderen erbt.",
+        "get superclass of [CLASS]": "Oberklasse von [CLASS] abrufen",
+        "Returns the superclass of a class, or Nothing if it has none.": "Gibt die Oberklasse einer Klasse zurück oder Nichts, falls keine vorhanden ist.",
+        "Class Members": "Klassenmitglieder",
+        "Define Instance Methods": "Instanzmethoden definieren",
+        "define instance method [NAME] [SHADOW]": "Instanzmethode [NAME] [SHADOW] definieren",
+        "Defines an instance method on the current class.": "Definiert eine Instanzmethode in der aktuellen Klasse.",
+        "define [SPECIAL_METHOD] instance method [SHADOW]": "[SPECIAL_METHOD] Instanzmethode [SHADOW] definieren",
+        "Defines a special instance method.": "Definiert eine spezielle Instanzmethode.",
+        "self": "self",
+        "Reports the current instance inside a method.": "Gibt die aktuelle Instanz innerhalb einer Methode zurück.",
+        "call super method [NAME] with positional args [POSARGS]": "Super-Methode [NAME] mit Positionsargumenten [POSARGS] aufrufen",
+        "Calls an instance method from the superclass of the current object.": "Ruft eine Instanzmethode der Oberklasse des aktuellen Objekts auf.",
+        "call super init method with positional args [POSARGS]": "Super-Init-Methode mit Positionsargumenten [POSARGS] aufrufen",
+        "Calls the superclass init method for the current object.": "Ruft die Init-Methode der Oberklasse für das aktuelle Objekt auf.",
+        "Define Getters & Setters": "Getter & Setter definieren",
+        "define getter [NAME] [SHADOW]": "Getter [NAME] [SHADOW] definieren",
+        "Defines a getter method for an attribute on the current class.": "Definiert eine Getter-Methode für ein Attribut in der aktuellen Klasse.",
+        "define setter [NAME] [SHADOW1] [SHADOW2]": "Setter [NAME] [SHADOW1] [SHADOW2] definieren",
+        "Defines a setter method for an attribute on the current class.": "Definiert eine Setter-Methode für ein Attribut in der aktuellen Klasse.",
+        "operator value": "Operatorwert",
+        "Reports the incoming value inside a setter method.": "Gibt den eingehenden Wert innerhalb einer Setter-Methode zurück.",
+        "Define Operator Methods": "Operatormethoden definieren",
+        "define operator method [OPERATOR_KIND] [SHADOW]": "Operatormethode [OPERATOR_KIND] [SHADOW] definieren",
+        "Defines custom behavior for an operator on instances of the current class.": "Definiert benutzerdefiniertes Verhalten für einen Operator bei Instanzen der aktuellen Klasse.",
+        "operator value": "Operatorwert",
+        "Reports the other operand inside an operator method.": "Gibt den anderen Operanden innerhalb einer Operatormethode zurück.",
+        "Define Static Methods & Class Variables": "Statische Methoden & Klassenvariablen definieren",
+        "on [CLASS] set class var [NAME] to [VALUE]": "Setze Klassenvariable [NAME] von [CLASS] auf [VALUE]",
+        "Sets a class variable on the selected class.": "Setzt eine Klassenvariable in der ausgewählten Klasse.",
+        "get class var [NAME] of [CLASS]": "Klassenvariable [NAME] von [CLASS] abrufen",
+        "Gets a class variable from the selected class.": "Liest eine Klassenvariable aus der ausgewählten Klasse aus.",
+        "on [CLASS] delete class var [NAME]": "Lösche Klassenvariable [NAME] von [CLASS]",
+        "Deletes a class variable from the selected class.": "Löscht eine Klassenvariable aus der ausgewählten Klasse.",
+        "define static method [NAME]": "Statische Methode [NAME] definieren",
+        "Defines a static method on the current class.": "Definiert eine statische Methode in der aktuellen Klasse.",
+        "[PROPERTY] names of class [CLASS]": "[PROPERTY]-Namen der Klasse [CLASS]",
+        "Returns the names of members of the selected type for a class.": "Gibt die Namen der Mitglieder des ausgewählten Typs für eine Klasse zurück.",
+        "Working with Instances": "Mit Instanzen arbeiten",
+        "Create & Inspect": "Erstellen & Untersuchen",
+        "create instance of class [CLASS] with positional args [POSARGS]": "Instanz der Klasse [CLASS] mit Positionsargumenten [POSARGS] erstellen",
+        "Creates an instance of a class and passes the given positional arguments to its init method.": "Erstellt eine Instanz einer Klasse und übergibt die angegebenen Positionsargumente an deren Init-Methode.",
+        "is [INSTANCE] an instance of [CLASS] ?": "Ist [INSTANCE] eine Instanz von [CLASS]?",
+        "Checks whether an instance belongs to a class or one of its subclasses.": "Prüft, ob eine Instanz zu einer Klasse oder einer ihrer Unterklassen gehört.",
+        "get class of [INSTANCE]": "Klasse von [INSTANCE] abrufen",
+        "Returns the class that created an instance.": "Gibt die Klasse zurück, die eine Instanz erstellt hat.",
+        "Attributes": "Attribute",
+        "on [INSTANCE] set attribute [NAME] to [VALUE]": "Setze Attribut [NAME] von [INSTANCE] auf [VALUE]",
+        "Sets an attribute on an instance or calls its setter if one exists.": "Setzt ein Attribut einer Instanz oder ruft deren Setter auf, falls vorhanden.",
+        "attribute [NAME] of [INSTANCE]": "Attribut [NAME] von [INSTANCE]",
+        "Gets an attribute from an instance or calls its getter if one exists.": "Liest ein Attribut einer Instanz aus oder ruft deren Getter auf, falls vorhanden.",
+        "all attributes of [INSTANCE]": "Alle Attribute von [INSTANCE]",
+        "Returns all direct instance attributes as an object.": "Gibt alle direkten Instanzattribute als Objekt zurück.",
+        "Call Methods": "Methoden aufrufen",
+        "on [INSTANCE] call method [NAME] with positional args [POSARGS]": "Methode [NAME] von [INSTANCE] mit Positionsargumenten [POSARGS] aufrufen",
+        "Calls an instance method on an object with positional arguments.": "Ruft eine Instanzmethode eines Objekts mit Positionsargumenten auf.",
+        "on [CLASS] call static method [NAME] with positional args [POSARGS]": "Statische Methode [NAME] von [CLASS] mit Positionsargumenten [POSARGS] aufrufen",
+        "Calls a static method on a class with positional arguments.": "Ruft eine statische Methode einer Klasse mit Positionsargumenten auf.",
+        "get static method [NAME] of [CLASS] as function": "Statische Methode [NAME] von [CLASS] als Funktion abrufen",
+        "Returns a static method from a class as a callable function value.": "Gibt eine statische Methode einer Klasse als aufrufbare Funktion zurück.",
     },
+};
+
+// Add underscore to every key in every value of TRANSLATIONS, because Scratch.translate expects it
+Object.entries(TRANSLATIONS).forEach(([lang, langTranslations]) => {
+    Object.keys(langTranslations).forEach(key => {
+        langTranslations["_" + key] = langTranslations[key];
+        delete langTranslations[key];
+    });
+});
+const oldSetup = Scratch.translate.setup
+Scratch.translate.setup = function(modTranslations) {
+    console.log("get translations", modTranslations) // For debugging
+    oldSetup(modTranslations)
 }
 Scratch.translate.setup(TRANSLATIONS);
 
@@ -227,7 +237,7 @@ const TERMS = {
     GREATER_THAN: translatedMsg("greater than"),
     GREATER_OR_EQUAL: translatedMsg("greater or equal"),
     LESS_THAN: translatedMsg("less than"),
-    LESS_OR_EQUAL: translatedMsg("less or equal"),
+    LESS_OR_EQUAL: translatedMsg    ("less or equal"),
     
     INSTANCE_METHOD: translatedMsg("instance method"),
     STATIC_METHOD: translatedMsg("static method"),
@@ -2946,11 +2956,11 @@ class GCEOOPBlocks {
                 // Define Instance Methods
                 defineInstanceMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "instance method", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", TERMS.INSTANCE_METHOD, false)
                 },
                 defineSpecialMethod: (node, compiler, imports) => {
                     const nameCode = `${CAST_PREFIX}.toMenuSpecialMethod(${quote(node.SPECIAL_METHOD)})`
-                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "instance method", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", TERMS.INSTANCE_METHOD, false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
@@ -2968,23 +2978,23 @@ class GCEOOPBlocks {
                 // Define Getters & Setters
                 defineGetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", "getter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "GetterMethodType", TERMS.GETTER_METHOD, true)
                 },
                 defineSetter: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", "setter method", true)
+                    createMethodDefinition(node, compiler, imports, nameCode, "SetterMethodType", TERMS.SETTER_METHOD, true)
                 },
 
                 // Define Operator Methods
                 defineOperatorMethod: (node, compiler, imports) => {
                     const nameCode = `${CAST_PREFIX}.toMenuOperatorMethod(${quote(node.OPERATOR_KIND)})`
-                    createMethodDefinition(node, compiler, imports, quote(node.OPERATOR_KIND), "OperatorMethodType", "operator method", true)
+                    createMethodDefinition(node, compiler, imports, quote(node.OPERATOR_KIND), "OperatorMethodType", TERMS.OPERATOR_METHOD, true)
                 },
 
                 // Define Static Methods & Class Variables
                 defineStaticMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
-                    createMethodDefinition(node, compiler, imports, nameCode, "FunctionType", "static method", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "FunctionType", TERMS.STATIC_METHOD, false)
                 },
 
 
@@ -3410,7 +3420,7 @@ class GCEOOPBlocks {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
-        cls.setMember(name, value, "class variable")
+        cls.setMember(name, value, TERMS.CLASS_VARIABLE)
     }
 
     /**
@@ -3420,7 +3430,7 @@ class GCEOOPBlocks {
     getClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        const value = cls.getMemberOfType(name, "class variable")
+        const value = cls.getMemberOfType(name, TERMS.CLASS_VARIABLE)
         return value
     }
 
@@ -3431,7 +3441,7 @@ class GCEOOPBlocks {
     deleteClassVariable(args, util) {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
-        cls.deleteMemberOfType(name, "class variable")
+        cls.deleteMemberOfType(name, TERMS.CLASS_VARIABLE)
     }
     defineStaticMethod = this._isACompiledBlock
 
@@ -3445,28 +3455,28 @@ class GCEOOPBlocks {
         const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
         switch (property) {
-            case "instance method":
+            case TERMS.INSTANCE_METHOD:
                 values = instanceMethods; break
-            case "static method":
+            case TERMS.STATIC_METHOD:
                 values = staticMethods; break
-            case "getter method":
+            case TERMS.GETTER_METHOD:
                 values = getterMethods; break
-            case "setter method":
+            case TERMS.SETTER_METHOD:
                 values = setterMethods; break
-            case "operator method":
+            case TERMS.OPERATOR_METHOD:
                 values = operatorMethods; break
-            case "class variable":
+            case TERMS.CLASS_VARIABLE:
                 values = classVariables; break
         }
         let names = Object.keys(values)
-        if (property == "instance method") {
+        if (property == TERMS.INSTANCE_METHOD) {
             let index
             index = names.indexOf("__SM_INIT_METHOD__")
             if (index !== -1) names[index] = "[special] init"
             index = names.indexOf("__SM_AS_STRING_METHOD__")
             if (index !== -1) names[index] = "[special] as string"
         }
-        else if (property === "operator method") {
+        else if (property === TERMS.OPERATOR_METHOD) {
             names = names.map(name => MENUS.OPERATOR_METHOD.publicToInternal(name))
         }
         return Cast.toArray(names)
@@ -3606,7 +3616,7 @@ class GCEOOPBlocks {
         let method
         try {
             /** @type {InstanceMethodType} */
-            method = object.cls.getMemberOfType("__SM_AS_STRING_METHOD__", "instance method")
+            method = object.cls.getMemberOfType("__SM_AS_STRING_METHOD__", TERMS.INSTANCE_METHOD)
         } catch {}
         if (!method) return object.toString()
         const output = yield* method.execute(thread, object, [])
