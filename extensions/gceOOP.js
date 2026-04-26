@@ -3852,7 +3852,6 @@ if (!isRuntimeEnv) {
  * + - ensure all menu values that are translated have {text, value}
  * + - => or remove translation for menus
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
- * + - update extension_cli_vm.js (Scratch.translate changes
  * + - typeof block: maybe menu-only block, maybe add "id" vs. "pretty name" option
  *
  * + MID PRIORITY

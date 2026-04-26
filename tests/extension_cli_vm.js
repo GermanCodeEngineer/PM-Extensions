@@ -3,6 +3,7 @@
 const fs = require("fs")
 const path = require("path")
 const vm = require("vm")
+const formatMessage = require("./format-message")
 
 // ---------- Setup Stubs and Proxy ----------
 
@@ -71,6 +72,51 @@ const runtimeStub = makeConfiguredStub({
     basis: Object.create(null),
     allowStaticGet: true, // allow e.g. PROJECT_START
 })
+
+// Derived from https://github.com/PenguinMod/PenguinMod-Vm/blob/develop/src/extension-support/tw-l10n.js
+const createTranslate = () => {
+    const namespace = formatMessage.namespace();
+
+    const translate = (message, args) => {
+        if (message && typeof message === 'object') {
+            // already in the expected format
+        } else if (typeof message === 'string') {
+            message = {
+                default: message
+            };
+        } else {
+            throw new Error('unsupported data type in translate()');
+        }
+        return namespace(message, args);
+    };
+
+    const generateId = defaultMessage => `_${defaultMessage}`;
+
+    const getLocale = () => 'en';
+
+    let storedTranslations = {};
+    translate.setup = newTranslations => {
+        if (newTranslations) {
+            storedTranslations = newTranslations;
+        }
+        namespace.setup({
+            locale: getLocale(),
+            missingTranslation: 'ignore',
+            generateId,
+            translations: storedTranslations
+        });
+    };
+
+    Object.defineProperty(translate, 'language', {
+        configurable: true,
+        enumerable: true,
+        get: () => getLocale()
+    });
+
+    translate.setup({});
+
+    return translate;
+};
 
 const ScratchVar = makeConfiguredStub({
     basis: Object.create(null),
@@ -150,19 +196,7 @@ const ScratchVar = makeConfiguredStub({
                 isTestingEnv: true,
             },
         }),
-        translate: makeConfiguredStub({
-            basis: (m) => (typeof m === "string" ? m : m.default || ""),
-            valueProps: {
-                setup: makeConfiguredStub({
-                    basis: (newTranslations) => makeConfiguredStub({
-                        basis: Object.create(null),
-                        valueProps: {
-                            locale: "en",
-                        },
-                    }),
-                }),
-            },
-        }),
+        translate: createTranslate(),
 
         vm: makeConfiguredStub({
             basis: Object.create(null),
