@@ -3835,24 +3835,23 @@ if (!isRuntimeEnv) {
 
 /**
  * TODO
- *
- * + HIGH PRIORITY
+ * + WORKING ON
  * + - finish project tests
- * + - allow strings for class instance inputs
- * + - consider different architecture for storing block implementations
- * + - consider splitting "OOP" extension again
  * + - german translation possibly
  * + - ~ inline todos
  * + - ~ translate inline block text refs like "current class"
  * + - ~ fix error messages that still have placeholders like {prefix}
  * + - ~ apply all changes to gceFuncsScopes
- * + - consider removing translatedMsg to replace with Scratch.translate
- * + - update test runner in gallery
+ * + - ensure all menu value handling is consistent and no translated immediate strings are used in code
  * + - why no error raised in funcs scopes (german locale)
- * + - ensure all menu values that are translated have {text, value}
- * + - => or remove translation for menus
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
  * + - typeof block: maybe menu-only block, maybe add "id" vs. "pretty name" option
+ * 
+ * + HIGH PRIORITY
+ * + - allow strings for class instance inputs
+ * + - consider different architecture for storing block implementations
+ * + - consider splitting "OOP" extension again
+ * + - update test runner in gallery
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
