@@ -59,6 +59,8 @@ const TRANSLATIONS = {
         "_Invalid operator method: {value}": "Ungültige Operator-Methode: {value}",
         "_Invalid special method: {value}": "Ungültige Spezialmethode: {value}",
         "_Invalid typeof type: {value}": "Ungültiger typeof-Typ: {value}",
+        "_{prefix}: expected at most {maxArgCount} positional arguments, but got {argCount}.": "{prefix}: erwartet wurden höchstens {maxArgCount} Positionsargumente, aber {argCount} wurden erhalten.",
+        "_{prefix}: expected at least {posOnlyCount} positional arguments, but got only {argCount}.": "{prefix}: erwartet wurden mindestens {posOnlyCount} Positionsargumente, aber nur {argCount} wurden erhalten.",
         "_Setter methods must return {nothingValue}.": "Setter-Methoden müssen {nothingValue} zurückgeben.",
         "_Undefined {expectedMemberType} {name}.": "Nicht definierte(r/s) {expectedMemberType} {name}.",
         "_Class Method or Variable {name} is not a {expectedMemberType} but a {type}.": "Klassenmethode oder -variable {name} ist kein(e) {expectedMemberType}, sondern ein(e) {type}.",
@@ -92,7 +94,7 @@ const TRANSLATIONS = {
         "_left mod": "linkes Modulo",
         "_right mod": "rechtes Modulo",
 
-        // MENU_ITEMS
+        // MENUS
         "_instance method": "Instanzmethode",
         "_static method": "statische Methode",
         "_getter method": "Getter-Methode",
@@ -1160,14 +1162,15 @@ class ScopeStack {
  */
 class MenuManager {
     /**
-     * @param {Array<{value: string, text: string}>} menuItems 
      * @param {string} invalidPublicValueError
+     * @param {Array<{value: string, text: string}>} menuItems
      */
-    constructor(menuItems, invalidPublicValueError) {
+    constructor(invalidPublicValueError, menuItems) {
+        console.log("new MenuManager", {invalidPublicValueError, menuItems})
+        this._invalidPublicValueError = invalidPublicValueError
         this._menuItems = menuItems
         this._interalToPublic = Object.fromEntries(menuItems.map(item => [item.value, item.text]))
         this._publicToInternal = Object.fromEntries(menuItems.map(item => [item.text, item.value]))
-        this._invalidPublicValueError = invalidPublicValueError
     }
 
     /**
@@ -1196,49 +1199,41 @@ class MenuManager {
     internalToPublic(internalValue) {
         return this._interalToPublic[internalValue]
     }
+
+    /**
+     * Converts a user input to internal format (can be in either format because of acceptReporters=true)
+     * @param {string} inputValue
+     * @returns {boolean}
+     */
+    standardizeBlockInput(inputValue) {
+        if (inputValue in this._interalToPublic) {
+            return inputValue
+        } else {
+            // Handles invalid values
+            return this.publicToInternal(inputValue)
+        }
+    }
 }
 
 const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
-const CONFIG = { // TODO: remove all these
-    SM_INIT_METHOD: "__special_init__",
-    SM_AS_STRING: "__special_as_string__",
-    INTERNAL_OP_NAMES: {}, // see below
-    PUBLIC_OP_NAMES: {}, // see below
-};
-([
-    "left add", "right add",
-    "left subtract", "right subtract",
-    "left multiply", "right multiply",
-    "left divide", "right divide",
-    "left power", "right power",
-    "left mod", "right mod",
-
-    "equals", "not equals",
-    "greater than", "greater or equal",
-    "less than", "less or equal",
-]).forEach((publicName) => {
-    const internalName = `__operator_${publicName.replaceAll(" ", "_")}__`
-    const translatedPublicName = translatedMsg(publicName)
-    CONFIG.INTERNAL_OP_NAMES[translatedPublicName] = internalName
-    CONFIG.PUBLIC_OP_NAMES[internalName] = translatedPublicName
-})
-
 const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
-    CLASS_PROPERTY: new MenuManager([
+    CLASS_PROPERTY: new MenuManager("Invalid class property: {value}", [
         {value: "CP_INSTANCE_METHOD", text: "instance method"},
         {value: "CP_STATIC_METHOD", text: "static method"},
         {value: "CP_GETTER_METHOD", text: "getter method"},
         {value: "CP_SETTER_METHOD", text: "setter method"},
         {value: "CP_OPERATOR_METHOD", text: "operator method"},
         {value: "CP_CLASS_VARIABLE", text: "class variable"},
-    ].forEach(item => item.text = translatedMsg(item.text))),
-    SPECIAL_METHOD: new MenuManager([
-        {value: CONFIG.SM_INIT_METHOD, text: "init"},
-        {value: CONFIG.SM_AS_STRING, text: "as string"},
-    ].forEach(item => item.text = translatedMsg(item.text))),
-    TYPEOF_MENU = new MenuManager([
+    ].map(item => ({...item, text: translatedMsg(item.text)}))),
+
+    SPECIAL_METHOD: new MenuManager("Invalid special method: {value}", [
+        {value: "__SM_INIT_METHOD__", text: "init"},
+        {value: "__SM_AS_STRING_METHOD__", text: "as string"},
+    ].map(item => ({...item, text: translatedMsg(item.text)}))),
+
+    TYPEOF_MENU: new MenuManager("Invalid typeof type: {value}", [
         {value: "TO_BOOLEAN", text: "Boolean"},
         {value: "TO_NUMBER", text: "Number"},
         {value: "TO_STRING", text: "String"},
@@ -1280,12 +1275,28 @@ const MENUS = { // HERE: CONTINUE IMPROVING CONSISTENCY
         {value: "TO_FUNCTION_JS", text: "JavaScript Function"},
         {value: "TO_OBJECT_JS", text: "JavaScript Object (generic)"},
         {value: "TO_UNKNOWN", text: "Unknown (rare)"},
-    ].forEach(item => item.text = translatedMsg(item.text))),
-    OPERATOR_METHOD: Object.entries(CONFIG.INTERNAL_OP_NAMES).map(
-        ([translatedPublicName, internalName]) => (
-            {text: translatedPublicName, value: internalName}
-        )
-    ].forEach(item => item.text = translatedMsg(item.text))),
+    ]),
+
+    OPERATOR_METHOD: new MenuManager("Invalid operator method: {value}", [
+        {value: "__OM_LEFT_ADD__", text: "left add"},
+        {value: "__OM_RIGHT_ADD__", text: "right add"},
+        {value: "__OM_LEFT_SUBTRACT__", text: "left subtract"},
+        {value: "__OM_RIGHT_SUBTRACT__", text: "right subtract"},
+        {value: "__OM_LEFT_MULTIPLY__", text: "left multiply"},
+        {value: "__OM_RIGHT_MULTIPLY__", text: "right multiply"},
+        {value: "__OM_LEFT_DIVIDE__", text: "left divide"},
+        {value: "__OM_RIGHT_DIVIDE__", text: "right divide"},
+        {value: "__OM_LEFT_POWER__", text: "left power"},
+        {value: "__OM_RIGHT_POWER__", text: "right power"},
+        {value: "__OM_LEFT_MOD__", text: "left mod"},
+        {value: "__OM_RIGHT_MOD__", text: "right mod"},
+        {value: "__OM_EQUALS__", text: "equals"},
+        {value: "__OM_NOT_EQUALS__", text: "not equals"},
+        {value: "__OM_GREATER_THAN__", text: "greater than"},
+        {value: "__OM_GREATER_OR_EQUAL__", text: "greater or equal"},
+        {value: "__OM_LESS_THAN__", text: "less than"},
+        {value: "__OM_LESS_OR_EQUAL__", text: "less or equal"},
+    ].map(item => ({...item, text: translatedMsg(item.text)}))),
 }
 
 
@@ -1315,7 +1326,7 @@ class TypeChecker {
 
     // My Types
     // FunctionType
-    // InstanceMethodType
+    // InstanceMethodType (and subclasses)
     // ClassType
     // ClassInstanceType
     // NothingType
@@ -1815,13 +1826,13 @@ class BaseCallableType extends CustomType {
         let name
         let prefix
 
-        if (this instanceof InstanceMethodType && (this.name === CONFIG.SM_INIT_METHOD)) prefix = translatedMsg("Initializing object")
+        if (this instanceof InstanceMethodType && (this.name === "__SM_INIT_METHOD__")) prefix = translatedMsg("Initializing object")
         else if (this instanceof InstanceMethodType) prefix = translatedMsg("Calling method {name}", {name: quote(this.name)})
         else prefix = translatedMsg("Calling function {name}", {name: quote(this.name)})
 
         // Ensure there are not too many arguments
         if (posArgs.length > this.argNames.length) {
-            throwError("{prefix}: expected at most {maxArgCount}, but got {argCount} arguments.", {prefix, argCount: posArgs.length, maxArgCount: this.argNames.length})
+            throwError("{prefix}: expected at most {maxArgCount} positional arguments, but got {argCount}.", {prefix, argCount: posArgs.length, maxArgCount: this.argNames.length})
         }
 
         // Count how many arguments do NOT have defaults
@@ -2076,7 +2087,7 @@ class ClassType extends CustomType {
      */
     *createInstance(thread, posArgs) {
         const instance = new ClassInstanceType(this)
-        const output = yield* instance.executeInstanceMethod(thread, CONFIG.SM_INIT_METHOD, posArgs) // an init method always exists
+        const output = yield* instance.executeInstanceMethod(thread, "__SM_INIT_METHOD__", posArgs) // an init method always exists
         if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return instance
     }
@@ -2178,7 +2189,7 @@ class ClassInstanceType extends CustomType {
      */
     *executeOperatorMethod(thread, name, other) {
         /** @type {OperatorMethodType} */
-        const method = this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], TERMS.OPERATOR_METHOD)
+        const method = this.cls.getMemberOfType(MENUS.OPERATOR_METHOD.standardizeBlockInput(name), TERMS.OPERATOR_METHOD)
         return yield* method.execute(thread, this, other)
     }
 
@@ -2222,7 +2233,7 @@ class ClassInstanceType extends CustomType {
      */
     *hasOperatorMethod(name) {
         try {
-            this.cls.getMemberOfType(CONFIG.INTERNAL_OP_NAMES[name], TERMS.OPERATOR_METHOD)
+            this.cls.getMemberOfType(MENUS.OPERATOR_METHOD.standardizeBlockInput(name), TERMS.OPERATOR_METHOD)
             return true
         } catch {
             return false
@@ -2949,7 +2960,7 @@ class GCEOOPBlocks {
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
                 },
                 callSuperInitMethod: (node, compiler, imports) => {
-                    const nameCode = quote(CONFIG.SM_INIT_METHOD)
+                    const nameCode = quote("__SM_INIT_METHOD__")
                     const posArgsCode = `${CAST_PREFIX}.toArray(${compiler.descendInput(node.POSARGS).asUnknown()}).array`
                     const generatedCode = `(yield* ${CURRENT_STACK}.getSelfOrThrow().executeSuperInitMethod(thread, ${nameCode}, ${posArgsCode}))`
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
@@ -3102,7 +3113,7 @@ class GCEOOPBlocks {
         this.environment = {
             doublePlusShape: CUSTOM_SHAPE, TRANSLATIONS, TERMS, applyInternalWrappers,
             quote, escapeHTML, span, translatedMsg, throwError, throwInternal, assertType,
-            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager, CONFIG, MENU_ITEMS: MENUS,
+            VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager, MENU_ITEMS: MENUS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
             InstanceMethodType, GetterMethodType, SetterMethodType, OperatorMethodType,
             ClassType, commonSuperClass: null, ClassInstanceType, NothingType, Nothing,
@@ -3133,8 +3144,8 @@ class GCEOOPBlocks {
         this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
-        commonSuperClass.instanceMethods[CONFIG.SM_INIT_METHOD] = new InstanceMethodType(
-            CONFIG.SM_INIT_METHOD,
+        commonSuperClass.instanceMethods["__SM_INIT_METHOD__"] = new InstanceMethodType(
+            "__SM_INIT_METHOD__",
             function* (thread) {
                 ThreadUtil.getStackManager(thread).prepareReturn()
                 // Nothing is indepedent of function context, so we can exit context before
@@ -3451,13 +3462,13 @@ class GCEOOPBlocks {
         let names = Object.keys(values)
         if (property == "instance method") {
             let index
-            index = names.indexOf(CONFIG.SM_INIT_METHOD)
+            index = names.indexOf("__SM_INIT_METHOD__")
             if (index !== -1) names[index] = "[special] init"
-            index = names.indexOf(CONFIG.SM_AS_STRING)
+            index = names.indexOf("__SM_AS_STRING_METHOD__")
             if (index !== -1) names[index] = "[special] as string"
         }
         else if (property === "operator method") {
-            names = names.map(name => CONFIG.PUBLIC_OP_NAMES[name])
+            names = names.map(name => MENUS.OPERATOR_METHOD.publicToInternal(name))
         }
         return Cast.toArray(names)
     }
@@ -3596,7 +3607,7 @@ class GCEOOPBlocks {
         let method
         try {
             /** @type {InstanceMethodType} */
-            method = object.cls.getMemberOfType(CONFIG.SM_AS_STRING, "instance method")
+            method = object.cls.getMemberOfType("__SM_AS_STRING_METHOD__", "instance method")
         } catch {}
         if (!method) return object.toString()
         const output = yield* method.execute(thread, object, [])
@@ -3833,6 +3844,8 @@ if (!isRuntimeEnv) {
  * + - consider splitting "OOP" extension again
  * + - german translation possibly
  * + - ~ inline todos
+ * + - ~ translate inline block text refs like "current class"
+ * + - ~ fix error messages that still have placeholders like {prefix}
  * + - ~ apply all changes to gceFuncsScopes
  * + - consider removing translatedMsg to replace with Scratch.translate
  * + - update test runner in gallery
@@ -3840,7 +3853,8 @@ if (!isRuntimeEnv) {
  * + - ensure all menu values that are translated have {text, value}
  * + - => or remove translation for menus
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
- * + - update extension_cli_vm.js (Scratch.translate changes)
+ * + - update extension_cli_vm.js (Scratch.translate changes
+ * + - typeof block: maybe menu-only block, maybe add "id" vs. "pretty name" option
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
