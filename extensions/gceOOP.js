@@ -111,6 +111,7 @@ const TRANSLATIONS = {
         // getInfo defaults
         "myFunction": "meineFunktion",
         "MyClass": "MeineKlasse",
+        "MySubclass": "MeineUnterklasse",
         "myInstance": "meineInstanz",
         "myMethod": "meineMethode",
         "myClassVariable": "meineKlassenvariable",
@@ -3792,7 +3793,7 @@ if (!isRuntimeEnv) {
  * + - ~ throw all errors so that they remember their type
  * + - ~ add catch error of type block
  * + - ~ add get error type block
- * + - ~ properly
+ *
  * + HIGH PRIORITY
  * + - allow strings for class instance inputs
  * + - consider different architecture for storing block implementations
