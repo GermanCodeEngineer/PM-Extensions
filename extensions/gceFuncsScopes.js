@@ -230,8 +230,72 @@ function throwInternal(code, additionalMsg = "") {
     )
 }
 
+class MenuManager {
+    /**
+     * @param {string} invalidPublicValueError
+     * @param {Array<{value: string, text: string}>} menuItems
+     */
+    constructor(invalidPublicValueError, menuItems) {
+        this._invalidPublicValueError = invalidPublicValueError
+        this._menuItems = menuItems
+        this._interalToPublic = Object.fromEntries(menuItems.map(item => [item.value, item.text]))
+        this._publicToInternal = Object.fromEntries(menuItems.map(item => [item.text, item.value]))
+    }
+
+    /**
+     * @return {Array<{value: string, text: string}>}
+     */
+    getMenuItems() {
+        return this._menuItems
+    }
+
+    /**
+     * @param {string} publicValue
+     * @returns {string}
+     * @throws if value is not in the menu
+     */
+    publicToInternal(publicValue) {
+        if (!(publicValue in this._publicToInternal)) {
+            throwError(this._invalidPublicValueError, {value: quote(publicValue)})
+        }
+        return this._publicToInternal[publicValue]
+    }
+
+    /**
+     * @param {string} 
+     * @returns {string}
+     */
+    internalToPublic(internalValue) {
+        return this._interalToPublic[internalValue]
+    }
+
+    /**
+     * Converts a user input to internal format (can be in either format because of acceptReporters=true)
+     * @param {string} inputValue
+     * @returns {boolean}
+     */
+    standardizeBlockInput(inputValue) {
+        if (inputValue in this._interalToPublic) {
+            return inputValue
+        } else {
+            // Handles invalid values
+            return this.publicToInternal(inputValue)
+        }
+    }
+}
+
 const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
+
+const MENUS = {
+    VARIABLE_AVAILABLE_KIND: new MenuManager("Invalid variable scope kind: {value}", [
+        {value: "all", text: translatedMsg("all scopes")},
+        {value: "local", text: translatedMsg("local scope")},
+        {value: "global", text: translatedMsg("global scope")},
+        {value: "non-local", text: translatedMsg("non-local")},
+    ]),
+    TYPEOF_MENU: new MenuManager("Invalid typeof type: {value}", TYPEOF_MENU.map(type => ({value: type, text: type}))),
+}
 
 const jwArrayStub = {
     Type: null,
