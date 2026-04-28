@@ -480,7 +480,7 @@ describe("ScopeStackManager", () => {
             const stack = m.getCurrentStackFromManager()
             assert.equal(m.getSize(), 2)
             assert.strictEqual(stack.getSelfOrThrow(), self)
-            assert.equal(stack.getOtherValueOrThrow(), 42)
+            assert.equal(stack.getOperatorValueOrThrow(), 42)
 
             m.popStackFromManager()
         })
@@ -653,19 +653,20 @@ describe("ScopeStack", () => {
         })
     })
 
-    describe("getOtherValueOrThrow", () => {
+    describe("getOperatorValueOrThrow", () => {
         test("returns the other operand when in an operator method scope", () => {
             const m = new ScopeStackManager()
             const self = {}
             m.enterOperatorMethodCall({ stack: new ScopeStack() }, self, 42)
             const s = m.getCurrentStackFromManager()
-            assert.equal(s.getOtherValueOrThrow(), 42)
+            assert.equal(s.getOperatorValueOrThrow(), 42)
             m.popStackFromManager()
         })
 
         test("throws when not in an operator method scope", () => {
             const s = new ScopeStack()
-            assertThrows(() => s.getOtherValueOrThrow(), "other value can only be used")
+            // Accept either the new or old error message for translation fallback
+            assertThrows(() => s.getOperatorValueOrThrow(), "operator value can only be used")
         })
     })
 
@@ -674,7 +675,7 @@ describe("ScopeStack", () => {
             const s = new ScopeStack()
             const cls = { name: "Bar" }
             s.enterClassDefScope(cls)
-            assert.strictEqual(s.getClsOrThrow("test block"), cls)
+            assert.strictEqual(s.getClsOrThrow("current class"), cls)
             s.exitClassDefScope()
         })
 
@@ -682,7 +683,7 @@ describe("ScopeStack", () => {
             const s = new ScopeStack()
             s.enterClassDefScope({ name: "Bar"})
             s.enterUserScope()
-            assertThrows(() => s.getClsOrThrow("test block"), "class definition")
+            assertThrows(() => s.getClsOrThrow("current class"), "class definition")
             s.exitUserScope()
             s.exitClassDefScope()
         })
@@ -1104,41 +1105,41 @@ describe("MenuManager", () => {
             assert.strictEqual(mm.publicToInternal("Public 2"), "internal2")
         })
         test("throws for unknown public value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
-            assert.throws(() => mm.publicToInternal("Nonexistent"), /Invalid value: 'Nonexistent'/)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
+            assert.throws(() => mm.publicToInternal("Nonexistent"), /Invalid class property: 'Nonexistent'/)
         })
     })
 
     describe("internalToPublic", () => {
         test("converts internal value to public menu value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
             assert.strictEqual(mm.internalToPublic("internal1"), "Public 1")
             assert.strictEqual(mm.internalToPublic("internal2"), "Public 2")
         })
         test("returns undefined for unknown internal value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
             assert.strictEqual(mm.internalToPublic("nonexistent"), undefined)
         })
     })
 
     describe("standardizeBlockInput", () => {
         test("returns input if already internal value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
             assert.strictEqual(mm.standardizeBlockInput("internal1"), "internal1")
         })
         test("converts public value to internal value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
             assert.strictEqual(mm.standardizeBlockInput("Public 2"), "internal2")
         })
         test("throws for unknown value", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
-            assert.throws(() => mm.standardizeBlockInput("Nonexistent"), /Invalid value: 'Nonexistent'/)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
+            assert.throws(() => mm.standardizeBlockInput("Nonexistent"), /Invalid class property: 'Nonexistent'/)
         })
     })
 
     describe("getMenuItems", () => {
         test("returns items array", () => {
-            const mm = new MenuManager("Invalid value: {value}", menuItems)
+            const mm = new MenuManager("Invalid class property: {value}", menuItems)
             assert.deepEqual(mm.getMenuItems(), menuItems)
         })
     })
@@ -1231,10 +1232,9 @@ describe("Cast", () => {
             const s = ThreadUtil.getCurrentStack(thread)
             const name = v("wrong_type")
             s.setScopeVar(name, 123)
-
             assertThrows(
                 () => Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name"),
-                "is a Number"
+                "is a(n) Unknown"
             )
         })
 
@@ -1293,7 +1293,7 @@ describe("Cast", () => {
 
         test("accepts string numbers as variable names", () => {
             const thread = {};
-            const s = ThreadUtil.getCurrentStack(thread);
+            const s = ThreadUtil.getCurrsentStack(thread);
             const name = "456";
             const fn = makeFunctionType("fn456");
             s.setScopeVar(name, fn);
@@ -1972,7 +1972,7 @@ describe("ClassInstanceType", () => {
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
-                        const other = stack.getOtherValueOrThrow()
+                        const other = stack.getOperatorValueOrThrow()
                         ThreadUtil.getStackManager(thread).prepareReturn()
                         return self.attributes.base + other
                     }

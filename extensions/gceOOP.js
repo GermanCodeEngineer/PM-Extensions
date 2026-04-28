@@ -1454,7 +1454,7 @@ class TypeChecker {
         if (value instanceof OperatorMethodType) return "TO_OPERATOR_METHOD_GCE"
 
         if (value instanceof ClassType) return "TO_CLASS_GCE"
-        if (value instanceof ClassInstanceType) return "TO_CLASS_INSTANCE_GCE"
+        if (value instanceof ClassInstanceType) return "TO_INSTANCE_GCE"
         if (value instanceof NothingType) return "TO_NOTHING_GCE"
 
         // Common/Safe JS data types
@@ -3772,10 +3772,6 @@ if (!isRuntimeEnv) {
 
 /**
  * TODO
- * =====================
- *  MOVED INLINE TODOS
- * =====================
- *
  * 
  * + WORKING ON
  * + - add tests for MenuManager
