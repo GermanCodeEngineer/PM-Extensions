@@ -1500,7 +1500,11 @@ class TypeChecker {
      * @returns {string}
      */
     static stringTypeof(value) {
-        return MENUS.TYPEOF_MENU.internalToPublic(TypeChecker.typeofCode(value))
+        if (isRuntimeEnv) {
+            return MENUS.TYPEOF_MENU.internalToPublic(TypeChecker.typeofCode(value))
+        } else {
+            return translatedMsg("Unknown (non-runtime environment)")
+        }
     }
 }
 
@@ -1553,7 +1557,7 @@ class Cast extends Scratch.Cast {
     /**
      * @param {*} value
      * @param {?Thread} thread
-     * @param {(value: any) => boolean} isValidVal
+     * @param {(value: *) => boolean} isValidVal
      * @param {string} expectedDescription
      * @returns {*}
      */
@@ -1563,8 +1567,11 @@ class Cast extends Scratch.Cast {
             throwError("Expected a {expectedDescription}, but got no input value.", {expectedDescription})
         }
         if (!(TypeChecker.isClassicScratchValue(value))) { // Allow access to a variable named e.g. 513
-            throwError("Expected a {expectedDescription} not a {actualDescription}.", {expectedDescription, actualDescription: TypeChecker.stringTypeof(value)})
+            throwError("Expected a {expectedDescription} not a {actualDescription}.", {
+                expectedDescription, actualDescription: TypeChecker.stringTypeof(value),
+            })
         }
+        
         const name = Cast.toString(value)
         let varValue
         try {
@@ -1573,10 +1580,9 @@ class Cast extends Scratch.Cast {
             throwError("Expected a {expectedDescription}, but variable {value} is not defined.", {expectedDescription, value: quote(value)})
         }
         if (isValidVal(varValue)) return varValue
-        let varValueName
-        if (isRuntimeEnv) varValueName = TypeChecker.stringTypeof(varValue)
-        else varValueName = translatedMsg("Unknown (non-runtime environment)")
-        throwError("Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.", {expectedDescription, value: quote(value), varValueName})
+        throwError("Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.", {
+            expectedDescription, value: quote(value), varValueName: TypeChecker.stringTypeof(varValue),
+        })
     }
 
     // Own
@@ -1918,13 +1924,15 @@ class ClassType extends CustomType {
 
     /**
      * @param {string} name
-     * @param {string} expectedMemberType
+     * @param {string} expectedMemberTypeCode
      * @returns {*}
      */
-    getMemberOfType(name, expectedMemberType) {
-        const {type, value} = this.getMember(name, true, expectedMemberType === "CP_SETTER_METHOD")
+    getMemberOfType(name, expectedMemberTypeCode) {
+        const expectedMemberType = MENUS.CLASS_PROPERTY.internalToPublic(expectedMemberTypeCode)
+        const {type, value} = this.getMember(name, true, expectedMemberTypeCode === "CP_SETTER_METHOD")
+
         if (!type) throwError("Undefined {expectedMemberType} {name}.", {expectedMemberType, name: quote(name)})
-        if (type !== expectedMemberType) throwError("Class Method or Variable {name} is not a {expectedMemberType} but a {type}.", {name: quote(name), expectedMemberType, type})
+        if (type !== expectedMemberTypeCode) throwError("Class Method or Variable {name} is not a {expectedMemberType} but a {type}.", {name: quote(name), expectedMemberType, type})
         return value
     }
 
@@ -3774,8 +3782,6 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - add tests for MenuManager
- * + - update tests for _toTypeFromValueOrVariable
  * + - change order of INSTANCE and NAME for getAttribute
  * + - finish project tests
  * + - german translation possibly

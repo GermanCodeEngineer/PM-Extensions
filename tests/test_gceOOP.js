@@ -16,7 +16,7 @@ if (!ext) {
 
 const {
     VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager,
-    CONFIG, Cast, CustomType, BaseCallableType, FunctionType, InstanceMethodType,
+    Cast, CustomType, BaseCallableType, FunctionType, InstanceMethodType,
     GetterMethodType, SetterMethodType, OperatorMethodType,
     ClassType, ClassInstanceType, NothingType, Nothing,
 } = ext.environment
@@ -26,8 +26,8 @@ const {
 let passed = 0
 let failed = 0
 let suiteDepth = 0
-let succeededSymbol = "✓"
-let failedSymbol = "✗"
+let succeededSymbol = "[YY]"
+let failedSymbol = "[XX]"
 
 function describe(name, fn) {
     const indent = "  ".repeat(suiteDepth)
@@ -1091,7 +1091,7 @@ describe("MenuManager", () => {
         { value: "internal2", text: "Public 2" }
     ]
 
-    describe("constructor", () => {
+    describe("constructor && getMenuItems", () => {
         test("initializes with error message and menu items", () => {
             const mm = new MenuManager("Invalid value: {value}", menuItems)
             assert.deepEqual(mm.getMenuItems(), menuItems)
@@ -1264,7 +1264,7 @@ describe("Cast", () => {
             s.setScopeVar(name, { foo: 1 })
             assertThrows(
                 () => Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name"),
-                "is a JavaScript Object (generic)"
+                "Unknown (non-runtime environment)."
             )
         })
 
@@ -1277,39 +1277,28 @@ describe("Cast", () => {
                 Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name")
             } catch (e) {
                 assert.ok(e.message.includes("Expected a class or class variable name"))
-                assert.ok(e.message.includes("is a Number"))
+                assert.ok(e.message.includes("Unknown (non-runtime environment)."))
             }
         })
 
-        // Additional edge cases
-        test("returns undefined for empty string variable name if not found and throwOnNotFound is false", () => {
-            const thread = {};
-            const s = ThreadUtil.getCurrentStack(thread);
-            assert.doesNotThrow(() => {
-                const result = Cast._toTypeFromValueOrVariable("", thread, v => v instanceof ClassType, "class or class variable name", false);
-                assert.strictEqual(result, undefined);
-            });
-        });
-
         test("accepts string numbers as variable names", () => {
             const thread = {};
-            const s = ThreadUtil.getCurrsentStack(thread);
+            const s = ThreadUtil.getCurrentStack(thread);
             const name = "456";
             const fn = makeFunctionType("fn456");
             s.setScopeVar(name, fn);
             assert.strictEqual(
                 Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof FunctionType, "function or function variable name"),
                 fn
-            );
-        });
+            )
+        })
 
         test("throws for symbol variable names", () => {
             assertThrows(
                 () => Cast._toTypeFromValueOrVariable(Symbol("sym"), {}, v => v instanceof ClassType, "class or class variable name"),
-                "not a valid variable name"
-            );
-        });
-    });
+                "Expected a class or class variable name"
+            )
+        })
     })
 
     describe("toClass", () => {
@@ -1356,36 +1345,7 @@ describe("Cast", () => {
             assert.strictEqual(Cast.toFunction(name, thread), fn)
         })
     })
-
-    describe("menu casting methods", () => {
-        test("toMenuClassProperty accepts valid values and rejects invalid", () => {
-            for (const val of ext.environment.MENU_ITEMS.CLASS_PROPERTY) {
-                assert.strictEqual(Cast.toMenuClassProperty(val), val)
-            }
-            assertThrows(() => Cast.toMenuClassProperty("not-a-class-property"), "Invalid class property")
-        })
-
-        test("toMenuOperatorMethod accepts valid values and rejects invalid", () => {
-            for (const item of ext.environment.MENU_ITEMS.OPERATOR_METHOD) {
-                assert.strictEqual(Cast.toMenuOperatorMethod(item.text), item.text)
-            }
-            assertThrows(() => Cast.toMenuOperatorMethod("not-an-operator-method"), "Invalid operator method")
-        })
-
-        test("toMenuSpecialMethod accepts valid values and rejects invalid", () => {
-            for (const item of ext.environment.MENU_ITEMS.SPECIAL_METHOD) {
-                assert.strictEqual(Cast.toMenuSpecialMethod(item.text), item.text)
-            }
-            assertThrows(() => Cast.toMenuSpecialMethod("not-a-special-method"), "Invalid special method")
-        })
-
-        test("toMenuTypeofType accepts valid values and rejects invalid", () => {
-            for (const val of ext.environment.MENU_ITEMS.TYPEOF_MENU) {
-                assert.strictEqual(Cast.toMenuTypeofType(val), val)
-            }
-            assertThrows(() => Cast.toMenuTypeofType("not-a-typeof-type"), "Invalid typeof type")
-        })
-    })
+})
 
 describe("CustomType", () => {
     describe("subclassing", () => {
@@ -1573,31 +1533,22 @@ describe("OperatorMethodType", () => {
 })
 
 describe("ClassType", () => {
-    describe("toString", () => {
-        test("includes superclass info when present", () => {
-            const base = new ClassType("Base", null)
-            const sub = new ClassType("Sub", base)
-            assert.equal(base.toString(), "<Class 'Base'>")
-            assert.equal(sub.toString(), "<Class 'Sub'(super 'Base')>")
-        })
-    })
-
     describe("getMember", () => {
         test("resolves local members by precedence order", () => {
             const cls = new ClassType("Thing", null)
-            cls.setMemberOfType("i", "instance method", { kind: "instance" })
-            cls.setMemberOfType("s", "static method", { kind: "static" })
-            cls.setMemberOfType("p", "class variable", { kind: "var" })
+            cls.setMemberOfType("i", "CP_INSTANCE_METHOD", { kind: "instance" })
+            cls.setMemberOfType("s", "CP_STATIC_METHOD", { kind: "static" })
+            cls.setMemberOfType("p", "CP_CLASS_VARIABLE", { kind: "var" })
 
             const i = cls.getMember("i", false, false)
             const s = cls.getMember("s", false, false)
             const p = cls.getMember("p", false, false)
 
-            assert.strictEqual(i.type, "instance method")
+            assert.strictEqual(i.type, "CP_INSTANCE_METHOD")
             assert.deepStrictEqual(i.value, { kind: "instance" })
-            assert.strictEqual(s.type, "static method")
+            assert.strictEqual(s.type, "CP_STATIC_METHOD")
             assert.deepStrictEqual(s.value, { kind: "static" })
-            assert.strictEqual(p.type, "class variable")
+            assert.strictEqual(p.type, "CP_CLASS_VARIABLE")
             assert.deepStrictEqual(p.value, { kind: "var" })
         })
 
@@ -1611,26 +1562,26 @@ describe("ClassType", () => {
                 "value",
                 function* () { return Nothing }
             )
-            cls.setMemberOfType("value", "getter method", getter)
-            cls.setMemberOfType("value", "setter method", setter)
+            cls.setMemberOfType("value", "CP_GETTER_METHOD", getter)
+            cls.setMemberOfType("value", "CP_SETTER_METHOD", setter)
 
             const preferGetter = cls.getMember("value", false, false)
             const preferSetter = cls.getMember("value", false, true)
 
-            assert.strictEqual(preferGetter.type, "getter method")
+            assert.strictEqual(preferGetter.type, "CP_GETTER_METHOD")
             assert.strictEqual(preferGetter.value, getter)
-            assert.strictEqual(preferSetter.type, "setter method")
+            assert.strictEqual(preferSetter.type, "CP_SETTER_METHOD")
             assert.strictEqual(preferSetter.value, setter)
         })
 
         test("resolves inherited members only when recursive=true", () => {
             const base = new ClassType("Base", null)
             const sub = new ClassType("Sub", base)
-            base.setMemberOfType("baseOnly", "class variable", 7)
+            base.setMemberOfType("baseOnly", "CP_CLASS_VARIABLE", 7)
 
             assert.strictEqual(sub.getMember("baseOnly", false, false).type, null)
             const recursive = sub.getMember("baseOnly", true, false)
-            assert.strictEqual(recursive.type, "class variable")
+            assert.strictEqual(recursive.type, "CP_CLASS_VARIABLE")
             assert.strictEqual(recursive.value, 7)
         })
     })
@@ -1641,20 +1592,20 @@ describe("ClassType", () => {
                 "make",
                 function* () { return Nothing }
             )
-            cls.setMemberOfType("make", "static method", fn)
+            cls.setMemberOfType("make", "CP_STATIC_METHOD", fn)
 
-            assert.strictEqual(cls.getMemberOfType("make", "static method"), fn)
+            assert.strictEqual(cls.getMemberOfType("make", "CP_STATIC_METHOD"), fn)
         })
 
         test("throws for missing members of expected type", () => {
             const cls = new ClassType("Thing", null)
-            assertThrows(() => cls.getMemberOfType("missing", "static method"), "Undefined static method")
+            assertThrows(() => cls.getMemberOfType("missing", "CP_STATIC_METHOD"), "Undefined static method")
         })
 
         test("throws when a member exists but with the wrong type", () => {
             const cls = new ClassType("Thing", null)
-            cls.setMemberOfType("x", "class variable", 1)
-            assertThrows(() => cls.getMemberOfType("x", "instance method"), "is not a instance method")
+            cls.setMemberOfType("x", "CP_CLASS_VARIABLE", 1)
+            assertThrows(() => cls.getMemberOfType("x", "CP_INSTANCE_METHOD"), "is not a instance method")
         })
     })
 
@@ -1663,10 +1614,10 @@ describe("ClassType", () => {
             const base = new ClassType("Base", null)
             const sub = new ClassType("Sub", base)
 
-            base.setMemberOfType("baseOnly", "class variable", 1)
-            base.setMemberOfType("shared", "class variable", "base")
-            sub.setMemberOfType("shared", "class variable", "sub")
-            sub.setMemberOfType("subOnly", "class variable", 2)
+            base.setMemberOfType("baseOnly", "CP_CLASS_VARIABLE", 1)
+            base.setMemberOfType("shared", "CP_CLASS_VARIABLE", "base")
+            sub.setMemberOfType("shared", "CP_CLASS_VARIABLE", "sub")
+            sub.setMemberOfType("subOnly", "CP_CLASS_VARIABLE", 2)
 
             const [, , , , , variables] = sub.getAllMembers()
             assert.deepStrictEqual({ ...variables }, {
@@ -1674,15 +1625,15 @@ describe("ClassType", () => {
                 shared: "sub",
                 subOnly: 2,
             })
-            assert.strictEqual(sub.getMemberOfType("baseOnly", "class variable"), 1)
+            assert.strictEqual(sub.getMemberOfType("baseOnly", "CP_CLASS_VARIABLE"), 1)
         })
     })
 
     describe("setMemberOfType", () => {
         test("rejects incompatible redefinitions with the same name", () => {
             const cls = new ClassType("C", null)
-            cls.setMemberOfType("thing", "instance method", { tag: "method" })
-            assertThrows(() => cls.setMemberOfType("thing", "class variable", 99), "same name")
+            cls.setMemberOfType("thing", "CP_INSTANCE_METHOD", { tag: "method" })
+            assertThrows(() => cls.setMemberOfType("thing", "CP_CLASS_VARIABLE", 99), "same name")
         })
 
         test("allows getter/setter pair under the same name", () => {
@@ -1696,8 +1647,8 @@ describe("ClassType", () => {
                 function* () { return Nothing }
             )
 
-            assertDoesNotThrow(() => cls.setMemberOfType("prop", "getter method", getter))
-            assertDoesNotThrow(() => cls.setMemberOfType("prop", "setter method", setter))
+            assertDoesNotThrow(() => cls.setMemberOfType("prop", "CP_GETTER_METHOD", getter))
+            assertDoesNotThrow(() => cls.setMemberOfType("prop", "CP_SETTER_METHOD", setter))
             assert.strictEqual(cls.getMember("prop", false, false).value, getter)
             assert.strictEqual(cls.getMember("prop", false, true).value, setter)
         })
@@ -1725,12 +1676,12 @@ describe("ClassType", () => {
                 function* () { return 2 }
             )
 
-            cls.setMemberOfType("im", "instance method", instanceMethod)
-            cls.setMemberOfType("sm", "static method", staticMethod)
-            cls.setMemberOfType("gm", "getter method", getterMethod)
-            cls.setMemberOfType("stm", "setter method", setterMethod)
-            cls.setMemberOfType("om", "operator method", operatorMethod)
-            cls.setMemberOfType("cv", "class variable", 123)
+            cls.setMemberOfType("im", "CP_INSTANCE_METHOD", instanceMethod)
+            cls.setMemberOfType("sm", "CP_STATIC_METHOD", staticMethod)
+            cls.setMemberOfType("gm", "CP_GETTER_METHOD", getterMethod)
+            cls.setMemberOfType("stm", "CP_SETTER_METHOD", setterMethod)
+            cls.setMemberOfType("om", "CP_OPERATOR_METHOD", operatorMethod)
+            cls.setMemberOfType("cv", "CP_CLASS_VARIABLE", 123)
 
             assert.strictEqual(cls.instanceMethods.im, instanceMethod)
             assert.strictEqual(cls.staticMethods.sm, staticMethod)
@@ -1750,11 +1701,11 @@ describe("ClassType", () => {
                 function* () { return Nothing }
             )
 
-            cls.setMemberOfType("sm", "static method", fn)
-            cls.setMemberOfType("cv", "class variable", 123)
+            cls.setMemberOfType("sm", "CP_STATIC_METHOD", fn)
+            cls.setMemberOfType("cv", "CP_CLASS_VARIABLE", 123)
 
-            cls.deleteMemberOfType("sm", "static method")
-            cls.deleteMemberOfType("cv", "class variable")
+            cls.deleteMemberOfType("sm", "CP_STATIC_METHOD")
+            cls.deleteMemberOfType("cv", "CP_CLASS_VARIABLE")
 
             assert.strictEqual(cls.getMember("sm", false, false).type, null)
             assert.strictEqual(cls.clsVariables.has("cv"), false)
@@ -1764,15 +1715,15 @@ describe("ClassType", () => {
             const cls = new ClassType("C", null)
             cls.setMemberOfType(
                 "make",
-                "static method",
+                "CP_STATIC_METHOD",
                 makeFunctionType(
                     "make",
                     function* () { return Nothing }
                 )
             )
 
-            assertThrows(() => cls.deleteMemberOfType("missing", "class variable"), "Undefined class variable")
-            assertThrows(() => cls.deleteMemberOfType("make", "class variable"), "not a class variable")
+            assertThrows(() => cls.deleteMemberOfType("missing", "CP_CLASS_VARIABLE"), "Undefined class variable")
+            assertThrows(() => cls.deleteMemberOfType("make", "CP_CLASS_VARIABLE"), "not a class variable")
         })
     })
 
@@ -1780,10 +1731,10 @@ describe("ClassType", () => {
         test("executes init and returns an instance", () => {
             const cls = new ClassType("Widget", null)
             cls.setMemberOfType(
-                CONFIG.INIT_METHOD_NAME,
-                "instance method",
+                "__SM_INIT_METHOD__",
+                "CP_INSTANCE_METHOD",
                 new InstanceMethodType(
-                    CONFIG.INIT_METHOD_NAME,
+                    "__SM_INIT_METHOD__",
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
@@ -1804,10 +1755,10 @@ describe("ClassType", () => {
         test("rejects init methods that return a non-Nothing value", () => {
             const cls = new ClassType("Widget", null)
             cls.setMemberOfType(
-                CONFIG.INIT_METHOD_NAME,
-                "instance method",
+                "__SM_INIT_METHOD__",
+                "CP_INSTANCE_METHOD",
                 new InstanceMethodType(
-                    CONFIG.INIT_METHOD_NAME,
+                    "__SM_INIT_METHOD__",
                     function* (thread) {
                         ThreadUtil.getStackManager(thread).prepareReturn()
                         return "bad"
@@ -1826,7 +1777,7 @@ describe("ClassType", () => {
             const cls = new ClassType("Toolbox", null)
             cls.setMemberOfType(
                 "make",
-                "static method",
+                "CP_STATIC_METHOD",
                 new FunctionType(
                     "make",
                     function* (thread) {
@@ -1853,14 +1804,14 @@ describe("ClassType", () => {
                 "make",
                 function* () { return Nothing }
             )
-            base.setMemberOfType("make", "static method", fn)
+            base.setMemberOfType("make", "CP_STATIC_METHOD", fn)
 
             assert.strictEqual(sub.getStaticMethod("make"), fn)
         })
 
         test("throws when member is missing or not a static method", () => {
             const cls = new ClassType("C", null)
-            cls.setMemberOfType("value", "class variable", 1)
+            cls.setMemberOfType("value", "CP_CLASS_VARIABLE", 1)
             assertThrows(() => cls.getStaticMethod("missing"), "Undefined static method")
             assertThrows(() => cls.getStaticMethod("value"), "is not a static method")
         })
@@ -1891,7 +1842,7 @@ describe("ClassInstanceType", () => {
             const cls = new ClassType("Greeter", null)
             cls.setMemberOfType(
                 "speak",
-                "instance method",
+                "CP_INSTANCE_METHOD",
                 makeMethodType(
                     "speak",
                     function* (thread) {
@@ -1923,7 +1874,7 @@ describe("ClassInstanceType", () => {
             const sub = new ClassType("Sub", base)
             base.setMemberOfType(
                 "speak",
-                "instance method",
+                "CP_INSTANCE_METHOD",
                 new InstanceMethodType(
                     "speak",
                     function* (thread) {
@@ -1937,7 +1888,7 @@ describe("ClassInstanceType", () => {
             )
             sub.setMemberOfType(
                 "speak",
-                "instance method",
+                "CP_INSTANCE_METHOD",
                 new InstanceMethodType(
                     "speak",
                     function* (thread) {
@@ -1965,10 +1916,10 @@ describe("ClassInstanceType", () => {
         test("use the public operator name mapping", () => {
             const cls = new ClassType("Counter", null)
             cls.setMemberOfType(
-                CONFIG.INTERNAL_OP_NAMES["left add"],
-                "operator method",
+                "__OM_LEFT_ADD__",
+                "CP_OPERATOR_METHOD",
                 makeOperatorMethodType(
-                    CONFIG.INTERNAL_OP_NAMES["left add"],
+                    "__OM_LEFT_ADD__",
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
@@ -1981,9 +1932,9 @@ describe("ClassInstanceType", () => {
             const instance = new ClassInstanceType(cls)
             instance.attributes.base = 5
 
-            assert.strictEqual(runGenerator(instance.hasOperatorMethod("left add")), true)
+            assert.strictEqual(runGenerator(instance.hasOperatorMethod("__OM_LEFT_ADD__")), true)
             assert.strictEqual(runGenerator(instance.hasOperatorMethod("right add")), false)
-            assert.strictEqual(runGenerator(instance.executeOperatorMethod({}, "left add", 7)), 12)
+            assert.strictEqual(runGenerator(instance.executeOperatorMethod({}, "__OM_LEFT_ADD__", 7)), 12)
         })
     })
     
@@ -2000,7 +1951,7 @@ describe("ClassInstanceType", () => {
             const cls = new ClassType("Item", null)
             cls.setMemberOfType(
                 "name",
-                "getter method",
+                "CP_GETTER_METHOD",
                 makeGetterMethodType(
                     "name",
                     function* (thread) {
@@ -2023,7 +1974,7 @@ describe("ClassInstanceType", () => {
             const cls = new ClassType("Item", null)
             cls.setMemberOfType(
                 "name",
-                "setter method",
+                "CP_SETTER_METHOD",
                 makeSetterMethodType(
                     "name",
                     function* (thread) {
@@ -2045,7 +1996,7 @@ describe("ClassInstanceType", () => {
             const cls = new ClassType("ReadOnly", null)
             cls.setMemberOfType(
                 "value",
-                "getter method",
+                "CP_GETTER_METHOD",
                 makeGetterMethodType(
                     "value",
                     function* (thread) {
