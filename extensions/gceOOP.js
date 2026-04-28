@@ -187,7 +187,7 @@ const TRANSLATIONS = {
         "Attributes": "Attribute",
         "on [INSTANCE] set attribute [NAME] to [VALUE]": "Setze Attribut [NAME] von [INSTANCE] auf [VALUE]",
         "Sets an attribute on an instance or calls its setter if one exists.": "Setzt ein Attribut einer Instanz oder ruft deren Setter auf, falls vorhanden.",
-        "attribute [NAME] of [INSTANCE]": "Attribut [NAME] von [INSTANCE]",
+        "on [INSTANCE] get attribute [NAME]": "Attribut [NAME] von [INSTANCE]",
         "Gets an attribute from an instance or calls its getter if one exists.": "Liest ein Attribut einer Instanz aus oder ruft deren Getter auf, falls vorhanden.",
         "all attributes of [INSTANCE]": "Alle Attribute von [INSTANCE]",
         "Returns all direct instance attributes as an object.": "Gibt alle direkten Instanzattribute als Objekt zurück.",
@@ -2654,7 +2654,7 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "getAttribute",
-                    text: "attribute [NAME] of [INSTANCE]",
+                    text: "on [INSTANCE] get attribute [NAME]",
                     tooltip: "Gets an attribute from an instance or calls its getter if one exists.",
                     arguments: {
                         NAME: commonArguments.attributeName,
@@ -3782,10 +3782,7 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - change order of INSTANCE and NAME for getAttribute
  * + - finish project tests
- * + - german translation possibly
- * + - ~ apply all changes to gceFuncsScopes
  * + - ensure all menu value handling is consistent and no translated immediate strings are used in code
  * + - properly namespace class members (prefixes) and keep a list of occupied names or so
  * + - why no error raised in funcs scopes (german locale)

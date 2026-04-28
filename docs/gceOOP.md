@@ -197,12 +197,12 @@ create subclass at var [MySubclass] with superclass [MyClass] (current class::#4
 create class at var [MyClass] (current class::#428af5) {
 	\/\/ Define an instance method ::#949494
 	definẹ instance method [greet] (self::#428af5) {
-		say (join [Hello, ] (attribute [name] of (self::#428af5)::#428af5))
+		say (join [Hello, ] (on (self::#428af5) get attribute [name]::#428af5))
 	}::#428af5
 
 	\/\/ Define a getter and setter ::#949494
 	definẹ getter [score] (self::#428af5) {
-		return (attribute [internalScore] of (self::#428af5)::#428af5) ::#428af5
+		return (on (self::#428af5) get attribute [internalScore]::#428af5) ::#428af5
 	}::#428af5
 	definẹ setter [score] (self::#428af5) (value::#428af5) {
 		on (self::#428af5) set attribute [internalScore] to (value::#428af5) ::#428af5
@@ -210,7 +210,7 @@ create class at var [MyClass] (current class::#428af5) {
 
 	\/\/ Define an operator method ::#949494
 	definẹ operator method [left add v] (other value::#428af5) {
-		return ((attribute [score] of (self::#428af5)::#428af5) + (other value::#428af5))::#428af5
+		return ((on (self::#428af5) get attribute [score]::#428af5) + (other value::#428af5))::#428af5
 	}::#428af5
 
 	\/\/ Define a static method ::#949494
@@ -229,7 +229,7 @@ create class at var [MyClass] (current class::#428af5) {
 
 	\/\/ Special method: as string for (() as string::#428af5) ::#949494
 	definẹ [as string v] instance method (self::#428af5) {
-		return (join (attribute [name] of (self::#428af5)::#428af5) (attribute [internalScore] of (self::#428af5)::#428af5)) ::#428af5
+		return (join (on (self::#428af5) get attribute [name]::#428af5) (on (self::#428af5) get attribute [internalScore]::#428af5)) ::#428af5
 	}::#428af5
 }::#428af5
 
@@ -266,7 +266,7 @@ set var [bob] to (create instance of class [MyClass] with positional args (parse
 on [bob] set attribute [score] to [42]::#428af5
 
 \/\/ Get an attribute ::#949494
-say (attribute [score] of [bob]::#428af5)
+say (on [bob] get attribute [score]::#428af5)
 
 \/\/ Call an instance method ::#949494
 on [bob] call method [greet] with positional args (blank array::#ff513d)::#428af5
@@ -581,7 +581,7 @@ on [my instance] set attribute [myAttr] to [my value]::#428af5
 
 ---
 ```scratch
-(attribute [myAttr] of [my instance]::#428af5)
+(on [my instance] get attribute [myAttr]::#428af5)
 ```
 - Gets an attribute from an instance or calls its getter if one exists.
 
