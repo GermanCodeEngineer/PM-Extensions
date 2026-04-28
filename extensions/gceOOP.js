@@ -3783,7 +3783,6 @@ if (!isRuntimeEnv) {
  * 
  * + WORKING ON
  * + - finish project tests
- * + - ensure all menu value handling is consistent and no translated immediate strings are used in code
  * + - properly namespace class members (prefixes) and keep a list of occupied names or so
  * + - why no error raised in funcs scopes (german locale)
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
