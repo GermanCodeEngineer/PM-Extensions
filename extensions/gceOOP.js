@@ -3502,6 +3502,15 @@ class GCEOOPBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
+    typeofValueSelection(args, util) {
+        const internalCode = MENUS.TYPEOF_MENU.standardizeBlockInput(args.TYPE)
+        return MENUS.TYPEOF_MENU.internalToPublic(internalCode)
+    }
+
+    /**
+     * @param {BlockArgs} args
+     * @param {BlockUtil} util
+     */
     checkIdentity(args, util) {
         return Object.is(args.VALUE1, args.VALUE2)
     }
@@ -3769,11 +3778,6 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - typeof block: maybe menu-only block
- * + - proper error framework (maybe in seperate extension)
- * + - ~ throw all errors so that they remember their type
- * + - ~ add catch error of type block
- * + - ~ add get error type block
  * + - finish project tests
  *
  * + HIGH PRIORITY
@@ -3781,6 +3785,10 @@ if (!isRuntimeEnv) {
  * + - consider different architecture for storing block implementations
  * + - consider splitting "OOP" extension again
  * + - update test runner in gallery
+ * + - proper error framework (maybe in seperate extension)
+ * + - ~ throw all errors so that they remember their type
+ * + - ~ add catch error of type block
+ * + - ~ add get error type block
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)

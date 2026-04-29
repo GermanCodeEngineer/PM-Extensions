@@ -688,6 +688,14 @@ return [my value]::#428af5 cap
 
 ---
 ```scratch
+((Class Instance \(GCE\) v)::#428af5)
+((String v)::#428af5)
+((Array \(jwklong\) v)::#428af5)
+```
+- Provides a list of value types, you can choose from.
+
+---
+```scratch
 <[my instance] is [other instance] ?::#428af5>
 ```
 - Checks whether two values are exactly the same value (the same instance).

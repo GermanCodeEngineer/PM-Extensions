@@ -81,6 +81,8 @@ const TRANSLATIONS = {
         "typeof [VALUE]": "typeof [VALUE]",
         "Returns a readable type name for a value.": "Gibt einen lesbaren Typnamen für einen Wert zurück.",
         "typeof [VALUE] is [TYPE] ?": "typeof [VALUE] ist [TYPE]?",
+        "[TYPE]": "[TYPE]",
+        "Provides a list of value types, you can choose from.": "Stellt eine Liste von Wertetypen zur Auswahl bereit.",
         "Check if a value is of a specific type.": "Prüft, ob ein Wert von einem bestimmten Typ ist.",
         "[VALUE1] is [VALUE2] ?": "[VALUE1] ist [VALUE2]?",
         "Checks whether two values are exactly the same value (the same instance).": "Prüft, ob zwei Werte genau derselbe Wert (dasselbe Objekt) sind.",
@@ -537,6 +539,15 @@ class GCEFuncsScopesBlocks {
                     },
                 },
                 {
+                    ...commonBlocks.returnsAnything,
+                    opcode: "typeofValueSelection",
+                    text: "[TYPE]",
+                    tooltip: "Provides a list of value types, you can choose from.",
+                    arguments: {
+                        TYPE: {type: ArgumentType.STRING, menu: "typeofMenu"},
+                    },
+                },
+                {
                     ...commonBlocks.returnsBoolean,
                     opcode: "checkIdentity",
                     text: "[VALUE1] is [VALUE2] ?",
@@ -660,6 +671,8 @@ class GCEFuncsScopesBlocks {
     typeofValue = this._getImplementation("typeofValue")
 
     typeofValueIsMenu = this._getImplementation("typeofValueIsMenu")
+
+    typeofValueSelection = this._getImplementation("typeofValueSelection")
 
     checkIdentity = this._getImplementation("checkIdentity")
 
