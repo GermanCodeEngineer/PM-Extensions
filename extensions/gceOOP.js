@@ -531,6 +531,8 @@ class VariableManager {
     set(name, value) {
         if (this.has(name)) {
             this._variables[name].value = value
+            this._variables[name].isDeleted = false
+            // In case it was marked deleted before => restores the variable in all scopes
         } else {
             this._variables[name] = new this.ValueHolder(value)
         }
@@ -554,7 +556,6 @@ class VariableManager {
     delete(name, throwOnNotFound = true) {
         if (this.has(name)) {
             this._variables[name].isDeleted = true // Mark the variable deleted for all scopes
-            delete this._variables[name]
         } else if (throwOnNotFound) {
             throwError("Variable {name} is not defined.", {name: quote(name)})
         }
@@ -3782,7 +3783,6 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - BUG: handling of isDeleted, edge case: when variable set, deleted and set again, might not be visible in scope, that it was bound to
  * + - finish project tests
  * + - why no error raised in funcs scopes (german locale)
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
