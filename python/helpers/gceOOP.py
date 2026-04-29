@@ -227,10 +227,6 @@ class gceOOP:
         )
 
     @staticmethod
-    def define_setter_value() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::value", inputs={}, dropdowns={})
-
-    @staticmethod
     def define_operator_method(
         substack: INPUT_COMPATIBLE_T, operator_kind: str
     ) -> p.SRBlock:
@@ -238,7 +234,7 @@ class gceOOP:
             opcode="&gceOOP::define operator method [OPERATOR_KIND] {:SHADOW:} {SUBSTACK}",
             inputs={
                 "SHADOW": InputValue.try_as_input(
-                    InputValue(gceOOP.operator_other_value()),
+                    InputValue(gceOOP.operator_operator_value()),
                     p.SREmbeddedBlockInputValue,
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
@@ -251,8 +247,12 @@ class gceOOP:
         )
 
     @staticmethod
-    def operator_other_value() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::other value", inputs={}, dropdowns={})
+    def operator_operator_value() -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceOOP::operator value {{id=gceOOP_operatorOperatorValue}}",
+            inputs={},
+            dropdowns={},
+        )
 
     @staticmethod
     def set_class_variable(
@@ -308,18 +308,15 @@ class gceOOP:
         )
 
     @staticmethod
-    def property_names_of_class(
-        property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
+    def property_names_of_class(class_: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::([PROPERTY]) names of class (CLASS)",
+            opcode="&gceOOP::[PROPERTY] names of class (CLASS)",
             inputs={
-                "PROPERTY": InputValue.try_as_input(
-                    property, p.SRBlockAndDropdownInputValue
-                ),
-                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
+                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue)
             },
-            dropdowns={},
+            dropdowns={
+                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
+            },
         )
 
     @staticmethod
@@ -379,7 +376,7 @@ class gceOOP:
         name: INPUT_COMPATIBLE_T, instance: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::attribute (NAME) of (INSTANCE)",
+            opcode="&gceOOP::on (INSTANCE) get attribute (NAME)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
@@ -443,6 +440,14 @@ class gceOOP:
         )
 
     @staticmethod
+    def define_setter_value() -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceOOP::operator value {{id=gceOOP_defineSetterValue}}",
+            inputs={},
+            dropdowns={},
+        )
+
+    @staticmethod
     def menu_class_property() -> p.SRBlock:
         return p.SRBlock(opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={})
 
@@ -455,7 +460,3 @@ class gceOOP:
     @staticmethod
     def menu_special_method() -> p.SRBlock:
         return p.SRBlock(opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={})
-
-    @staticmethod
-    def menu_typeof_menu() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::#menu:typeofMenu", inputs={}, dropdowns={})
