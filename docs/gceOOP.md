@@ -6,6 +6,7 @@
 Contents:
 - [Feature List](#features)
 - [Block List](#blocks)
+- [Supported Languages](#supported-languages)
 
 Thanks to [jwklong](https://github.com/jwklong), [DogeisCut](https://github.com/dogeiscut), [Sharkpool](https://github.com/SharkPool-SP) and especially [**VeryGoodScratcher42**](https://github.com/Lego7set) for inspiration.
 
@@ -702,3 +703,7 @@ return [my value]::#428af5 cap
 execute expression (call function [myFunction] with positional args (parse [\["Bob", "Goodbye."\]] as an array::#ff513d)::#428af5)::#428af5
 ```
 - Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.
+
+# Supported Languages
+> **Error messages and block names and tooltips are available in English and German.** Many things (like menus or value representation) can not be translated, as in many cases that would result in different behaviour depending on the used language.<br>
+> *Note:* Because error messages are translated, you can **not rely** on an error message always to always use the same format.

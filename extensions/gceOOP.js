@@ -55,10 +55,14 @@ const TRANSLATIONS = {
         "Expected a {expectedDescription} not a {actualDescription}.": "Erwartet wurde ein(e) {expectedDescription}, nicht ein(e) {actualDescription}.",
         "Expected a {expectedDescription}, but variable {value} is not defined.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist nicht definiert.",
         "Expected a {expectedDescription}, but variable {value} is a {varValueName}.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist ein(e) {varValueName}.",
+
         "Invalid class property: {value}": "Ungültige Klassen-Eigenschaft: {value}",
-        "Invalid operator method: {value}": "Ungültige Operator-Methode: {value}",
         "Invalid special method: {value}": "Ungültige Spezialmethode: {value}",
+        "Invalid operator method: {value}": "Ungültige Operator-Methode: {value}",
+        "Invalid variable scope kind: {value}": "Ungültiger Variablenbereichstyp: {value}",
+        "Invalid variable kind: {value}": "Ungültiger Variablentyp: {value}",
         "Invalid typeof type: {value}": "Ungültiger typeof-Typ: {value}",
+
         "{prefix}: expected at most {maxArgCount} positional arguments, but got {argCount}.": "{prefix}: erwartet wurden höchstens {maxArgCount} Positionsargumente, aber {argCount} wurden erhalten.",
         "{prefix}: expected at least {posOnlyCount} positional arguments, but got only {argCount}.": "{prefix}: erwartet wurden mindestens {posOnlyCount} Positionsargumente, aber nur {argCount} wurden erhalten.",
         "Setter methods must return {nothingValue}.": "Setter-Methoden müssen {nothingValue} zurückgeben.",
@@ -71,36 +75,6 @@ const TRANSLATIONS = {
         "Can not set attribute {name} of {instanceValue}: attribute only has a getter method.": "Kann Attribut {name} von {instanceValue} nicht setzen: Das Attribut hat nur eine Getter-Methode.",
         "As String methods must always return a string.": "As-String-Methoden müssen immer einen String zurückgeben.",
         "Comparison Operator methods must always return a boolean.": "Vergleichsoperator-Methoden müssen immer einen Wahrheitswert (Boolean) zurückgeben.",
-
-        // MENUS
-        "instance method": "Instanzmethode",
-        "static method": "statische Methode",
-        "getter method": "Getter-Methode",
-        "setter method": "Setter-Methode",
-        "operator method": "Operator-Methode",
-        "class variable": "Klassenvariable",
-
-        "init": "initialisierung",
-        "as string": "als Zeichenfolge",
-
-        "left add": "linke Addition",
-        "right add": "rechte Addition",
-        "left subtract": "linke Subtraktion",
-        "right subtract": "rechte Subtraktion",
-        "left multiply": "linke Multiplikation",
-        "right multiply": "rechte Multiplikation",
-        "left divide": "linke Division",
-        "right divide": "rechte Division",
-        "left power": "linke Potenzierung",
-        "right power": "rechte Potenzierung",
-        "left mod": "linkes Modulo",
-        "right mod": "rechtes Modulo",
-        "equals": "gleich",
-        "not equals": "ungleich",
-        "greater than": "größer als",
-        "greater or equal": "größer oder gleich",
-        "less than": "kleiner als",
-        "less or equal": "kleiner oder gleich",
 
         // CAST
         "Unknown (non-runtime environment)": "Unbekannt (Nicht-Laufzeitumgebung)",
@@ -442,10 +416,7 @@ function translatedMsg(englishMessageTemplate, values) {
     const key = englishMessageTemplate;
     const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
     // If the key or key with leading underscore is not found, throw
-    if (deTranslations["__" + key] === null) {
-        // Purposefully untranslated, return the English message template
-        return Scratch.translate(englishMessageTemplate, values);
-    } else if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+    if (!deTranslations || (deTranslations["_" + key] === undefined)) {
         throw new Error(`Missing German translation for: ${key}`);
     } else {
         // Translation exists, return the translated message
@@ -1195,6 +1166,7 @@ const {BlockType, BlockShape, ArgumentType} = Scratch
 const runtime = Scratch.vm.runtime
 
 const MENUS = {
+    // Not translated on purpose, because that could result in different behaviour of scripts
     CLASS_PROPERTY: new MenuManager("Invalid class property: {value}", [
         {value: "CP_INSTANCE_METHOD", text: "instance method"},
         {value: "CP_STATIC_METHOD", text: "static method"},
@@ -1202,12 +1174,44 @@ const MENUS = {
         {value: "CP_SETTER_METHOD", text: "setter method"},
         {value: "CP_OPERATOR_METHOD", text: "operator method"},
         {value: "CP_CLASS_VARIABLE", text: "class variable"},
-    ].map(item => ({...item, text: translatedMsg(item.text)}))),
+    ]),
 
     SPECIAL_METHOD: new MenuManager("Invalid special method: {value}", [
         {value: "__SM_INIT_METHOD__", text: "init"},
         {value: "__SM_AS_STRING_METHOD__", text: "as string"},
-    ].map(item => ({...item, text: translatedMsg(item.text)}))),
+    ]),
+
+    OPERATOR_METHOD: new MenuManager("Invalid operator method: {value}", [
+        {value: "__OM_LEFT_ADD__", text: "left add"},
+        {value: "__OM_RIGHT_ADD__", text: "right add"},
+        {value: "__OM_LEFT_SUBTRACT__", text: "left subtract"},
+        {value: "__OM_RIGHT_SUBTRACT__", text: "right subtract"},
+        {value: "__OM_LEFT_MULTIPLY__", text: "left multiply"},
+        {value: "__OM_RIGHT_MULTIPLY__", text: "right multiply"},
+        {value: "__OM_LEFT_DIVIDE__", text: "left divide"},
+        {value: "__OM_RIGHT_DIVIDE__", text: "right divide"},
+        {value: "__OM_LEFT_POWER__", text: "left power"},
+        {value: "__OM_RIGHT_POWER__", text: "right power"},
+        {value: "__OM_LEFT_MOD__", text: "left mod"},
+        {value: "__OM_RIGHT_MOD__", text: "right mod"},
+        {value: "__OM_EQUALS__", text: "equals"},
+        {value: "__OM_NOT_EQUALS__", text: "not equals"},
+        {value: "__OM_GREATER_THAN__", text: "greater than"},
+        {value: "__OM_GREATER_OR_EQUAL__", text: "greater or equal"},
+        {value: "__OM_LESS_THAN__", text: "less than"},
+        {value: "__OM_LESS_OR_EQUAL__", text: "less or equal"},
+    ]),
+
+    VARIABLE_AVAILABLE_KIND: new MenuManager("Invalid variable scope kind: {value}", [
+        {value: "VAK_ALL", text: "all scopes"},
+        {value: "VAK_LOCAL", text: "local scope"},
+        {value: "VAK_GLOBAL", text: "global scope"},
+    ]),
+
+    BIND_VAR_ORIGIN_KIND: new MenuManager("Invalid variable kind: {value}", [
+        {value: "BVOK_GLOBAL", text: "global"},
+        {value: "BVOK_NONLOCAL", text: "non-local"},
+    ]),
 
     TYPEOF_MENU: new MenuManager("Invalid typeof type: {value}", [
         {value: "TO_BOOLEAN", text: "Boolean"},
@@ -1251,28 +1255,7 @@ const MENUS = {
         {value: "TO_FUNCTION_JS", text: "JavaScript Function"},
         {value: "TO_OBJECT_JS", text: "JavaScript Object (generic)"},
         {value: "TO_UNKNOWN", text: "Unknown (rare)"},
-    ]), // Not translated on purpose, because that could result in different behaviour of scripts
-
-    OPERATOR_METHOD: new MenuManager("Invalid operator method: {value}", [
-        {value: "__OM_LEFT_ADD__", text: "left add"},
-        {value: "__OM_RIGHT_ADD__", text: "right add"},
-        {value: "__OM_LEFT_SUBTRACT__", text: "left subtract"},
-        {value: "__OM_RIGHT_SUBTRACT__", text: "right subtract"},
-        {value: "__OM_LEFT_MULTIPLY__", text: "left multiply"},
-        {value: "__OM_RIGHT_MULTIPLY__", text: "right multiply"},
-        {value: "__OM_LEFT_DIVIDE__", text: "left divide"},
-        {value: "__OM_RIGHT_DIVIDE__", text: "right divide"},
-        {value: "__OM_LEFT_POWER__", text: "left power"},
-        {value: "__OM_RIGHT_POWER__", text: "right power"},
-        {value: "__OM_LEFT_MOD__", text: "left mod"},
-        {value: "__OM_RIGHT_MOD__", text: "right mod"},
-        {value: "__OM_EQUALS__", text: "equals"},
-        {value: "__OM_NOT_EQUALS__", text: "not equals"},
-        {value: "__OM_GREATER_THAN__", text: "greater than"},
-        {value: "__OM_GREATER_OR_EQUAL__", text: "greater or equal"},
-        {value: "__OM_LESS_THAN__", text: "less than"},
-        {value: "__OM_LESS_OR_EQUAL__", text: "less or equal"},
-    ].map(item => ({...item, text: translatedMsg(item.text)}))),
+    ]),
 }
 
 
@@ -2708,15 +2691,15 @@ class GCEOOPBlocks {
             ],
             menus: {
                 classProperty: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: MENUS.CLASS_PROPERTY.getMenuItems(),
                 },
                 operatorMethod: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: MENUS.OPERATOR_METHOD.getMenuItems(),
                 },
                 specialMethod: {
-                    acceptReporters: false,
+                    acceptReporters: true,
                     items: MENUS.SPECIAL_METHOD.getMenuItems(),
                 },
             },
@@ -3178,16 +3161,17 @@ class GCEOOPBlocks {
      */
     scopeVarExists(args, util) {
         const name = Cast.toString(args.NAME)
+        const kind = MENUS.VARIABLE_AVAILABLE_KIND.standardizeBlockInput(args.KIND)
         const currentStack = ThreadUtil.getCurrentStack(util.thread)
         let hasVar
-        switch (args.KIND) {
-            case "all scopes":
+        switch (kind) {
+            case "VAK_ALL":
                 hasVar = currentStack.hasScopeVar(name, false, false)
                 break
-            case "local scope":
+            case "VAL_LOCAL":
                 hasVar = currentStack.hasScopeVar(name, true, false)
                 break
-            case "global scope":
+            case "VAK_GLOBAL":
                 hasVar = currentStack.hasScopeVar(name, false, true)
                 break
         }
@@ -3208,16 +3192,17 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     allVariables(args, util) {
+        const kind = MENUS.VARIABLE_AVAILABLE_KIND.standardizeBlockInput(args.KIND)
         const currentStack = ThreadUtil.getCurrentStack(util.thread)
         let varNames
-        switch (args.KIND) {
-            case "all scopes":
+        switch (kind) {
+            case "VAK_ALL":
                 varNames = currentStack.getScopeVarNames(false, false)
                 break
-            case "local scope":
+            case "VAK_LOCAL":
                 varNames = currentStack.getScopeVarNames(true, false)
                 break
-            case "global scope":
+            case "VAK_GLOBAL":
                 varNames = currentStack.getScopeVarNames(false, true)
                 break
         }
@@ -3241,12 +3226,13 @@ class GCEOOPBlocks {
      */
     bindVarToScope(args, util) {
         const name = Cast.toString(args.NAME)
-        switch (args.KIND) {
-            case "non-local":
-                ThreadUtil.getCurrentStack(util.thread).bindScopeVarNonlocal(name)
-                break
-            case "global":
+        const kind = MENUS.BIND_VAR_ORIGIN_KIND.standardizeBlockInput(args.KIND)
+        switch (kind) {
+            case "BVOK_GLOBAL":
                 ThreadUtil.getCurrentStack(util.thread).bindScopeVarGlobal(name)
+                break
+            case "BVOK_NONLOCAL":
+                ThreadUtil.getCurrentStack(util.thread).bindScopeVarNonlocal(name)
                 break
         }
     }
@@ -3783,14 +3769,12 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - finish project tests
- * + - why no error raised in funcs scopes (german locale)
- * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
- * + - typeof block: maybe menu-only block, maybe add "id" vs. "pretty name" option
+ * + - typeof block: maybe menu-only block
  * + - proper error framework (maybe in seperate extension)
  * + - ~ throw all errors so that they remember their type
  * + - ~ add catch error of type block
  * + - ~ add get error type block
+ * + - finish project tests
  *
  * + HIGH PRIORITY
  * + - allow strings for class instance inputs
