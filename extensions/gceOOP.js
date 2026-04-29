@@ -54,7 +54,7 @@ const TRANSLATIONS = {
         "Expected a {expectedDescription}, but got no input value.": "Erwartet wurde ein(e) {expectedDescription}, aber es wurde kein Eingabewert übergeben.",
         "Expected a {expectedDescription} not a {actualDescription}.": "Erwartet wurde ein(e) {expectedDescription}, nicht ein(e) {actualDescription}.",
         "Expected a {expectedDescription}, but variable {value} is not defined.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist nicht definiert.",
-        "Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist ein(e) {varValueName}.",
+        "Expected a {expectedDescription}, but variable {value} is a {varValueName}.": "Erwartet wurde ein(e) {expectedDescription}, aber die Variable {value} ist ein(e) {varValueName}.",
         "Invalid class property: {value}": "Ungültige Klassen-Eigenschaft: {value}",
         "Invalid operator method: {value}": "Ungültige Operator-Methode: {value}",
         "Invalid special method: {value}": "Ungültige Spezialmethode: {value}",
@@ -1580,7 +1580,7 @@ class Cast extends Scratch.Cast {
             throwError("Expected a {expectedDescription}, but variable {value} is not defined.", {expectedDescription, value: quote(value)})
         }
         if (isValidVal(varValue)) return varValue
-        throwError("Expected a {expectedDescription}, but variable {value} is a(n) {varValueName}.", {
+        throwError("Expected a {expectedDescription}, but variable {value} is a {varValueName}.", {
             expectedDescription, value: quote(value), varValueName: TypeChecker.stringTypeof(varValue),
         })
     }
@@ -3782,6 +3782,7 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
+ * + - BUG: handling of isDeleted, edge case: when variable set, deleted and set again, might not be visible in scope, that it was bound to
  * + - finish project tests
  * + - why no error raised in funcs scopes (german locale)
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)

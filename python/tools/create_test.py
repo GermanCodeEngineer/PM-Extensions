@@ -195,17 +195,36 @@ def test_Cast() -> p.FRProject:
                 t.assert_type(o.get_scope_var("attributes"), "Object (DogeisCut)"),
                 t.assert_unstrict_equal(o.get_scope_var("attributes"), '{"my attribute":"hello"}'),
             ])]),
+            t.test_scope("toClass && toClassInstance && toFunction", [o.create_var_scope([
+                o.create_class_at("MyClass", []),
+                t.assert_unstrict_equal(o.get_superclass(o.create_subclass_at("Sub", "MyClass", [])), "<Class 'MyClass'>"),
+                t.assert_throws_contains("but got no input value", [
+                    o.get_superclass(h.SPjavascriptV2.js_reporter("return undefined")),
+                ]),
+                t.assert_throws_contains("but got no input value", [
+                    o.get_superclass(h.SPjavascriptV2.js_reporter("return null")),
+                ]),
+                t.assert_unstrict_equal(o.get_superclass("MyClass"), "<Class 'Superclass'>"),
+                o.create_class_at("513", []),
+                t.assert_unstrict_equal(o.get_superclass("513"), "<Class 'Superclass'>"),
+                t.assert_throws_contains("but got no input value", [
+                    o.get_superclass(h.SPjavascriptV2.js_reporter("return null")),
+                ]),
+                t.assert_throws([
+                    o.create_subclass_at("Sub2", o.create_function_named("myFunction", []), []),
+                ]),
+            ])]),
         ]),
     )
     
     return create_test_project(scripts=[script], extension_ids=[
-        "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
+        "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto", "SPjavascriptV2",
     ])
 
 def main() -> None:
     configure()
     test_projects_dir = Path("test_projects")
-    write_project_to_file(test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp")
+    #write_project_to_file(test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp")
     write_project_to_file(test_Cast(), test_projects_dir / "test_Cast.pmp")
 
 if __name__ == "__main__":

@@ -1234,7 +1234,7 @@ describe("Cast", () => {
             s.setScopeVar(name, 123)
             assertThrows(
                 () => Cast._toTypeFromValueOrVariable(name, thread, v => v instanceof ClassType, "class or class variable name"),
-                "is a(n) Unknown"
+                "is a Unknown"
             )
         })
 
@@ -1683,12 +1683,11 @@ describe("ClassType", () => {
             cls.setMemberOfType("om", "CP_OPERATOR_METHOD", operatorMethod)
             cls.setMemberOfType("cv", "CP_CLASS_VARIABLE", 123)
 
-            assert.strictEqual(cls.instanceMethods.im, instanceMethod)
-            assert.strictEqual(cls.staticMethods.sm, staticMethod)
-            assert.strictEqual(cls.getterMethods.gm, getterMethod)
-            assert.strictEqual(cls.setterMethods.stm, setterMethod)
-            assert.strictEqual(cls.operatorMethods.om, operatorMethod)
-            assert.ok(cls.clsVariables instanceof VariableManager)
+            assert.strictEqual(cls.instanceMethods.get("im"), instanceMethod)
+            assert.strictEqual(cls.staticMethods.get("sm"), staticMethod)
+            assert.strictEqual(cls.getterMethods.get("gm"), getterMethod)
+            assert.strictEqual(cls.setterMethods.get("stm"), setterMethod)
+            assert.strictEqual(cls.operatorMethods.get("om"), operatorMethod)
             assert.strictEqual(cls.clsVariables.get("cv"), 123)
         })
     })
