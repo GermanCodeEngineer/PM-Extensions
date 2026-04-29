@@ -1882,16 +1882,16 @@ class ClassType extends CustomType {
         super()
         this.name = name
         this.superCls = superCls
-        this.instanceMethods = {}
-        this.staticMethods = {}
-        this.getters = {}
-        this.setters = {}
-        this.operatorMethods = {}
+        this.instanceMethods = new VariableManager()
+        this.staticMethods = new VariableManager()
+        this.getterMethods = new VariableManager()
+        this.setterMethods = new VariableManager()
+        this.operatorMethods = new VariableManager()
         this.clsVariables = new VariableManager()
     }
 
     /**
-     * @returns string
+     * @returns {string}
      */
     toString() {
         return `<Class ${quote(this.name)}>`
@@ -1904,15 +1904,15 @@ class ClassType extends CustomType {
      * @returns {{type: ?string, value: *}}
      */
     getMember(name, recursive, preferSetter) {
-        if (name in this.instanceMethods) return {type: "CP_INSTANCE_METHOD", value: this.instanceMethods[name]}
-        else if (name in this.staticMethods) return {type: "CP_STATIC_METHOD", value: this.staticMethods[name]}
-        else if ((name in this.getters) && (name in this.setters)) {
-            if (preferSetter) return {type: "CP_SETTER_METHOD", value: this.setters[name]}
-            else return {type: "CP_GETTER_METHOD", value: this.getters[name]}
+        if (this.instanceMethods.has(name)) return {type: "CP_INSTANCE_METHOD", value: this.instanceMethods.get(name)}
+        else if (this.staticMethods.has(name)) return {type: "CP_STATIC_METHOD", value: this.staticMethods.get(name)}
+        else if (this.getterMethods.has(name) && this.setterMethods.has(name)) {
+            if (preferSetter) return {type: "CP_SETTER_METHOD", value: this.setterMethods.get(name)}
+            else return {type: "CP_GETTER_METHOD", value: this.getterMethods.get(name)}
         }
-        else if (name in this.getters) return {type: "CP_GETTER_METHOD", value: this.getters[name]}
-        else if (name in this.setters) return {type: "CP_SETTER_METHOD", value: this.setters[name]}
-        else if (name in this.operatorMethods) return {type: "CP_OPERATOR_METHOD", value: this.operatorMethods[name]}
+        else if (this.getterMethods.has(name)) return {type: "CP_GETTER_METHOD", value: this.getterMethods.get(name)}
+        else if (this.setterMethods.has(name)) return {type: "CP_SETTER_METHOD", value: this.setterMethods.get(name)}
+        else if (this.operatorMethods.has(name)) return {type: "CP_OPERATOR_METHOD", value: this.operatorMethods.get(name)}
         else if (this.clsVariables.has(name)) return {type: "CP_CLASS_VARIABLE", value: this.clsVariables.get(name)}
         if (recursive) {
             if (!this.superCls) return {type: null}
@@ -1954,11 +1954,11 @@ class ClassType extends CustomType {
         const operatorMethods = {}
         const clsVariables = {}
         classChain.forEach((cls) => {
-            Object.assign(instanceMethods, cls.instanceMethods)
-            Object.assign(staticMethods, cls.staticMethods)
-            Object.assign(getterMethods, cls.getters)
-            Object.assign(setterMethods, cls.setters)
-            Object.assign(operatorMethods, cls.operatorMethods)
+            Object.assign(instanceMethods, cls.instanceMethods.getAll())
+            Object.assign(staticMethods, cls.staticMethods.getAll())
+            Object.assign(getterMethods, cls.getterMethods.getAll())
+            Object.assign(setterMethods, cls.setterMethods.getAll())
+            Object.assign(operatorMethods, cls.operatorMethods.getAll())
             Object.assign(clsVariables, cls.clsVariables.getAll())
         })
         return [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, clsVariables]
@@ -1977,11 +1977,11 @@ class ClassType extends CustomType {
         )) {
             throwError("Can not assign {newMemberType}: {currentMemberType} already exists with the same name {name}.", {newMemberType, currentMemberType, name: quote(name)})
         }
-        if (newMemberType === "CP_INSTANCE_METHOD") this.instanceMethods[name] = value
-        else if (newMemberType === "CP_STATIC_METHOD") this.staticMethods[name] = value
-        else if (newMemberType === "CP_GETTER_METHOD") this.getters[name] = value
-        else if (newMemberType === "CP_SETTER_METHOD") this.setters[name] = value
-        else if (newMemberType === "CP_OPERATOR_METHOD") this.operatorMethods[name] = value
+        if (newMemberType === "CP_INSTANCE_METHOD") this.instanceMethods.set(name, value)
+        else if (newMemberType === "CP_STATIC_METHOD") this.staticMethods.set(name, value)
+        else if (newMemberType === "CP_GETTER_METHOD") this.getterMethods.set(name, value)
+        else if (newMemberType === "CP_SETTER_METHOD") this.setterMethods.set(name, value)
+        else if (newMemberType === "CP_OPERATOR_METHOD") this.operatorMethods.set(name, value)
         else if (newMemberType === "CP_CLASS_VARIABLE") this.clsVariables.set(name, value)
     }
 
@@ -1993,19 +1993,19 @@ class ClassType extends CustomType {
         this.getMemberOfType(name, memberType) // check if member exists and is of the right type, will throw an error if not
         switch (memberType) {
             case "CP_INSTANCE_METHOD":
-                delete this.instanceMethods[name]
+                this.instanceMethods.delete(name)
                 break
             case "CP_STATIC_METHOD":
-                delete this.staticMethods[name]
+                this.staticMethods.delete(name)
                 break
             case "CP_GETTER_METHOD":
-                delete this.getters[name]
+                this.getterMethods.delete(name)
                 break
             case "CP_SETTER_METHOD":
-                delete this.setters[name]
+                this.setterMethods.delete(name)
                 break
             case "CP_OPERATOR_METHOD":
-                delete this.operatorMethods[name]
+                this.operatorMethods.delete(name)
                 break
             case "CP_CLASS_VARIABLE":
                 this.clsVariables.delete(name)
@@ -3086,7 +3086,7 @@ class GCEOOPBlocks {
         this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
-        commonSuperClass.instanceMethods["__SM_INIT_METHOD__"] = new InstanceMethodType(
+        commonSuperClass.instanceMethods.set("__SM_INIT_METHOD__", new InstanceMethodType(
             "__SM_INIT_METHOD__",
             function* (thread) {
                 ThreadUtil.getStackManager(thread).prepareReturn()
@@ -3095,7 +3095,7 @@ class GCEOOPBlocks {
             },
             new ScopeStack(),
             ScopeStack.getDefaultFuncConfig(),
-        )
+        ))
         this.environment.commonSuperClass = commonSuperClass
     }
 
@@ -3783,7 +3783,6 @@ if (!isRuntimeEnv) {
  * 
  * + WORKING ON
  * + - finish project tests
- * + - properly namespace class members (prefixes) and keep a list of occupied names or so
  * + - why no error raised in funcs scopes (german locale)
  * + - ensure blocks work consistently independent of translation (e.g. stringTypeof)
  * + - typeof block: maybe menu-only block, maybe add "id" vs. "pretty name" option

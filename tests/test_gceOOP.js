@@ -1685,8 +1685,8 @@ describe("ClassType", () => {
 
             assert.strictEqual(cls.instanceMethods.im, instanceMethod)
             assert.strictEqual(cls.staticMethods.sm, staticMethod)
-            assert.strictEqual(cls.getters.gm, getterMethod)
-            assert.strictEqual(cls.setters.stm, setterMethod)
+            assert.strictEqual(cls.getterMethods.gm, getterMethod)
+            assert.strictEqual(cls.setterMethods.stm, setterMethod)
             assert.strictEqual(cls.operatorMethods.om, operatorMethod)
             assert.ok(cls.clsVariables instanceof VariableManager)
             assert.strictEqual(cls.clsVariables.get("cv"), 123)
