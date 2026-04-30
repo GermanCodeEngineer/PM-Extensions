@@ -276,8 +276,9 @@ const jwArrayStub = {
     },
     Argument: {
         shape: BlockShape.SQUARE,
-        exemptFromNormalization: true,
         check: ["Array"],
+        defaultValue: "[]",
+        exemptFromNormalization: true,
         compilerInfo: {
             jwArrayUnmodified: true
         },
@@ -293,30 +294,27 @@ const gceFunctionStub = {
     },
     Argument: {
         shape: BlockShape.ARROW,
-        exemptFromNormalization: true,
         check: ["gceFunction"],
+        defaultValue: translatedMsg("myFunction"),
+        exemptFromNormalization: true,
     },
     ArgumentFunctionOrVarName: {
         type: ArgumentType.STRING,
+        shape: BlockShape.ARROW,
         defaultValue: translatedMsg("myFunction"),
         exemptFromNormalization: true,
     },
 }
 const gceNothingStub = {
     Type: null,
+    Singleton: null,
     Block: {
         blockType: BlockType.REPORTER,
         blockShape: BlockShape.SCRAPPED,
         forceOutputType: "gceNothing",
         disableMonitor: true,
     },
-    Argument: {
-        shape: BlockShape.SCRAPPED,
-        exemptFromNormalization: true,
-        check: ["gceNothing"],
-    },
 }
-
 
 const commonArguments = {
     variableName: {

@@ -1614,8 +1614,9 @@ const jwArrayStub = {
     },
     Argument: {
         shape: BlockShape.SQUARE,
-        exemptFromNormalization: true,
         check: ["Array"],
+        defaultValue: "[]",
+        exemptFromNormalization: true,
         compilerInfo: {
             jwArrayUnmodified: true
         },
@@ -1631,8 +1632,9 @@ const dogeiscutObjectStub = {
     },
     Argument: {
         shape: BlockShape.PLUS,
-        exemptFromNormalization: true,
         check: ["Object"],
+        defaultValue: "{}",
+        exemptFromNormalization: true,
     },
 }
 
@@ -2183,11 +2185,13 @@ const gceFunction = {
     },
     Argument: {
         shape: BlockShape.ARROW,
-        exemptFromNormalization: true,
         check: ["gceFunction"],
+        defaultValue: translatedMsg("myFunction"),
+        exemptFromNormalization: true,
     },
     ArgumentFunctionOrVarName: {
         type: ArgumentType.STRING,
+        shape: BlockShape.ARROW,
         defaultValue: translatedMsg("myFunction"),
         exemptFromNormalization: true,
     },
@@ -2205,8 +2209,8 @@ const gceMethod = {
     },
     Argument: {
         shape: BlockShape.ARROW,
-        exemptFromNormalization: true,
         check: ["gceMethod"],
+        exemptFromNormalization: true,
     },
 }
 const gceClass = {
@@ -2219,16 +2223,18 @@ const gceClass = {
     },
     Argument: {
         shape: BlockShape.BUMPED,
-        exemptFromNormalization: true,
         check: ["gceClass"],
+        exemptFromNormalization: true,
     },
     ArgumentClassOrVarName: {
         type: ArgumentType.STRING,
+        shape: BlockShape.BUMPED,
         defaultValue: translatedMsg("MyClass"),
         exemptFromNormalization: true,
     },
     ArgumentSubclassOrVarName: {
         type: ArgumentType.STRING,
+        shape: BlockShape.BUMPED,
         defaultValue: translatedMsg("MySubclass"),
         exemptFromNormalization: true,
     },
@@ -2243,11 +2249,12 @@ const gceClassInstance = {
     },
     Argument: {
         shape: "gceOOP-doublePlus",
-        exemptFromNormalization: true,
         check: ["gceClassInstance"],
+        exemptFromNormalization: true,
     },
-    ArgumentClassOrVarName: {
+    ArgumentInstanceOrVarName: {
         type: ArgumentType.STRING,
+        shape: "gceOOP-doublePlus",
         defaultValue: translatedMsg("myInstance"),
         exemptFromNormalization: true,
     },
@@ -2255,6 +2262,7 @@ const gceClassInstance = {
 if (!CUSTOM_SHAPE) {
     delete gceClassInstance.Block.blockShape
     delete gceClassInstance.Argument.shape
+    delete gceClassInstance.ArgumentInstanceOrVarName.shape
 }
 const gceNothing = {
     Type: NothingType,
@@ -2265,11 +2273,6 @@ const gceNothing = {
         forceOutputType: "gceNothing",
         disableMonitor: true,
     },
-    Argument: {
-        shape: BlockShape.SCRAPPED,
-        exemptFromNormalization: true,
-        check: ["gceNothing"],
-    },
 }
 
 
@@ -2277,6 +2280,10 @@ const commonArguments = {
     classVarName: {
         type: ArgumentType.STRING,
         defaultValue: translatedMsg("MyClass"),
+    },
+    subclassVarName: {
+        type: ArgumentType.STRING,
+        defaultValue: translatedMsg("MySubclass"),
     },
     methodName: {
         type: ArgumentType.STRING,
@@ -2368,7 +2375,7 @@ class GCEOOPBlocks {
                     text: ["create subclass at var [NAME] with superclass [SUPERCLASS] [SHADOW]"],
                     tooltip: "Creates a subclass with the given superclass, stores it in a variable.",
                     arguments: {
-                        NAME: gceClass.ArgumentSubclassOrVarName,
+                        NAME: commonArguments.subclassVarName,
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
                         SHADOW: {fillIn: "currentClass"},
                     },
@@ -2391,14 +2398,14 @@ class GCEOOPBlocks {
                     tooltip: "Creates and returns a new subclass with the given superclass.",
                     branchCount: 1,
                     arguments: {
-                        NAME: gceClass.ArgumentSubclassOrVarName,
+                        NAME: commonArguments.subclassVarName,
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
                         SHADOW: {fillIn: "currentClass"},
                     },
                 },
                 {
                     ...commonBlocks.commandWithBranch,
-                    opcode: "onClass",
+                    opcode: "onClass", // TODO: investigate why error with shadow
                     text: ["on class [CLASS] [SHADOW]"],
                     tooltip: "Runs the enclosed blocks as if they were inside the selected class definition. "+
                       "This allows you to e.g. add methods to already defined classes.",
@@ -2609,7 +2616,7 @@ class GCEOOPBlocks {
                     text: "is [INSTANCE] an instance of [CLASS] ?",
                     tooltip: "Checks whether an instance belongs to a class or one of its subclasses.",
                     arguments: {
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
@@ -2619,7 +2626,7 @@ class GCEOOPBlocks {
                     text: "get class of [INSTANCE]",
                     tooltip: "Returns the class that created an instance.",
                     arguments: {
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                     },
                 },
                 "---",
@@ -2630,7 +2637,7 @@ class GCEOOPBlocks {
                     text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
                     tooltip: "Sets an attribute on an instance or calls its setter if one exists.",
                     arguments: {
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                         NAME: commonArguments.attributeName,
                         VALUE: commonArguments.allowAnything,
                     },
@@ -2642,7 +2649,7 @@ class GCEOOPBlocks {
                     tooltip: "Gets an attribute from an instance or calls its getter if one exists.",
                     arguments: {
                         NAME: commonArguments.attributeName,
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                     },
                 },
                 {
@@ -2651,7 +2658,7 @@ class GCEOOPBlocks {
                     text: "all attributes of [INSTANCE]",
                     tooltip: "Returns all direct instance attributes as an object.",
                     arguments: {
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                     },
                 },
                 "---",
@@ -2662,7 +2669,7 @@ class GCEOOPBlocks {
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
                     tooltip: "Calls an instance method on an object with positional arguments.",
                     arguments: {
-                        INSTANCE: gceClassInstance.Argument,
+                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
                         NAME: commonArguments.methodName,
                         POSARGS: jwArrayStub.Argument,
                     },
@@ -2811,6 +2818,7 @@ class GCEOOPBlocks {
                 createSubclassAt: createIRGenerator("stack", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
                 createClassNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], [], true),
                 createSubclassNamed: createIRGenerator("input", ["NAME", "SUPERCLASS", "SUBSTACK"], [], true),
+                onClass: createIRGenerator("stack", ["CLASS", "SUBSTACK"], [], true),
 
                 // Define Instance Methods
                 defineInstanceMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
@@ -2867,6 +2875,13 @@ class GCEOOPBlocks {
                     const substackCode = getSubstackCode(compiler, node.SUBSTACK, imports)
                     const generatedCode = createWrappedGenerator(setup, substackCode, cleanup, clsLocal)
                     return new (imports.TypedInput)(generatedCode, imports.TYPE_UNKNOWN)
+                },
+                onClass: (node, compiler, imports) => {
+                    const clsCode = compiler.descendInput(node.CLASS).asUnknown()
+                    const castedClsCode = `${CAST_PREFIX}.toClass(${clsCode}, thread)`
+                    compiler.source += `${CURRENT_STACK}.enterClassDefScope(${castedClsCode});`
+                    addSubstackCode(compiler, node.SUBSTACK, imports)
+                    compiler.source += `${CURRENT_STACK}.exitClassDefScope();\n`
                 },
 
                 // Define Instance Methods
@@ -3244,18 +3259,7 @@ class GCEOOPBlocks {
     createSubclassAt = this._isACompiledBlock
     createClassNamed = this._isACompiledBlock
     createSubclassNamed = this._isACompiledBlock
-
-    /**
-     * @param {BlockArgs} args
-     * @param {BlockUtil} util
-     */
-    onClass(args, util) {
-        const cls = Cast.toClass(args.CLASS, util.thread)
-        ThreadUtil.getCurrentStack(util.thread).enterClassDefScope(cls)
-        util.startBranch(1, false, () => {
-            ThreadUtil.getCurrentStack(util.thread).exitClassDefScope()
-        })
-    }
+    onClass = this._isACompiledBlock
 
     /**
      * @param {BlockArgs} args
