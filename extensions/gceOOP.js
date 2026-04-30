@@ -2317,7 +2317,7 @@ const commonBlocks = {
         blockType: BlockType.COMMAND
     },
     commandWithBranch: {
-        blockType: BlockType.CONDITIONAL,
+        blockType: BlockType.COMMAND,
         branchCount: 1,
     },
 }
@@ -2401,7 +2401,7 @@ class GCEOOPBlocks {
                 },
                 {
                     ...commonBlocks.commandWithBranch,
-                    opcode: "onClass", // TODO: investigate why error with shadow
+                    opcode: "onClass",
                     text: ["on class [CLASS] [SHADOW]"],
                     tooltip: "Runs the enclosed blocks as if they were inside the selected class definition. "+
                       "This allows you to e.g. add methods to already defined classes.",
@@ -2818,7 +2818,7 @@ class GCEOOPBlocks {
 
                 // Define Instance Methods
                 defineInstanceMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
-                defineSpecialMethod: createIRGenerator("stack", ["SUBSTACK"], ["SPECIAL_METHOD"]),
+                defineSpecialMethod: createIRGenerator("stack", ["SUBSTACK", "SPECIAL_METHOD"], []),
                 callSuperMethod: createIRGenerator("input", ["NAME", "POSARGS"], [], true),
                 callSuperInitMethod: createIRGenerator("input", ["POSARGS"], [], true),
 
@@ -2827,7 +2827,7 @@ class GCEOOPBlocks {
                 defineSetter: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
 
                 // Define Operator Methods
-                defineOperatorMethod: createIRGenerator("stack", ["SUBSTACK"], ["OPERATOR_KIND"]),
+                defineOperatorMethod: createIRGenerator("stack", ["SUBSTACK", "OPERATOR_KIND"], []),
 
                 // Define Static Methods & Class Variables
                 defineStaticMethod: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
@@ -3773,14 +3773,6 @@ if (!isRuntimeEnv) {
  * + - finish project tests
  *
  * + HIGH PRIORITY
- * + - allow strings for class instance inputs
- * + - consider different architecture for storing block implementations
- * + - consider splitting "OOP" extension again
- * + - update test runner in gallery
- * + - proper error framework (maybe in seperate extension)
- * + - ~ throw all errors so that they remember their type
- * + - ~ add catch error of type block
- * + - ~ add get error type block
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
@@ -3804,6 +3796,10 @@ if (!isRuntimeEnv) {
  * + - investigate why inputs are not supported in shadow blocks
  * + - make as string work for arrays, objects too
  * + - "all variables that are classes/functions" block
+ * + - proper error framework (maybe in seperate extension)
+ * + - ~ throw all errors so that they remember their type
+ * + - ~ add catch error of type block
+ * + - ~ add get error type block
  * 
  * + QUICK TASKS
  *

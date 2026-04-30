@@ -73,9 +73,9 @@ create function at var [myFunction] {
 		\/\/ local variables are available even in inward scopes::#949494
 		\/\/ example: (all variables in [all scopes v]::#428af5) is [\["myGlobalVar", "myLocalVar"\]]::#949494
 		\/\/ even though it does not count as local scope anymore::#949494
-		\/\/ example: (all variables in [local scope]::#428af5) is [\[\]]::#949494
+		\/\/ example: (all variables in [local scope v]::#428af5) is [\[\]]::#949494
 		\/\/ you can also just list global vars::#949494
-		\/\/ example: (all variables in [global scope]::#428af5) is [\["myGlobalVar"\]]::#949494
+		\/\/ example: (all variables in [global scope v]::#428af5) is [\["myGlobalVar"\]]::#949494
 	}::#428af5
 }::#428af5
 execute expression (call function [myFunction] with positional args ()::#428af5)::#428af5
@@ -106,7 +106,7 @@ when I receive [my broadcast v]
 \/\/ Class Definitions work in a similar way to function definitions \(see above\) ::#949494
 \/\/ Create a global class ::#949494
 create class at var [MyClass] (current class::#428af5) {
-	configure next function: argument names (parse [\["arg1", "arg2"\]] as an array::#ff513d) defaults (parse [\["default for arg 2"\]] as an array::#ff513d)::#428af5
+	configure next function: argument names [\["arg1", "arg2"\]] defaults [\["default for arg 2"\]]::#428af5
 	definẹ instance method [myMethod] (self::#428af5) {
 		...
 	}::#428af5
@@ -121,7 +121,7 @@ create class at var [MyClass] (current class::#428af5) {
 create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
 	definẹ instance method [mySimpleMethod] (self::#428af5) {
 		// Subclasses of course inherit: ::#949494
-		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args (parse [\["lorem ipsum", 54\]] as an array::#ff513d)::#428af5))::#428af5
+		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args [\["lorem ipsum", 54\]]::#428af5))::#428af5
 	}::#428af5
 }::#428af5
 
@@ -153,7 +153,7 @@ wait (get class var [myClassVariable] of (get superclass of [MySubclass]::#428af
 \/\/ Class Definitions work in a similar way to function definitions \(see above\) ::#949494
 \/\/ Create a global class ::#949494
 create class at var [MyClass] (current class::#428af5) {
-	configure next function: argument names (parse [\["arg1", "arg2"\]] as an array::#ff513d) defaults (parse [\["default for arg 2"\]] as an array::#ff513d)::#428af5
+	configure next function: argument names [\["arg1", "arg2"\]] defaults [\["default for arg 2"\]]::#428af5
 	definẹ instance method [myMethod] (self::#428af5) {
 		...
 	}::#428af5
@@ -177,7 +177,7 @@ on class [MyClass] (current class::#428af5) {
 create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
 	definẹ instance method [mySimpleMethod] (self::#428af5) {
 		// Subclasses of course inherit: ::#949494
-		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args (parse [\["lorem ipsum", 54\]] as an array::#ff513d)::#428af5))::#428af5
+		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args [\["lorem ipsum", 54\]]::#428af5))::#428af5
 	}::#428af5
 }::#428af5
 ```
@@ -263,7 +263,7 @@ create subclass at var [MySubclass] with superclass [MyClass] (current class::#4
 ### Examples for Instances, Attributes, and Introspection
 ```scratch
 \/\/ Create an instance and set attributes ::#949494
-set var [bob] to (create instance of class [MyClass] with positional args (parse [\["Bob"\]] as an array::#ff513d)::#428af5) in current scope::#428af5
+set var [bob] to (create instance of class [MyClass] with positional args [\["Bob"\]]::#428af5) in current scope::#428af5
 on [bob] set attribute [score] to [42]::#428af5
 
 \/\/ Get an attribute ::#949494
@@ -302,7 +302,7 @@ say (typeof [bob]::#428af5)
 
 \/\/ execute expression ::#949494
 \/\/ this helps you use a reporter in a script if you don't care about the return value ::#949494
-execute expression (call function [myFunction] with positional args (parse ["Bob"] as an array::#ff513d)::#428af5)::#428af5
+execute expression (call function [myFunction] with positional args ["Bob"]::#428af5)::#428af5
 ```
 - Use **`Nothing`** as a stable no-value similar to Python's `None`.
 - Convert values to readable text with **`as string`**. On class instances that define it, this calls the special **`as string`** method.
@@ -451,12 +451,14 @@ definẹ [as string v] instance method (self::#428af5) {
 
 ---
 ```scratch
+(call super method [myMethod] with positional args [\["argument1", "argument2"\]]::#428af5)
 (call super method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
 ```
 - Calls an instance method from the superclass of the current object.
 
 ---
 ```scratch
+(call super init method with positional args [\["argument1", "argument2"\]]::#428af5)
 (call super init method with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
 ```
 - Calls the superclass init method for the current object.
@@ -555,19 +557,19 @@ definẹ static method [myMethod] {
 
 ---
 ```scratch
-(create instance of class [MyClass] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
+(create instance of class [MyClass] with positional args [\["argument1", "argument2"\]]::#428af5)
 ```
 - Creates an instance of a class and passes the given positional arguments to its `init` method. The class input can be either a class value or the name of a variable holding one.
 
 ---
 ```scratch
-<is [my instance] an instance of [MyClass] ?::#428af5>
+<is [myInstance] an instance of [MyClass] ?::#428af5>
 ```
 - Checks whether an instance belongs to a class or one of its subclasses.
 
 ---
 ```scratch
-(get class of [my instance]::#428af5)
+(get class of [myInstance]::#428af5)
 ```
 - Returns the class that created an instance.
 
@@ -576,19 +578,19 @@ definẹ static method [myMethod] {
 
 ---
 ```scratch
-on [my instance] set attribute [myAttr] to [my value]::#428af5
+on [myInstance] set attribute [myAttr] to [my value]::#428af5
 ```
 - Sets an attribute on an instance or calls its setter if one exists.
 
 ---
 ```scratch
-(on [my instance] get attribute [myAttr]::#428af5)
+(on [myInstance] get attribute [myAttr]::#428af5)
 ```
 - Gets an attribute from an instance or calls its getter if one exists.
 
 ---
 ```scratch
-(all attributes of [my instances]::#428af5)
+(all attributes of [myInstance]::#428af5)
 ```
 - Returns all direct instance attributes as an object.
 
@@ -597,13 +599,15 @@ on [my instance] set attribute [myAttr] to [my value]::#428af5
 
 ---
 ```scratch
-(on [my instance] call method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
+(on [myInstance] call method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
+(on [myInstance] call method [myMethod] with positional args [\["argument1", "argument2"\]]::#428af5)
 ```
 - Calls an instance method on an object with positional arguments. The instance input can be either the instance itself or the name of a variable holding it.
 
 ---
 ```scratch
 (on [MyClass] call static method [myMethod] with positional args (parse [\["argument1", "argument2"\]] as an array::#ff513d)::#428af5)
+(on [MyClass] call static method [myMethod] with positional args [\["argument1", "argument2"\]]::#428af5)
 ```
 - Calls a static method on a class with positional arguments. The class input can be either the class itself or the name of a variable holding it.
 
@@ -622,6 +626,7 @@ on [my instance] set attribute [myAttr] to [my value]::#428af5
 ---
 ```scratch
 configure next function: argument names (parse [\["person", "message"\]] as an array::#ff513d) defaults (parse [\["Hello World!"\]] as an array::#ff513d)::#428af5
+configure next function: argument names [\["person", "message"\]] defaults [\["Hello World!"\]]::#428af5
 ```
 - Configures the argument names and default values used by the next function or method definition. Default values fill the last positional arguments when those trailing inputs are omitted.
 
@@ -655,6 +660,7 @@ return [my value]::#428af5 cap
 ---
 ```scratch
 (call function [myFunction] with positional args (parse [\["Bob", "Goodbye."\]] as an array::#ff513d)::#428af5)
+(call function [myFunction] with positional args [\["Bob", "Goodbye."\]]::#428af5)
 ```
 - Calls a function value with positional arguments. The function input can be either the function itself or the name of a variable holding it.
 
@@ -663,7 +669,7 @@ return [my value]::#428af5 cap
 
 ---
 ```scratch
-([my instance] as string::#428af5)
+([myInstance] as string::#428af5)
 ```
 - Converts a value to its string form. On class instances that implement it, this calls the special `as string` method automatically.
 
@@ -672,7 +678,7 @@ return [my value]::#428af5 cap
 (typeof <true::operators>::#428af5)
 (typeof (blank array::#ff513d)::#428af5)
 (typeof (blank object::#f9bb58)::#428af5)
-(typeof [my instance]::#428af5)
+(typeof [myInstance]::#428af5)
 // And many more
 ```
 - Returns a readable type name for a value.
@@ -696,7 +702,7 @@ return [my value]::#428af5 cap
 
 ---
 ```scratch
-<[my instance] is [other instance] ?::#428af5>
+<[myInstance] is [otherInstance] ?::#428af5>
 ```
 - Checks whether two values are exactly the same value (the same instance).
 
@@ -708,7 +714,7 @@ return [my value]::#428af5 cap
 
 ---
 ```scratch
-execute expression (call function [myFunction] with positional args (parse [\["Bob", "Goodbye."\]] as an array::#ff513d)::#428af5)::#428af5
+execute expression (call function [myFunction] with positional args [\["Bob", "Goodbye."\]]::#428af5)::#428af5
 ```
 - Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.
 

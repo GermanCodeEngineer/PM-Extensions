@@ -327,13 +327,15 @@ const commonArguments = {
     },
     argNames: {
         type: ArgumentType.STRING,
-        exemptFromNormalization: true,
+        shape: BlockShape.SQUARE,
         defaultValue: translatedMsg('["name"]'),
+        exemptFromNormalization: true,
     },
     argDefaults: {
         type: ArgumentType.STRING,
+        shape: BlockShape.SQUARE,
+        defaultValue: translatedMsg('["name"]'),
         exemptFromNormalization: true,
-        defaultValue: translatedMsg("[]"),
     },
     allowAnything: {
         type: ArgumentType.STRING,
@@ -355,7 +357,7 @@ const commonBlocks = {
         blockType: BlockType.COMMAND
     },
     commandWithBranch: {
-        blockType: BlockType.CONDITIONAL,
+        blockType: BlockType.COMMAND,
         branchCount: 1,
     },
 }
