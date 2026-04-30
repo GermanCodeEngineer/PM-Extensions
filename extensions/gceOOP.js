@@ -2354,10 +2354,6 @@ class GCEOOPBlocks {
                     opcode: "addObjectExtension",
                     text: "Add Object Extension"
                 },
-                {
-                    ...commonBlocks.command,
-                    opcode: "logStacks",
-                },
                 makeLabel("Define Classes"),
                 {
                     ...commonBlocks.commandWithBranch,
@@ -3142,14 +3138,6 @@ class GCEOOPBlocks {
         }
     }
 
-    /**
-     * @param {BlockArgs} args
-     * @param {BlockUtil} util
-     */
-    logStacks(args, util) {
-        console.log("Current thread stacks:", JSON.stringify([...ThreadUtil.getStackManager(util.thread).stacks], null, 2))
-    }
-
     /******************** Scoped Variables ********************/
 
     /**
@@ -3831,7 +3819,6 @@ if (!isRuntimeEnv) {
  * + - test that createVarScope and onClass branch callbacks execute even on error
  *
  * + ON RELEASE / AFTER TESTING:
- * + - remove temporary logStacks block
  * + - change both localhost URLs to extensions.penguinmod URL
  *
  * + DOC NOTES TO REMEMBER
