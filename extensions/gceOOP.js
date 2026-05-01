@@ -1613,8 +1613,9 @@ const jwArrayStub = {
         disableMonitor: true
     },
     Argument: {
+        type: ArgumentType.STRING,
         shape: BlockShape.SQUARE,
-        check: ["Array"],
+        //check: ["Array"], // to enable defaultValue
         defaultValue: "[]",
         exemptFromNormalization: true,
         compilerInfo: {
@@ -1631,8 +1632,9 @@ const dogeiscutObjectStub = {
         disableMonitor: true,
     },
     Argument: {
+        type: ArgumentType.STRING,
         shape: BlockShape.PLUS,
-        check: ["Object"],
+        //check: ["Object"],
         defaultValue: "{}",
         exemptFromNormalization: true,
     },
@@ -2876,8 +2878,11 @@ class GCEOOPBlocks {
                     const clsCode = compiler.descendInput(node.CLASS).asUnknown()
                     const castedClsCode = `${CAST_PREFIX}.toClass(${clsCode}, thread)`
                     compiler.source += `${CURRENT_STACK}.enterClassDefScope(${castedClsCode});`
+                    compiler.source += "try {"
                     addSubstackCode(compiler, node.SUBSTACK, imports)
-                    compiler.source += `${CURRENT_STACK}.exitClassDefScope();\n`
+                    compiler.source += "} finally {"
+                    compiler.source += `${CURRENT_STACK}.exitClassDefScope();`
+                    compiler.source += "};\n"
                 },
 
                 // Define Instance Methods
@@ -2967,6 +2972,10 @@ class GCEOOPBlocks {
         
         if (includeFuncScopesBlocks) {
             Object.assign(irInfo, {
+                // Scoped Variables
+                createVarScope: createIRGenerator("stack", ["SUBSTACK"], [], true),
+
+
                 // Define
                 createFunctionAt: createIRGenerator("stack", ["NAME", "SUBSTACK"], []),
                 createFunctionNamed: createIRGenerator("input", ["NAME", "SUBSTACK"], []),
@@ -2982,6 +2991,17 @@ class GCEOOPBlocks {
                 objectAsString: createIRGenerator("input", ["VALUE"], [], true),
             })
             Object.assign(jsInfo, {
+                // Scoped Variables
+                createVarScope: (node, compiler, imports) => {
+                    compiler.source += `${CURRENT_STACK}.enterUserScope();`
+                    compiler.source += "try {"
+                    addSubstackCode(compiler, node.SUBSTACK, imports)
+                    compiler.source += "} finally {"
+                    compiler.source += `${CURRENT_STACK}.exitUserScope();`
+                    compiler.source += "};\n"
+                },
+
+
                 // Define
                 createFunctionAt: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
@@ -3212,16 +3232,7 @@ class GCEOOPBlocks {
         return Cast.toArray(varNames)
     }
 
-    /**
-     * @param {BlockArgs} args
-     * @param {BlockUtil} util
-     */
-    createVarScope(args, util) {
-        ThreadUtil.getCurrentStack(util.thread).enterUserScope()
-        util.startBranch(1, false, () => {
-            ThreadUtil.getCurrentStack(util.thread).exitUserScope()
-        })
-    }
+    createVarScope = this._isACompiledBlock
 
     /**
      * @param {BlockArgs} args
@@ -3771,6 +3782,7 @@ if (!isRuntimeEnv) {
  * 
  * + WORKING ON
  * + - finish project tests
+ * + - replace [option v] in docs with (option v)
  *
  * + HIGH PRIORITY
  *
@@ -3812,7 +3824,8 @@ if (!isRuntimeEnv) {
  * + - ensure bindVarToScope is tested properly
  * + - ensure getSuperclass is tested properly
  * + - ensure propertyNamesOfClass edge cases are tested
- * + - test that createVarScope and onClass branch callbacks execute even on error
+ * + - test that createVarScope and onClass and other scopes are executed when an error happens in the branches
+ * + - test nested scopes e.g. local variable scope in function 
  *
  * + ON RELEASE / AFTER TESTING:
  * + - change both localhost URLs to extensions.penguinmod URL
