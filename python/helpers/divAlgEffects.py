@@ -88,14 +88,6 @@ class divAlgEffects:
         )
 
     @staticmethod
-    def eff_resume(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&divAlgEffects::resume with (DATA) {{id=divAlgEffects_effResume}}",
-            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
-
-    @staticmethod
     def eff_perform(eff: INPUT_COMPATIBLE_T, data: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divAlgEffects::perform (EFF) with (DATA) {{id=divAlgEffects_effPerform}}",
@@ -103,5 +95,13 @@ class divAlgEffects:
                 "EFF": InputValue.try_as_input(eff, p.SRBlockAndTextInputValue),
                 "DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue),
             },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def eff_resume(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&divAlgEffects::resume with (DATA) {{id=divAlgEffects_effResume}}",
+            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )

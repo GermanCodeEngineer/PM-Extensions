@@ -178,6 +178,16 @@ class gceFuncsScopes:
         )
 
     @staticmethod
+    def typeof_value_selection(type: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceFuncsScopes::([TYPE])",
+            inputs={
+                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue)
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
     def check_identity(
         value1: INPUT_COMPATIBLE_T, value2: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:

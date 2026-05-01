@@ -6,10 +6,6 @@ from utils import InputValue, INPUT_COMPATIBLE_T
 class gceOOP:
 
     @staticmethod
-    def log_stacks() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::logStacks", inputs={}, dropdowns={})
-
-    @staticmethod
     def create_class_at(
         name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
@@ -146,21 +142,20 @@ class gceOOP:
 
     @staticmethod
     def define_special_method(
-        substack: INPUT_COMPATIBLE_T, special_method: str
+        special_method: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::define [SPECIAL_METHOD] instance method {:SHADOW:} {SUBSTACK}",
+            opcode="&gceOOP::define ([SPECIAL_METHOD]) instance method {:SHADOW:} {SUBSTACK}",
             inputs={
+                "SPECIAL_METHOD": InputValue.try_as_input(
+                    special_method, p.SRBlockAndDropdownInputValue
+                ),
                 "SHADOW": InputValue.try_as_input(
                     InputValue(gceOOP.self()), p.SREmbeddedBlockInputValue
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
-            dropdowns={
-                "SPECIAL_METHOD": p.SRDropdownValue(
-                    p.DropdownValueKind.STANDARD, special_method
-                )
-            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -228,22 +223,21 @@ class gceOOP:
 
     @staticmethod
     def define_operator_method(
-        substack: INPUT_COMPATIBLE_T, operator_kind: str
+        operator_kind: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::define operator method [OPERATOR_KIND] {:SHADOW:} {SUBSTACK}",
+            opcode="&gceOOP::define operator method ([OPERATOR_KIND]) {:SHADOW:} {SUBSTACK}",
             inputs={
+                "OPERATOR_KIND": InputValue.try_as_input(
+                    operator_kind, p.SRBlockAndDropdownInputValue
+                ),
                 "SHADOW": InputValue.try_as_input(
                     InputValue(gceOOP.operator_operator_value()),
                     p.SREmbeddedBlockInputValue,
                 ),
                 "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
             },
-            dropdowns={
-                "OPERATOR_KIND": p.SRDropdownValue(
-                    p.DropdownValueKind.STANDARD, operator_kind
-                )
-            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -308,15 +302,18 @@ class gceOOP:
         )
 
     @staticmethod
-    def property_names_of_class(class_: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
+    def property_names_of_class(
+        property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::[PROPERTY] names of class (CLASS)",
+            opcode="&gceOOP::([PROPERTY]) names of class (CLASS)",
             inputs={
-                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue)
+                "PROPERTY": InputValue.try_as_input(
+                    property, p.SRBlockAndDropdownInputValue
+                ),
+                "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
             },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
+            dropdowns={},
         )
 
     @staticmethod
@@ -339,7 +336,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::is (INSTANCE) an instance of (CLASS) ?",
             inputs={
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                ),
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
@@ -350,7 +349,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::get class of (INSTANCE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue)
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                )
             },
             dropdowns={},
         )
@@ -364,7 +365,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::on (INSTANCE) set attribute (NAME) to (VALUE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                ),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
             },
@@ -379,7 +382,9 @@ class gceOOP:
             opcode="&gceOOP::on (INSTANCE) get attribute (NAME)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -389,7 +394,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::all attributes of (INSTANCE)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue)
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                )
             },
             dropdowns={},
         )
@@ -403,7 +410,9 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::on (INSTANCE) call method (NAME) with positional args (POSARGS)",
             inputs={
-                "INSTANCE": InputValue.try_as_input(instance, p.SRBlockOnlyInputValue),
+                "INSTANCE": InputValue.try_as_input(
+                    instance, p.SRBlockAndTextInputValue
+                ),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
                 "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
             },
