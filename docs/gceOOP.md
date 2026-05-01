@@ -50,6 +50,7 @@ In this extension, the shapes of reporters indicate the **type of value**, they 
 ### Examples for Scoped Variables
 ```scratch
 set var [myGlobalVar] to [hello world] in current scope::#428af5
+set var [mySecondGlobal] to [sand] in current scope::#428af5
 create function at var [myFunction] {
 	\/\/ set a local variable for this scope::#949494
 	set var [myLocalVar] to [bye world] in current scope::#428af5
@@ -71,24 +72,24 @@ create function at var [myFunction] {
 	
 	create local variable scope {
 		\/\/ local variables are available even in inward scopes::#949494
-		\/\/ example: (all variables in [all scopes v]::#428af5) is [\["myGlobalVar", "myLocalVar"\]]::#949494
+		\/\/ example: (all variables in [all scopes v]::#428af5) is [\["mySecondGlobal", "myFunction", "myLocalVar"\]]::#949494
 		\/\/ even though it does not count as local scope anymore::#949494
 		\/\/ example: (all variables in [local scope v]::#428af5) is [\[\]]::#949494
 		\/\/ you can also just list global vars::#949494
-		\/\/ example: (all variables in [global scope v]::#428af5) is [\["myGlobalVar"\]]::#949494
+		\/\/ example: (all variables in [global scope v]::#428af5) is [\["mySecondGlobal", "myFunction"\]]::#949494
 	}::#428af5
 }::#428af5
-execute expression (call function [myFunction] with positional args ()::#428af5)::#428af5
+execute expression (call function [myFunction] with positional args [\[\]]::#428af5)::#428af5
 \/\/ local variables are not available outside their scope::#949494
-\/\/ example: (all variables in [all scopes v]::#428af5) is [\["myGlobalVar"\]] ::#949494
+\/\/ example: (all variables in [all scopes v]::#428af5) is [\["mySecondGlobal"\]] ::#949494
 
 define my custom block
 \/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
-\/\/ global variables are of course available e.g. <var [myGlobalVar] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
 
 when I receive [my broadcast v]
 \/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
-\/\/ global variables are of course available e.g. <var [myGlobalVar] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
 ```
 
 ---
@@ -103,40 +104,30 @@ when I receive [my broadcast v]
 
 ### Examples for Functions
 ```scratch
-\/\/ Class Definitions work in a similar way to function definitions \(see above\) ::#949494
-\/\/ Create a global class ::#949494
-create class at var [MyClass] (current class::#428af5) {
-	configure next function: argument names [\["arg1", "arg2"\]] defaults [\["default for arg 2"\]]::#428af5
-	definẹ instance method [myMethod] (self::#428af5) {
-		...
-	}::#428af5
-	...
-	\/\/ Instead of ::#949494
-	on [MyClass] set class var [myVariable] to [100]::#428af5
-	\/\/ Use (current class::#428af5) to e.g. set a class variable ::#949494
-	on (current class::#428af5) set class var [myClassVariable] to [100]::#428af5
+\/\/ Function with trailing default arguments ::#949494
+configure next function: argument names [\["person", "message"\]] defaults [\["Hello!"\]]::#428af5
+create function at var [sendMessage] {
+	return (join (join (get var [message]::#428af5) [ ]) (get var [person]::#428af5))::#428af5
 }::#428af5
 
-\/\/ Interesting Case: Subclasses ::#949494
-create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
-	definẹ instance method [mySimpleMethod] (self::#428af5) {
-		// Subclasses of course inherit: ::#949494
-		return ((get class var [myClassVariable] of [MyClass]::#428af5) + (on (self::#428af5) call method [myMethod] with positional args [\["lorem ipsum", 54\]]::#428af5))::#428af5
-	}::#428af5
+say (call function [sendMessage] with positional args [\["Ada"\]]::#428af5)
+\/\/ -> "Hello! Ada" because the last argument defaults ::#949494
+say (call function [sendMessage] with positional args [\["Ada", "Good evening"\]]::#428af5)
+\/\/ -> "Good evening Ada" ::#949494
+
+\/\/ Closure: inner function captures outer variable [prefix] ::#949494
+configure next function: argument names [\["prefix"\]] defaults [\[\]]::#428af5
+create function at var [makeGreeter] {
+	\/\/ (create function named::#428af5) can not be rendered here correctly, but you get the idea ::#949494
+	configure next function: argument names [\["name"\]] defaults [\[\]]::#428af5
+	return (create function named [greeter] {
+		return (join (join (get var [prefix]::#428af5) [ ]) (get var [name]::#428af5))::#428af5
+	}::#428af5)::#428af5
 }::#428af5
 
-\/\/ To edit a class after defining it: ::#949494
-on class [MyClass] (current class::#428af5) {
-	definẹ instance method [myAddedMethod] (self::#428af5) {
-		...
-	}::#428af5
-}::#428af5
-on class [MySubclass] (current class::#428af5) {
-	on (current class::#428af5) set class var [myClassVariable] to [200]::#428af5
-}::#428af5
-
-\/\/ Example: get class variable of super class ::#949494
-wait (get class var [myClassVariable] of (get superclass of [MySubclass]::#428af5)::#428af5) seconds
+set var [hiGreeter] to (call function [makeGreeter] with positional args [\["Hi"\]]::#428af5) in current scope::#428af5
+say (call function [hiGreeter] with positional args [\["Liam"\]]::#428af5)
+\/\/ -> "Hi Liam" ::#949494
 ```
 
 ---
