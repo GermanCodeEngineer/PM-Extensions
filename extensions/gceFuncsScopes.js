@@ -275,8 +275,9 @@ const jwArrayStub = {
         disableMonitor: true
     },
     Argument: {
+        type: ArgumentType.STRING,
         shape: BlockShape.SQUARE,
-        check: ["Array"],
+        //check: ["Array"], // to enable defaultValue
         defaultValue: "[]",
         exemptFromNormalization: true,
         compilerInfo: {
