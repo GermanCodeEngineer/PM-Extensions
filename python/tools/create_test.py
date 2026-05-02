@@ -6,8 +6,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import copy
-from gceutils import AbstractTreePath
-from gceutils import AbstractTreePath
+from gceutils import AbstractTreePath, grepr_dataclass
 import pmp_manip as p
 from pmp_manip.opcode_info.api import OpcodeInfoAPI
 
@@ -80,51 +79,55 @@ def configure() -> None:
 
 
 
-_SCRIPT_IDX = 0
-def create_script(*blocks: tuple[p.SRBlock, ...]) -> p.SRScript:
-    global _SCRIPT_IDX
-    script = p.SRScript(
-        position=(200 * _SCRIPT_IDX, 0),
-        blocks=[
-            *blocks,
-        ],
-    )
-    _SCRIPT_IDX += 1
-    return script
+@grepr_dataclass()
+class TestProject:
+    blocks: list[p.SRBlock]
+    extension_ids: list[str]
 
-def create_test_project(extension_ids: list[str], scripts: list[p.SRScript]) -> p.FRProject:
-    project = p.SRProject.create_empty()
-    project.stage.scripts = scripts
-    project.extensions = []
-    for id in extension_ids:
+    @staticmethod
+    def join_projects(projects: list[TestProject]) -> TestProject:
+        all_blocks = []
+        all_extension_ids = set()
+        for project in projects:
+            assert len(project.blocks) == 1, "Expected one top level test_scope block"
+            assert project.blocks[0].opcode == "&gceTestRunner::test scope named (NAME) {SUBSTACK}", "Expected top level block to be a test_scope"
+            all_blocks.extend(project.blocks)
+            all_extension_ids.update(project.extension_ids)
+        return TestProject(blocks=all_blocks, extension_ids=list(all_extension_ids))
+    
+def convert_project(test_project: TestProject) -> p.FRProject:
+    srproject = p.SRProject.create_empty()
+    srproject.stage.scripts = [p.SRScript(position=(0, 0), blocks=test_project.blocks)]
+    srproject.extensions = []
+    for id in test_project.extension_ids:
         url = EXTENSION_SOURCES[id]
-        project.extensions.append(
+        srproject.extensions.append(
             p.SRCustomExtension(id, url) if url is not None else p.SRBuiltinExtension(id=id)
         )
     
 
     opcode_info_copy = p.info_api.opcode_info.copy()
     info_api_copy = OpcodeInfoAPI(opcode_info_copy)
-    project.add_all_extensions_to_info_api(info_api_copy)
+    srproject.add_all_extensions_to_info_api(info_api_copy)
 
     # Tricks to avoid errors for invalid extension URLs (currently too strict)
-    extensions_before = copy.deepcopy(project.extensions)
-    for extension in project.extensions:
+    extensions_before = copy.deepcopy(srproject.extensions)
+    for extension in srproject.extensions:
         extension.url = "https://example.com/"
 
-    project.validate(AbstractTreePath(), info_api_copy)
-    project.extensions = extensions_before
+    srproject.validate(AbstractTreePath(), info_api_copy)
+    srproject.extensions = extensions_before
 
-    frproject = project.to_first(info_api_copy)
+    frproject = srproject.to_first(info_api_copy)
     return frproject
 
-def write_project_to_file(project: p.FRProject, output_file: Path) -> None:
+def write_project_to_file(project: TestProject, output_file: Path) -> None:
+    frproject = convert_project(project)
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    project.to_file(str(output_file))
+    frproject.to_file(str(output_file))
 
-def test_TypeChecker() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_TypeChecker() -> TestProject:
+    blocks = [
         t.test_scope("TypeChecker", [
             t.test_scope("My Types", [
                 t.assert_(o.typeof_value_is_menu(o.create_function_named("myFn", []), "Function (GCE)")),
@@ -169,18 +172,17 @@ def test_TypeChecker() -> p.FRProject:
                 t.assert_(o.typeof_value_is_menu(h.fruitsPaintUtils.get_colour("orange"), "Paint Utils Colour (Fruits555000)")),
             ]),
         ])
-    )
+    ]
     
-    return create_test_project(scripts=[script], extension_ids=[
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto", "SPjavascriptV2", "agBuffer", "ddeDateFormat", 
         "ddeDateFormatV2", "divAlgEffects", "divIterator", "dogeiscutObject", "dogeiscutRegularExpressions", 
         "dogeiscutSet", "fruitsPaintUtils", "jwArray", "jwColor", "jwDate", "jwLambda", "jwNum", "jwTargets", 
         "jwVector", "jwXML", "newCanvas", "steve0greatnesstimers"
     ])
 
-def test_Cast() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_Cast() -> TestProject:
+    blocks = [
         t.test_scope("Cast", [
             t.test_scope("toArray", [o.create_var_scope([
                 o.set_scope_var("my var", "hello"),
@@ -216,20 +218,19 @@ def test_Cast() -> p.FRProject:
                 ]),
             ])]),
         ]),
-    )
+    ]
     
-    return create_test_project(scripts=[script], extension_ids=[
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto", "SPjavascriptV2",
     ])
 
-def test_scoped_variables_blocks() -> p.FRProject:
+def test_scoped_variables_blocks() -> TestProject:
     kind_all = "all scopes"
     kind_local = "local scope"
     kind_global = "global scope"
     bind_global = "global"
 
-    script = create_script(
-        h.event.whenflagclicked(),
+    blocks = [
         t.test_scope("Scoped Variables Blocks", [
             t.test_scope("set/get/exists", [
                 t.test_scope("Set and read a local variable", [
@@ -383,16 +384,15 @@ def test_scoped_variables_blocks() -> p.FRProject:
                 ]),
             ]),
         ]),
-    )
+    ]
 
-    return create_test_project(scripts=[script], extension_ids=[
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_function_blocks() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_function_blocks() -> TestProject:
+    blocks = [
         t.test_scope("Function Blocks", [
             t.test_scope("basic function", [
                 t.test_scope("Define a simple function that returns a constant", [
@@ -561,16 +561,15 @@ def test_function_blocks() -> p.FRProject:
                 ]),
             ]),
         ]),
-    )
+    ]
 
-    return create_test_project(scripts=[script], extension_ids=[
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_utilities_blocks() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_utilities_blocks() -> TestProject:
+    blocks = [
         t.test_scope("Utilities Blocks", [
 
             # ------------------------------------------------------------------ #
@@ -755,16 +754,15 @@ def test_utilities_blocks() -> p.FRProject:
             ]),
 
         ]),
-    )
+    ]
 
-    return create_test_project(scripts=[script], extension_ids=[
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_instance_methods() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_instance_methods() -> TestProject:
+    blocks = [
         t.test_scope("Instance Methods", [
 
             t.test_scope("basic method call", [
@@ -852,15 +850,14 @@ def test_instance_methods() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_special_method_init() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_special_method_init() -> TestProject:
+    blocks = [
         t.test_scope("Special Method: init", [
 
             t.test_scope("init sets attributes from args", [
@@ -946,15 +943,14 @@ def test_special_method_init() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_inheritance_and_super() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_inheritance_and_super() -> TestProject:
+    blocks = [
         t.test_scope("Inheritance and Super", [
 
             t.test_scope("isSubclass", [
@@ -1058,15 +1054,15 @@ def test_inheritance_and_super() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_getters_and_setters() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_getters_and_setters() -> TestProject:
+    blocks = [
         t.test_scope("Getters and Setters", [
 
             t.test_scope("setter transforms and stores, getter retrieves", [
@@ -1138,15 +1134,15 @@ def test_getters_and_setters() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_operator_methods() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_operator_methods() -> TestProject:
+    blocks = [
         t.test_scope("Operator Methods", [
 
             t.test_scope("left add operator", [
@@ -1212,15 +1208,15 @@ def test_operator_methods() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_static_methods() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_static_methods() -> TestProject:
+    blocks = [
         t.test_scope("Static Methods", [
 
             t.test_scope("define and call a static method", [
@@ -1301,15 +1297,15 @@ def test_static_methods() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_class_variables() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_class_variables() -> TestProject:
+    blocks = [
         t.test_scope("Class Variables", [
 
             t.test_scope("set and get class variable", [
@@ -1420,15 +1416,15 @@ def test_class_variables() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_class_definition_blocks() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_class_definition_blocks() -> TestProject:
+    blocks = [
         t.test_scope("Class Definition and Inheritance Blocks", [
 
             # ------------------------------------------------------------------ #
@@ -1732,15 +1728,15 @@ def test_class_definition_blocks() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
 
-def test_introspection() -> p.FRProject:
-    script = create_script(
-        h.event.whenflagclicked(),
+def test_introspection() -> TestProject:
+    blocks = [
         t.test_scope("Introspection", [
 
             t.test_scope("getAttribute and setAttribute (direct)", [
@@ -1927,8 +1923,9 @@ def test_introspection() -> p.FRProject:
             ]),
 
         ]),
-    )
-    return create_test_project(scripts=[script], extension_ids=[
+    ]
+    
+    return TestProject(blocks, extension_ids=[
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto",
     ])
 
@@ -1936,20 +1933,26 @@ def test_introspection() -> p.FRProject:
 def main() -> None:
     configure()
     test_projects_dir = Path("test_projects")
-    write_project_to_file(test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp")
-    write_project_to_file(test_Cast(), test_projects_dir / "test_Cast.pmp")
-    write_project_to_file(test_scoped_variables_blocks(), test_projects_dir / "test_scoped_variables_blocks.pmp")
-    write_project_to_file(test_function_blocks(), test_projects_dir / "test_function_blocks.pmp")
-    write_project_to_file(test_utilities_blocks(), test_projects_dir / "test_utilities_blocks.pmp")
-    write_project_to_file(test_class_definition_blocks(), test_projects_dir / "test_class_definition_blocks.pmp")
-    write_project_to_file(test_instance_methods(), test_projects_dir / "test_instance_methods.pmp")
-    write_project_to_file(test_special_method_init(), test_projects_dir / "test_special_method_init.pmp")
-    write_project_to_file(test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp")
-    write_project_to_file(test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp")
-    write_project_to_file(test_operator_methods(), test_projects_dir / "test_operator_methods.pmp")
-    write_project_to_file(test_static_methods(), test_projects_dir / "test_static_methods.pmp")
-    write_project_to_file(test_class_variables(), test_projects_dir / "test_class_variables.pmp")
-    write_project_to_file(test_introspection(), test_projects_dir / "test_introspection.pmp")
+
+    projects: list[tuple[TestProject, Path]] = []
+    
+    projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
+    projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
+    projects.append((test_scoped_variables_blocks(), test_projects_dir / "test_scoped_variables_blocks.pmp"))
+    projects.append((test_function_blocks(), test_projects_dir / "test_function_blocks.pmp"))
+    projects.append((test_utilities_blocks(), test_projects_dir / "test_utilities_blocks.pmp"))
+    projects.append((test_class_definition_blocks(), test_projects_dir / "test_class_definition_blocks.pmp"))
+    projects.append((test_instance_methods(), test_projects_dir / "test_instance_methods.pmp"))
+    projects.append((test_special_method_init(), test_projects_dir / "test_special_method_init.pmp"))
+    projects.append((test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp"))
+    projects.append((test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp"))
+    projects.append((test_operator_methods(), test_projects_dir / "test_operator_methods.pmp"))
+    projects.append((test_static_methods(), test_projects_dir / "test_static_methods.pmp"))
+    projects.append((test_class_variables(), test_projects_dir / "test_class_variables.pmp"))
+    projects.append((test_introspection(), test_projects_dir / "test_introspection.pmp"))
+
+    for project, path in projects:
+        write_project_to_file(project, path)
 
 if __name__ == "__main__":
     main()
