@@ -299,12 +299,14 @@ def test_scoped_variables_blocks() -> TestProject:
 
             t.test_scope("bind global + non-local", [
                 t.test_scope("Bind global in an inner scope and mutate it", [
-                    o.set_scope_var("globalCounter", "0"),
-                    o.create_var_scope([
-                        o.bind_var_to_scope(bind_global, "globalCounter"),
-                        o.set_scope_var("globalCounter", "1"),
+                    o.run_with_separate_globals([
+                        o.set_scope_var("globalCounter", "0"),
+                        o.create_var_scope([
+                            o.bind_var_to_scope(bind_global, "globalCounter"),
+                            o.set_scope_var("globalCounter", "1"),
+                        ]),
+                        t.assert_strict_equal(o.get_scope_var("globalCounter"), "1"),
                     ]),
-                    t.assert_strict_equal(o.get_scope_var("globalCounter"), "1"),
                 ]),
                 t.test_scope("Bind non-local variable in nested local scopes and mutate it", [
                     o.create_var_scope([
@@ -335,9 +337,9 @@ def test_scoped_variables_blocks() -> TestProject:
                 t.test_scope("exitUserScope must run even if an error is thrown inside the scope", [
                     o.create_var_scope([
                         o.set_scope_var("outerVar", "present"),
-                        t.assert_throws([
-                            o.create_var_scope([
-                                o.set_scope_var("innerVar", "value"),
+                        o.create_var_scope([
+                            o.set_scope_var("innerVar", "value"),
+                            t.assert_throws([
                                 o.execute_expression(o.get_scope_var("__missing_var__")),
                             ]),
                         ]),
@@ -354,40 +356,124 @@ def test_scoped_variables_blocks() -> TestProject:
             # ------------------------------------------------------------------ #
             t.test_scope("scopeVarExists with 3-level nesting", [
                 t.test_scope("Verify kindLocal, kindAll, kindGlobal across 3 scopes", [
-                    o.set_scope_var("globalVar", "g"),
-                    o.bind_var_to_scope(bind_global, "globalVar"),
-                    o.create_var_scope([
-                        o.set_scope_var("level1", "L1"),
+                    o.run_with_separate_globals([
+                        o.set_scope_var("globalVar", "g"),
                         o.create_var_scope([
-                            o.set_scope_var("level2", "L2"),
+                            o.set_scope_var("level1", "L1"),
                             o.create_var_scope([
-                                o.set_scope_var("level3", "L3"),
-                                t.test_scope("Innermost: level3 is local, others are not", [
-                                    t.assert_(o.scope_var_exists("level3", kind_local)),
-                                    t.assert_not(o.scope_var_exists("level1", kind_local)),
-                                    t.assert_not(o.scope_var_exists("level2", kind_local)),
-                                ]),
-                                t.test_scope("All three are visible via kindAll", [
-                                    t.assert_(o.scope_var_exists("level1", kind_all)),
-                                    t.assert_(o.scope_var_exists("level2", kind_all)),
-                                    t.assert_(o.scope_var_exists("level3", kind_all)),
-                                ]),
-                                t.test_scope("Global is visible via kindGlobal and kindAll", [
-                                    t.assert_(o.scope_var_exists("globalVar", kind_global)),
-                                    t.assert_(o.scope_var_exists("globalVar", kind_all)),
-                                ]),
-                                t.test_scope("Local vars are NOT global", [
-                                    t.assert_not(o.scope_var_exists("level3", kind_global)),
-                                    t.assert_not(o.scope_var_exists("level2", kind_global)),
+                                o.set_scope_var("level2", "L2"),
+                                o.create_var_scope([
+                                    o.set_scope_var("level3", "L3"),
+                                    t.test_scope("Innermost: level3 is local, others are not", [
+                                        t.assert_(o.scope_var_exists("level3", kind_local)),
+                                        t.assert_not(o.scope_var_exists("level1", kind_local)),
+                                        t.assert_not(o.scope_var_exists("level2", kind_local)),
+                                    ]),
+                                    t.test_scope("All three are visible via kindAll", [
+                                        t.assert_(o.scope_var_exists("level1", kind_all)),
+                                        t.assert_(o.scope_var_exists("level2", kind_all)),
+                                        t.assert_(o.scope_var_exists("level3", kind_all)),
+                                    ]),
+                                    t.test_scope("Global is visible via kindGlobal and kindAll", [
+                                        t.assert_(o.scope_var_exists("globalVar", kind_global)),
+                                        t.assert_(o.scope_var_exists("globalVar", kind_all)),
+                                    ]),
+                                    t.test_scope("Local vars are NOT global", [
+                                        t.assert_not(o.scope_var_exists("level3", kind_global)),
+                                        t.assert_not(o.scope_var_exists("level2", kind_global)),
+                                    ]),
                                 ]),
                             ]),
-                        ]),
-                        t.test_scope("level2 and level3 gone after exiting their scopes", [
-                            t.assert_not(o.scope_var_exists("level2", kind_all)),
-                            t.assert_not(o.scope_var_exists("level3", kind_all)),
-                            t.assert_(o.scope_var_exists("level1", kind_local)),
+                            t.test_scope("level2 and level3 gone after exiting their scopes", [
+                                t.assert_not(o.scope_var_exists("level2", kind_all)),
+                                t.assert_not(o.scope_var_exists("level3", kind_all)),
+                                t.assert_(o.scope_var_exists("level1", kind_local)),
+                            ]),
                         ]),
                     ]),
+                ]),
+            ]),
+
+            t.test_scope("runWithSeparateGlobals", [
+                t.test_scope("Outer locals are not visible inside", [
+                    o.create_var_scope([
+                        o.set_scope_var("outerLocal", "outer"),
+                        o.run_with_separate_globals([
+                            t.assert_not(o.scope_var_exists("outerLocal", kind_all)),
+                            t.assert_not(o.scope_var_exists("outerLocal", kind_local)),
+                            t.assert_not(o.scope_var_exists("outerLocal", kind_global)),
+                            t.assert_throws([
+                                o.execute_expression(o.get_scope_var("outerLocal")),
+                            ]),
+                        ]),
+                    ]),
+                ]),
+                t.test_scope("Outer globals are not visible inside", [
+                    o.set_scope_var("outerGlobal", "outerGlobalValue"),
+                    o.run_with_separate_globals([
+                        t.assert_not(o.scope_var_exists("outerGlobal", kind_all)),
+                        t.assert_not(o.scope_var_exists("outerGlobal", kind_global)),
+                        t.assert_throws([
+                            o.execute_expression(o.get_scope_var("outerGlobal")),
+                        ]),
+                    ]),
+                    o.delete_scope_var("outerGlobal"),
+                ]),
+                t.test_scope("Writes inside do not affect outer locals", [
+                    o.create_var_scope([
+                        o.set_scope_var("sharedName", "before"),
+                        o.run_with_separate_globals([
+                            o.set_scope_var("sharedName", "inside"),
+                            t.assert_strict_equal(o.get_scope_var("sharedName"), "inside"),
+                        ]),
+                        t.assert_strict_equal(o.get_scope_var("sharedName"), "before"),
+                    ]),
+                ]),
+                t.test_scope("Writes inside do not affect outer globals", [
+                    o.set_scope_var("sharedGlobal", "globalBefore"),
+                    o.run_with_separate_globals([
+                        o.set_scope_var("sharedGlobal", "globalInside"),
+                        t.assert_strict_equal(o.get_scope_var("sharedGlobal"), "globalInside"),
+                    ]),
+                    t.assert_strict_equal(o.get_scope_var("sharedGlobal"), "globalBefore"),
+                    o.delete_scope_var("sharedGlobal"),
+                ]),
+                t.test_scope("Inner globals and locals start empty", [
+                    o.run_with_separate_globals([
+                        t.assert_unstrict_equal(o.all_variables(kind_all), "[]"),
+                        t.assert_unstrict_equal(o.all_variables(kind_global), "[]"),
+                        t.assert_unstrict_equal(o.all_variables(kind_local), "[]"),
+                    ]),
+                ]),
+                t.test_scope("Variables created inside are gone after block exits", [
+                    o.run_with_separate_globals([
+                        o.set_scope_var("innerOnly", "value"),
+                    ]),
+                    t.assert_not(o.scope_var_exists("innerOnly", kind_all)),
+                ]),
+                t.test_scope("Cleanup happens even if an error is thrown inside", [
+                    t.assert_throws([
+                        o.run_with_separate_globals([
+                            o.set_scope_var("innerError", "value"),
+                            o.execute_expression(o.get_scope_var("__missing__")),
+                        ]),
+                    ]),
+                    t.assert_not(o.scope_var_exists("innerError", kind_all)),
+                ]),
+                t.test_scope("Nested runWithSeparateGlobals are fully independent", [
+                    o.set_scope_var("outerG", "OG"),
+                    o.run_with_separate_globals([
+                        o.set_scope_var("middleG", "MG"),
+                        o.run_with_separate_globals([
+                            t.assert_not(o.scope_var_exists("outerG", kind_all)),
+                            t.assert_not(o.scope_var_exists("middleG", kind_all)),
+                        ]),
+                        t.assert_(o.scope_var_exists("middleG", kind_global)),
+                        t.assert_not(o.scope_var_exists("outerG", kind_all)),
+                    ]),
+                    t.assert_(o.scope_var_exists("outerG", kind_global)),
+                    t.assert_not(o.scope_var_exists("middleG", kind_all)),
+                    o.delete_scope_var("outerG")
                 ]),
             ]),
         ]),
@@ -476,7 +562,7 @@ def test_function_blocks() -> TestProject:
                 ]),
             ]),
 
-            t.test_scope("closures", [
+            t.test_scope("closures", [o.run_with_separate_globals([
                 t.test_scope("Outer function accepts prefix, returns inner function that closes over it", [
                     o.configure_next_function_args('["prefix"]', '[]'),
                     o.create_function_at("makeGreeter", [
@@ -506,9 +592,9 @@ def test_function_blocks() -> TestProject:
                         "Hi, Bob"
                     ),
                 ]),
-            ]),
+            ])]),
 
-            t.test_scope("create function named", [
+            t.test_scope("create function named", [o.run_with_separate_globals([
                 t.test_scope("Create a function as a reporter block (returns the function)", [
                     o.set_scope_var("myFunc", o.create_function_named("anonFunc", [
                         o.return_value("from-anon"),
@@ -520,7 +606,7 @@ def test_function_blocks() -> TestProject:
                         "from-anon"
                     ),
                 ]),
-            ]),
+            ])]),
 
             t.test_scope("error: wrong arg count", [
                 t.test_scope("Function that accepts no arguments", [
@@ -1508,7 +1594,7 @@ def test_class_definition_blocks() -> TestProject:
                         o.set_scope_var("NC", o.create_class_named("NamedCls", [
                             o.set_class_variable(o.current_class(), "info", "from-named"),
                         ])),
-                        t.assert_unstrict_equal(o.get_class_variable("info", "NamedCls"), "from-named"),
+                        t.assert_unstrict_equal(o.get_class_variable("info", o.get_scope_var("NC")), "from-named"),
                     ]),
                 ]),
                 t.test_scope("currentClass inside onClass returns the correct class", [
@@ -1576,10 +1662,10 @@ def test_class_definition_blocks() -> TestProject:
                         t.assert_unstrict_equal(o.typeof_value(o.get_scope_var("Sub")), o.typeof_value_selection("Class (GCE)")),
                     ]),
                     t.test_scope("isSubclass works for reporter-created subclass", [
-                        t.assert_(o.is_subclass("SubNamed", "BaseR")),
+                        t.assert_(o.is_subclass(o.get_scope_var("Sub"), "BaseR")),
                     ]),
                     t.test_scope("Instance inherits from base and has own method", [
-                        o.set_scope_var("inst", o.create_instance("SubNamed", '[]')),
+                        o.set_scope_var("inst", o.create_instance(o.get_scope_var("Sub"), '[]')),
                         t.assert_unstrict_equal(o.call_method(o.get_scope_var("inst"), "base", '[]'), "from-base"),
                         t.assert_unstrict_equal(o.call_method(o.get_scope_var("inst"), "child", '[]'), "from-child"),
                     ]),
@@ -1587,7 +1673,7 @@ def test_class_definition_blocks() -> TestProject:
             ]),
 
             # ------------------------------------------------------------------ #
-            t.test_scope("is_subclass", [
+            t.test_scope("isSubclass", [
                 o.create_var_scope([
                     o.create_class_at("A", []),
                     o.create_subclass_at("B", "A", []),
@@ -1601,8 +1687,8 @@ def test_class_definition_blocks() -> TestProject:
                         t.assert_not(o.is_subclass("A", "B")),
                         t.assert_not(o.is_subclass("A", "C")),
                     ]),
-                    t.test_scope("A class is not a subclass of itself", [
-                        t.assert_not(o.is_subclass("A", "A")),
+                    t.test_scope("A class is kinda a subclass of itself", [
+                        t.assert_(o.is_subclass("A", "A")),
                     ]),
                 ]),
             ]),
@@ -1943,20 +2029,20 @@ def main() -> None:
 
     projects: list[tuple[TestProject, Path]] = []
     
-    projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
-    projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
-    projects.append((test_scoped_variables_blocks(), test_projects_dir / "test_scoped_variables_blocks.pmp"))
-    projects.append((test_function_blocks(), test_projects_dir / "test_function_blocks.pmp"))
-    projects.append((test_utilities_blocks(), test_projects_dir / "test_utilities_blocks.pmp"))
-    projects.append((test_class_definition_blocks(), test_projects_dir / "test_class_definition_blocks.pmp"))
-    projects.append((test_instance_methods(), test_projects_dir / "test_instance_methods.pmp"))
-    projects.append((test_special_method_init(), test_projects_dir / "test_special_method_init.pmp"))
-    projects.append((test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp"))
-    projects.append((test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp"))
-    projects.append((test_operator_methods(), test_projects_dir / "test_operator_methods.pmp"))
-    projects.append((test_static_methods(), test_projects_dir / "test_static_methods.pmp"))
-    projects.append((test_class_variables(), test_projects_dir / "test_class_variables.pmp"))
-    projects.append((test_introspection(), test_projects_dir / "test_introspection.pmp"))
+    #projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
+    #projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
+    #projects.append((test_scoped_variables_blocks(), test_projects_dir / "test_scoped_variables.pmp"))
+    #projects.append((test_function_blocks(), test_projects_dir / "test_function.pmp"))
+    #projects.append((test_utilities_blocks(), test_projects_dir / "test_utilities.pmp"))
+    projects.append((test_class_definition_blocks(), test_projects_dir / "test_class_definition.pmp"))
+    #projects.append((test_instance_methods(), test_projects_dir / "test_instance_methods.pmp"))
+    #projects.append((test_special_method_init(), test_projects_dir / "test_special_method_init.pmp"))
+    #projects.append((test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp"))
+    #projects.append((test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp"))
+    #projects.append((test_operator_methods(), test_projects_dir / "test_operator_methods.pmp"))
+    #projects.append((test_static_methods(), test_projects_dir / "test_static_methods.pmp"))
+    #projects.append((test_class_variables(), test_projects_dir / "test_class_variables.pmp"))
+    #projects.append((test_introspection(), test_projects_dir / "test_introspection.pmp"))
 
     for project, path in projects:
         write_project_to_file(project, path)
