@@ -139,7 +139,7 @@ class gceFuncsScopes:
             opcode="&gceFuncsScopes::call function (FUNC) with positional args (POSARGS)",
             inputs={
                 "FUNC": InputValue.try_as_input(func, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

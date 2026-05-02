@@ -170,7 +170,7 @@ class gceOOP:
             opcode="&gceOOP::call super method (NAME) with positional args (POSARGS)",
             inputs={
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -180,7 +180,7 @@ class gceOOP:
         return p.SRBlock(
             opcode="&gceOOP::call super init method with positional args (POSARGS)",
             inputs={
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue)
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -324,7 +324,7 @@ class gceOOP:
             opcode="&gceOOP::create instance of class (CLASS) with positional args (POSARGS)",
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -414,7 +414,7 @@ class gceOOP:
                     instance, p.SRBlockAndTextInputValue
                 ),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -430,7 +430,7 @@ class gceOOP:
             inputs={
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
                 "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockOnlyInputValue),
+                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

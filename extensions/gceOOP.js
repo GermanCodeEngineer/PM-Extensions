@@ -2761,8 +2761,8 @@ class GCEOOPBlocks {
             return {
                 setup: `const ${clsLocal} = new ${ENV_PREFIX}.ClassType(${nameCode}, ${superClass});` +
                     (setVariable ? `${CURRENT_STACK}.setScopeVar(${clsLocal}.name, ${clsLocal});` : "") +
-                    `${CURRENT_STACK}.enterClassDefScope(${clsLocal});`,
-                cleanup: `${CURRENT_STACK}.exitClassDefScope();`,
+                    `${CURRENT_STACK}.enterClassDefScope(${clsLocal}); try {`,
+                cleanup: `} finally { ${CURRENT_STACK}.exitClassDefScope(); };`,
                 clsLocal
             }
         }
@@ -2891,7 +2891,8 @@ class GCEOOPBlocks {
                     createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "CP_INSTANCE_METHOD", false)
                 },
                 defineSpecialMethod: (node, compiler, imports) => {
-                    const nameCode = `${MENUS_PREFIX}.SPECIAL_METHOD.standardizeBlockInput(${quote(node.SPECIAL_METHOD)})`
+                    const dropdownValueCode = compiler.descendInput(node.SPECIAL_METHOD).asString()
+                    const nameCode = `${MENUS_PREFIX}.SPECIAL_METHOD.standardizeBlockInput(${dropdownValueCode})`
                     createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "CP_INSTANCE_METHOD", false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
@@ -2919,8 +2920,9 @@ class GCEOOPBlocks {
 
                 // Define Operator Methods
                 defineOperatorMethod: (node, compiler, imports) => {
-                    const nameCode = `${MENUS_PREFIX}.OPERATOR_METHOD.standardizeBlockInput(${quote(node.OPERATOR_KIND)})`
-                    createMethodDefinition(node, compiler, imports, quote(node.OPERATOR_KIND), "OperatorMethodType", "CP_OPERATOR_METHOD", true)
+                    const dropdownValueCode = compiler.descendInput(node.OPERATOR_KIND).asString()
+                    const nameCode = `${MENUS_PREFIX}.OPERATOR_METHOD.standardizeBlockInput(${dropdownValueCode})`
+                    createMethodDefinition(node, compiler, imports, dropdownValueCode, "OperatorMethodType", "CP_OPERATOR_METHOD", true)
                 },
 
                 // Define Static Methods & Class Variables
@@ -3191,7 +3193,7 @@ class GCEOOPBlocks {
             case "VAK_ALL":
                 hasVar = currentStack.hasScopeVar(name, false, false)
                 break
-            case "VAL_LOCAL":
+            case "VAL_LOCAL": // Intentionally spelled wrong to test this is detected by tests // TODO
                 hasVar = currentStack.hasScopeVar(name, true, false)
                 break
             case "VAK_GLOBAL":
@@ -3781,7 +3783,27 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - finish project tests
+ * + - review and finish project tests
+ * + - ~ review test_class_definition_blocks.pmp
+ * + - ~ review test_instance_methods.pmp
+ * + - ~ review test_special_method_init.pmp // why is it called that
+ * + - ~ review test_getters_setters_blocks.pmp
+ * + - ~ review test_inheritance_and_super.pmp
+ * + - ~ review test_getters_and_setters.pmp
+ * + - ~ review test_operator_methods.pmp
+ * + - ~ review test_static_methods.pmp
+ * + - ~ review test_class_variables.pmp
+ * + - ~ review test_introspection.pmp // why is it called that
+ * + - ensure these are all tested properly:
+ * + - ~ specially test special cases of propertyNamesOfClass
+ * + - ~ ensure scopeVarExists is tested properly, especially with multiple scopes
+ * + - ~ ensure allVariables is tested properly, especially with multiple scopes
+ * + - ~ ensure bindVarToScope is tested properly
+ * + - ~ ensure getSuperclass is tested properly
+ * + - ~ test that createVarScope and onClass and other scopes are executed when an error happens in the branches
+ * + - ~ test nested scopes e.g. local variable scope in function 
+ * + - look through documentation examples, ensure all features are tested properly
+ * + - ensure every block is tested at least once
  * + - replace [option v] in docs with (option v)
  *
  * + HIGH PRIORITY
@@ -3814,18 +3836,6 @@ if (!isRuntimeEnv) {
  * + - ~ add get error type block
  * 
  * + QUICK TASKS
- *
- * + DURING TESTING (do not forget):
- * + - test and/or rework enterClassDefScope
- * + - add project tests for TypeChecker, Cast
- * + - specially test special cases of propertyNamesOfClass
- * + - ensure scopeVarExists is tested properly, especially with multiple scopes
- * + - ensure allVariables is tested properly, especially with multiple scopes
- * + - ensure bindVarToScope is tested properly
- * + - ensure getSuperclass is tested properly
- * + - ensure propertyNamesOfClass edge cases are tested
- * + - test that createVarScope and onClass and other scopes are executed when an error happens in the branches
- * + - test nested scopes e.g. local variable scope in function 
  *
  * + ON RELEASE / AFTER TESTING:
  * + - change both localhost URLs to extensions.penguinmod URL
