@@ -58,6 +58,8 @@ const TRANSLATIONS = {
         "Returns all variable names visible in the selected scope range as an array.": "Gibt alle Variablennamen zurück, die im ausgewählten Bereich sichtbar sind, als Array.",
         "create local variable scope": "Erstelle lokalen Variablenbereich",
         "Runs the enclosed blocks inside a new local variable scope.": "Führt die eingeschlossenen Blöcke in einem neuen lokalen Variablenbereich aus.",
+        "run with separate globals": "Führe mit separaten globalen Variablen aus",
+        "Runs the enclosed blocks with a fresh empty global scope and fresh local scopes.": "Führt die eingeschlossenen Blöcke mit einem neuen leeren globalen Bereich und neuen lokalen Bereichen aus.",
         "bind [KIND] variable [NAME] to current scope": "Binde [KIND]-Variable [NAME] an den aktuellen Bereich",
         "Links a global or non-local variable into the current scope.": "Verknüpft eine globale oder nicht-lokale Variable mit dem aktuellen Bereich.",
         "Functions": "Funktionen",
@@ -441,6 +443,12 @@ class GCEFuncsScopesBlocks {
                     tooltip: "Runs the enclosed blocks inside a new local variable scope.",
                 },
                 {
+                    ...commonBlocks.commandWithBranch,
+                    opcode: "runWithSeparateGlobals",
+                    text: ["run with separate globals"],
+                    tooltip: "Runs the enclosed blocks with a fresh empty global scope and fresh local scopes.",
+                },
+                {
                     ...commonBlocks.command,
                     opcode: "bindVarToScope",
                     text: "bind [KIND] variable [NAME] to current scope",
@@ -647,6 +655,8 @@ class GCEFuncsScopesBlocks {
     allVariables = this._getImplementation("allVariables")
 
     createVarScope = this._getImplementation("createVarScope")
+
+    runWithSeparateGlobals = this._getImplementation("runWithSeparateGlobals")
 
     bindVarToScope = this._getImplementation("bindVarToScope")
 

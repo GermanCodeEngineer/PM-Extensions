@@ -346,6 +346,13 @@ create local variable scope {
 
 ---
 ```scratch
+run with separate globals {
+}::#428af5
+```
+- Runs the enclosed blocks with a fresh empty global scope and fresh local scopes.
+
+---
+```scratch
 bind [non-local v] variable [myVar] to current scope::#428af5
 bind [global v] variable [myVar] to current scope::#428af5
 ```
@@ -406,6 +413,7 @@ on class [MyClass] (current class::#428af5) {
 <is [MySubclass] a subclass of [MyClass] ?::#428af5>
 ```
 - Checks whether one class inherits from another.
+- Considers MyClass a subclass of MyClass here.
 
 ---
 ```scratch

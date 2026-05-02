@@ -112,7 +112,7 @@ const TRANSLATIONS = {
         "Returns the class currently being defined.": "Gibt die Klasse zurück, die gerade definiert wird.",
         "Use Classes": "Klassen verwenden",
         "is [SUBCLASS] a subclass of [SUPERCLASS] ?": "Ist [SUBCLASS] eine Unterklasse von [SUPERCLASS]?",
-        "Checks whether one class inherits from another.": "Prüft, ob eine Klasse von einer anderen erbt.",
+        "Checks whether one class inherits from another. Considers MyClass a subclass of MyClass here.": "Prüft, ob eine Klasse von einer anderen erbt. Betrachtet MeineKlasse hier als Unterklasse von MeineKlasse.",
         "get superclass of [CLASS]": "Oberklasse von [CLASS] abrufen",
         "Returns the superclass of a class, or Nothing if it has none.": "Gibt die Oberklasse einer Klasse zurück oder Nichts, falls keine vorhanden ist.",
         "Class Members": "Klassenmitglieder",
@@ -515,7 +515,7 @@ class VariableManager {
      */
     setHolder(name, holder) {
         if (this.has(name)) {
-            throwError("Variable {name} already exists in the current scope, can not bind variable with the same name."), {name: quote(name)}
+            throwError("Variable {name} already exists in the current scope, can not bind variable with the same name.", {name: quote(name)})
         }
         this._variables[name] = holder
     }
@@ -762,15 +762,18 @@ class ScopeStack {
     static CLASS_DEF = "CLASS_DEF"
     static USER_SCOPE = "USER_SCOPE"
 
-    constructor() {
-
+    /**
+     * @param {?VariableManager} globalsVars Optional globals storage for this stack.
+     */
+    constructor(globalsVars = null) {
+        globalsVars = globalsVars || extensionClassInstance.globalVariables
         /** @type {Array<ContextScope>} */
         this.scopes = [{
             type: ScopeStack.GLOBALS,
             isGlobalScope: true, supportsVars: true,
-            vars: extensionClassInstance.globalVariables,
+            vars: globalsVars,
         }] // Item 0 is innermost
-        // Use the global variables manager for all global scopes
+        // Defaults to shared extension globals unless an isolated manager is provided.
         this.setNextFuncConfig()
     }
 
@@ -2426,7 +2429,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "isSubclass",
                     text: "is [SUBCLASS] a subclass of [SUPERCLASS] ?",
-                    tooltip: "Checks whether one class inherits from another.",
+                    tooltip: "Checks whether one class inherits from another. Considers MyClass a subclass of MyClass here.",
                     arguments: {
                         SUBCLASS: gceClass.ArgumentSubclassOrVarName,
                         SUPERCLASS: gceClass.ArgumentClassOrVarName,
@@ -2976,6 +2979,7 @@ class GCEOOPBlocks {
             Object.assign(irInfo, {
                 // Scoped Variables
                 createVarScope: createIRGenerator("stack", ["SUBSTACK"], [], true),
+                runWithSeparateGlobals: createIRGenerator("stack", ["SUBSTACK"], [], true),
 
 
                 // Define
@@ -3000,6 +3004,14 @@ class GCEOOPBlocks {
                     addSubstackCode(compiler, node.SUBSTACK, imports)
                     compiler.source += "} finally {"
                     compiler.source += `${CURRENT_STACK}.exitUserScope();`
+                    compiler.source += "};\n"
+                },
+                runWithSeparateGlobals: (node, compiler, imports) => {
+                    compiler.source += `${STACK_MANAGER}.pushStackToManager(new ${ENV_PREFIX}.ScopeStack(new ${ENV_PREFIX}.VariableManager()));`
+                    compiler.source += "try {"
+                    addSubstackCode(compiler, node.SUBSTACK, imports)
+                    compiler.source += "} finally {"
+                    compiler.source += `${STACK_MANAGER}.popStackFromManager();`
                     compiler.source += "};\n"
                 },
 
@@ -3193,7 +3205,7 @@ class GCEOOPBlocks {
             case "VAK_ALL":
                 hasVar = currentStack.hasScopeVar(name, false, false)
                 break
-            case "VAL_LOCAL": // Intentionally spelled wrong to test this is detected by tests // TODO
+            case "VAK_LOCAL":
                 hasVar = currentStack.hasScopeVar(name, true, false)
                 break
             case "VAK_GLOBAL":
@@ -3235,6 +3247,7 @@ class GCEOOPBlocks {
     }
 
     createVarScope = this._isACompiledBlock
+    runWithSeparateGlobals = this._isACompiledBlock
 
     /**
      * @param {BlockArgs} args
@@ -3345,7 +3358,7 @@ class GCEOOPBlocks {
         const cls = Cast.toClass(args.CLASS, util.thread)
         const name = Cast.toString(args.NAME)
         const value = args.VALUE
-        cls.setMemberOfType(name, value, "CP_CLASS_VARIABLE")
+        cls.setMemberOfType(name, "CP_CLASS_VARIABLE", value)
     }
 
     /**
@@ -3784,10 +3797,11 @@ if (!isRuntimeEnv) {
  * 
  * + WORKING ON
  * + - review and finish project tests
- * + - ~ review test_class_definition_blocks.pmp
+ * + - ~ [DONE] review test_scoped_variables.pmp
+ * + - ~ [DONE]review test_class_definition.pmp
  * + - ~ review test_instance_methods.pmp
  * + - ~ review test_special_method_init.pmp // why is it called that
- * + - ~ review test_getters_setters_blocks.pmp
+ * + - ~ review test_getters_setters.pmp
  * + - ~ review test_inheritance_and_super.pmp
  * + - ~ review test_getters_and_setters.pmp
  * + - ~ review test_operator_methods.pmp
@@ -3804,9 +3818,12 @@ if (!isRuntimeEnv) {
  * + - ~ test nested scopes e.g. local variable scope in function 
  * + - look through documentation examples, ensure all features are tested properly
  * + - ensure every block is tested at least once
+ * + - at the end run test_unified.pmp
+ * + - ~ => requires a developer only "run with seperate globals" block
  * + - replace [option v] in docs with (option v)
  *
  * + HIGH PRIORITY
+ * + - ~ consider making the "run with seperate globals" or even locals block public?
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
@@ -3819,7 +3836,7 @@ if (!isRuntimeEnv) {
  * + - "delete member of class" block
  * + - reconsider to standardize stacks and scopes index order style
  * + - convert call super init method to call super special method
- * + - "delete", "has", "all" blocks for attributes, class members
+ * + - "delete", "has", "all" blocks for vars, attributes, class members
  * + - think about other missing blocks accross features
  *
  * + LOW PRIORITY (optional in future)
@@ -3836,6 +3853,9 @@ if (!isRuntimeEnv) {
  * + - ~ add get error type block
  * 
  * + QUICK TASKS
+ * 
+ * + TEST RUNNER EXTENSION
+ * + - ~ more assert equal blocks e.g. assert array content equal (array of primitives)
  *
  * + ON RELEASE / AFTER TESTING:
  * + - change both localhost URLs to extensions.penguinmod URL

@@ -66,6 +66,16 @@ class gceFuncsScopes:
         )
 
     @staticmethod
+    def run_with_separate_globals(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&gceFuncsScopes::run with separate globals {SUBSTACK}",
+            inputs={
+                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
     def bind_var_to_scope(
         kind: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
