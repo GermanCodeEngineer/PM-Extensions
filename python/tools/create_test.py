@@ -97,7 +97,14 @@ class TestProject:
     
 def convert_project(test_project: TestProject) -> p.FRProject:
     srproject = p.SRProject.create_empty()
-    srproject.stage.scripts = [p.SRScript(position=(0, 0), blocks=test_project.blocks)]
+    srsprite = p.SRSprite.create_empty("Test")
+    srproject.sprites.append(srsprite)
+    srproject.sprite_layer_stack.append(srsprite.uuid)
+
+    blocks = copy.copy(test_project.blocks)
+    blocks.insert(0, h.event.whenflagclicked())
+    srsprite.scripts = [p.SRScript(position=(0, 0), blocks=blocks)]
+
     srproject.extensions = []
     for id in test_project.extension_ids:
         url = EXTENSION_SOURCES[id]
@@ -1953,6 +1960,9 @@ def main() -> None:
 
     for project, path in projects:
         write_project_to_file(project, path)
+    
+    united_project = TestProject.join_projects([p for p, _ in projects])
+    write_project_to_file(united_project, test_projects_dir / "test_united.pmp")
 
 if __name__ == "__main__":
     main()
