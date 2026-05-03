@@ -679,11 +679,12 @@ describe("ScopeStack", () => {
             s.exitClassDefScope()
         })
 
-        test("throws when not in a class def scope", () => {
+        test("returns the class even when a user scope is active inside a class def scope", () => {
             const s = new ScopeStack()
-            s.enterClassDefScope({ name: "Bar"})
+            const cls = { name: "Bar" }
+            s.enterClassDefScope(cls)
             s.enterUserScope()
-            assertThrows(() => s.getClsOrThrow("current class"), "class definition")
+            assert.strictEqual(s.getClsOrThrow("current class"), cls)
             s.exitUserScope()
             s.exitClassDefScope()
         })

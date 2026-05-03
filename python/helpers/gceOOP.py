@@ -331,13 +331,13 @@ class gceOOP:
 
     @staticmethod
     def is_instance(
-        instance: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
+        potential_instance: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
     ) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&gceOOP::is (INSTANCE) an instance of (CLASS) ?",
+            opcode="&gceOOP::is (POTENTIAL_INSTANCE) an instance of (CLASS) ?",
             inputs={
-                "INSTANCE": InputValue.try_as_input(
-                    instance, p.SRBlockAndTextInputValue
+                "POTENTIAL_INSTANCE": InputValue.try_as_input(
+                    potential_instance, p.SRBlockAndTextInputValue
                 ),
                 "CLASS": InputValue.try_as_input(class_, p.SRBlockAndTextInputValue),
             },

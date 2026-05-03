@@ -231,7 +231,7 @@ def test_Cast() -> TestProject:
         "gceOOP", "gceFuncsScopes", "gceTestRunner", "jwProto", "SPjavascriptV2",
     ])
 
-def test_scoped_variables_blocks() -> TestProject:
+def test_scoped_variables() -> TestProject:
     kind_all = "all scopes"
     kind_local = "local scope"
     kind_global = "global scope"
@@ -297,6 +297,34 @@ def test_scoped_variables_blocks() -> TestProject:
                 ]),
             ]),
 
+            # ------------------------------------------------------------------ #
+            t.test_scope("allVariables with globals and locals simultaneously", [
+                t.test_scope("kind_global and kind_local see only their own tier; kind_all sees both", [
+                    o.run_with_separate_globals([
+                        o.set_scope_var("globalX", "gx"),
+                        o.set_scope_var("globalY", "gy"),
+                        o.create_var_scope([
+                            o.set_scope_var("localZ", "lz"),
+                            t.test_scope("kind_global sees globals only", [
+                                t.assert_text_in_value("globalX", o.all_variables(kind_global)),
+                                t.assert_text_in_value("globalY", o.all_variables(kind_global)),
+                                t.assert_text_not_in_value("localZ", o.all_variables(kind_global)),
+                            ]),
+                            t.test_scope("kind_local sees locals only", [
+                                t.assert_text_in_value("localZ", o.all_variables(kind_local)),
+                                t.assert_text_not_in_value("globalX", o.all_variables(kind_local)),
+                                t.assert_text_not_in_value("globalY", o.all_variables(kind_local)),
+                            ]),
+                            t.test_scope("kind_all sees both globals and locals", [
+                                t.assert_text_in_value("globalX", o.all_variables(kind_all)),
+                                t.assert_text_in_value("globalY", o.all_variables(kind_all)),
+                                t.assert_text_in_value("localZ", o.all_variables(kind_all)),
+                            ]),
+                        ]),
+                    ]),
+                ]),
+            ]),
+
             t.test_scope("bind global + non-local", [
                 t.test_scope("Bind global in an inner scope and mutate it", [
                     o.run_with_separate_globals([
@@ -316,6 +344,51 @@ def test_scoped_variables_blocks() -> TestProject:
                             o.set_scope_var("outerLocal", "B"),
                         ]),
                         t.assert_strict_equal(o.get_scope_var("outerLocal"), "B"),
+                    ]),
+                ]),
+            ]),
+
+            t.test_scope("shadowing: inner scope shadows outer name", [
+                t.test_scope("get_scope_var resolves to innermost definition", [
+                    o.create_var_scope([
+                        o.set_scope_var("x", "outer"),
+                        o.create_var_scope([
+                            o.set_scope_var("x", "inner"),
+                            t.test_scope("Inner scope sees the inner value", [
+                                t.assert_strict_equal(o.get_scope_var("x"), "inner"),
+                            ]),
+                        ]),
+                        t.test_scope("After inner scope exits, outer value is restored", [
+                            t.assert_strict_equal(o.get_scope_var("x"), "outer"),
+                        ]),
+                    ]),
+                ]),
+            ]),
+
+            t.test_scope("bind then delete", [
+                t.test_scope("Delete a bound global variable from an inner scope", [
+                    o.run_with_separate_globals([
+                        o.set_scope_var("toDelete", "exists"),
+                        o.create_var_scope([
+                            o.bind_var_to_scope(bind_global, "toDelete"),
+                            o.delete_scope_var("toDelete"),
+                        ]),
+                        t.test_scope("Variable is gone from globals after delete", [
+                            t.assert_not(o.scope_var_exists("toDelete", kind_global)),
+                            t.assert_not(o.scope_var_exists("toDelete", kind_all)),
+                        ]),
+                    ]),
+                ]),
+                t.test_scope("Delete a bound non-local variable from an inner scope", [
+                    o.create_var_scope([
+                        o.set_scope_var("outerVar", "exists"),
+                        o.create_var_scope([
+                            o.bind_var_to_scope("non-local", "outerVar"),
+                            o.delete_scope_var("outerVar"),
+                        ]),
+                        t.test_scope("Variable is gone from outer scope after delete", [
+                            t.assert_not(o.scope_var_exists("outerVar", kind_all)),
+                        ]),
                     ]),
                 ]),
             ]),
@@ -484,81 +557,89 @@ def test_scoped_variables_blocks() -> TestProject:
     ])
 
 
-def test_function_blocks() -> TestProject:
+def test_functions() -> TestProject:
     blocks = [
         t.test_scope("Function Blocks", [
             t.test_scope("basic function", [
-                t.test_scope("Define a simple function that returns a constant", [
-                    o.create_function_at("myFunc", [
-                        o.return_value("hello"),
+                o.create_var_scope([
+                    t.test_scope("Define a simple function that returns a constant", [
+                        o.create_function_at("myFunc", [
+                            o.return_value("hello"),
+                        ]),
                     ]),
-                ]),
-                t.test_scope("Call the function with no arguments", [
-                    t.assert_strict_equal(
-                        o.call_function("myFunc", "[]"),
-                        "hello"
-                    ),
+                    t.test_scope("Call the function with no arguments", [
+                        t.assert_strict_equal(
+                            o.call_function("myFunc", "[]"),
+                            "hello"
+                        ),
+                    ]),
                 ]),
             ]),
 
             t.test_scope("function with args", [
-                t.test_scope("Configure and define function with two arguments", [
-                    o.configure_next_function_args('["greeting", "name"]', '[]'),
-                    o.create_function_at("greet", [
-                        o.return_value(h.operator.join3(o.get_scope_var("greeting"), " ", o.get_scope_var("name"))),
+                o.create_var_scope([
+                    t.test_scope("Configure and define function with two arguments", [
+                        o.configure_next_function_args('["greeting", "name"]', '[]'),
+                        o.create_function_at("greet", [
+                            o.return_value(h.operator.join3(o.get_scope_var("greeting"), " ", o.get_scope_var("name"))),
+                        ]),
                     ]),
-                ]),
-                t.test_scope("Call with two arguments passed as array", [
-                    t.assert_strict_equal(
-                        o.call_function("greet", '["Hello", "Ada"]'),
-                        "Hello Ada"
-                    ),
+                    t.test_scope("Call with two arguments passed as array", [
+                        t.assert_strict_equal(
+                            o.call_function("greet", '["Hello", "Ada"]'),
+                            "Hello Ada"
+                        ),
+                    ]),
                 ]),
             ]),
 
             t.test_scope("default arguments", [
-                t.test_scope("Configure function with required arg and default trailing arg", [
-                    o.configure_next_function_args('["person", "greeting"]', '["Hi"]'),
-                    o.create_function_at("sayHi", [
-                        o.return_value(h.operator.join3(o.get_scope_var("greeting"), " ", o.get_scope_var("person"))),
+                o.create_var_scope([
+                    t.test_scope("Configure function with required arg and default trailing arg", [
+                        o.configure_next_function_args('["person", "greeting"]', '["Hi"]'),
+                        o.create_function_at("sayHi", [
+                            o.return_value(h.operator.join3(o.get_scope_var("greeting"), " ", o.get_scope_var("person"))),
+                        ]),
                     ]),
-                ]),
-                t.test_scope("Call with only first arg (second uses default Hi)", [
-                    t.assert_strict_equal(
-                        o.call_function("sayHi", '["Bob"]'),
-                        "Hi Bob"
-                    ),
-                ]),
-                t.test_scope("Call with both args (overrides default)", [
-                    t.assert_strict_equal(
-                        o.call_function("sayHi", '["Bob", "Hey"]'),
-                        "Hey Bob"
-                    ),
+                    t.test_scope("Call with only first arg (second uses default Hi)", [
+                        t.assert_strict_equal(
+                            o.call_function("sayHi", '["Bob"]'),
+                            "Hi Bob"
+                        ),
+                    ]),
+                    t.test_scope("Call with both args (overrides default)", [
+                        t.assert_strict_equal(
+                            o.call_function("sayHi", '["Bob", "Hey"]'),
+                            "Hey Bob"
+                        ),
+                    ]),
                 ]),
             ]),
 
             t.test_scope("return behavior", [
-                t.test_scope("Function returns early inside an if-block; later return must not run", [
-                    o.configure_next_function_args('["flag"]', '[]'),
-                    o.create_function_at("conditional", [
-                        h.control.if_(
-                            h.operator.equals(o.get_scope_var("flag"), "yes"),
-                            [o.return_value("early")],
-                        ),
-                        o.return_value("late"),
+                o.create_var_scope([
+                    t.test_scope("Function returns early inside an if-block; later return must not run", [
+                        o.configure_next_function_args('["flag"]', '[]'),
+                        o.create_function_at("conditional", [
+                            h.control.if_(
+                                h.operator.equals(o.get_scope_var("flag"), "yes"),
+                                [o.return_value("early")],
+                            ),
+                            o.return_value("late"),
+                        ]),
                     ]),
-                ]),
-                t.test_scope("When condition is true, early return fires", [
-                    t.assert_strict_equal(
-                        o.call_function("conditional", '["yes"]'),
-                        "early"
-                    ),
-                ]),
-                t.test_scope("When condition is false, falls through to second return", [
-                    t.assert_strict_equal(
-                        o.call_function("conditional", '["no"]'),
-                        "late"
-                    ),
+                    t.test_scope("When condition is true, early return fires", [
+                        t.assert_strict_equal(
+                            o.call_function("conditional", '["yes"]'),
+                            "early"
+                        ),
+                    ]),
+                    t.test_scope("When condition is false, falls through to second return", [
+                        t.assert_strict_equal(
+                            o.call_function("conditional", '["no"]'),
+                            "late"
+                        ),
+                    ]),
                 ]),
             ]),
 
@@ -608,7 +689,7 @@ def test_function_blocks() -> TestProject:
                 ]),
             ])]),
 
-            t.test_scope("error: wrong arg count", [
+            t.test_scope("error: wrong arg count", [o.run_with_separate_globals([
                 t.test_scope("Function that accepts no arguments", [
                     o.create_function_at("noArgs", [
                         o.return_value("done"),
@@ -630,10 +711,10 @@ def test_function_blocks() -> TestProject:
                         o.execute_expression(o.call_function("oneArg", "[]")),
                     ]),
                 ]),
-            ]),
+            ])]),
 
             # ------------------------------------------------------------------ #
-            t.test_scope("var scope inside function body", [
+            t.test_scope("var scope inside function body", [o.create_var_scope([
                 t.test_scope("createVarScope inside a function is isolated per call", [
                     o.configure_next_function_args('["val"]', '[]'),
                     o.create_function_at("withScope", [
@@ -646,13 +727,13 @@ def test_function_blocks() -> TestProject:
                 t.test_scope("First call", [
                     t.assert_strict_equal(o.call_function("withScope", '["first"]'), "first"),
                 ]),
-                t.test_scope("Second call — inner var is fresh each call", [
+                t.test_scope("Second call: inner var is fresh each call", [
                     t.assert_strict_equal(o.call_function("withScope", '["second"]'), "second"),
                 ]),
                 t.test_scope("Inner scope var is not visible outside the function", [
                     t.assert_not(o.scope_var_exists("inner", "all scopes")),
                 ]),
-            ]),
+            ])]),
         ]),
     ]
 
@@ -661,7 +742,7 @@ def test_function_blocks() -> TestProject:
     ])
 
 
-def test_utilities_blocks() -> TestProject:
+def test_utilities() -> TestProject:
     blocks = [
         t.test_scope("Utilities Blocks", [
 
@@ -942,6 +1023,42 @@ def test_instance_methods() -> TestProject:
                 ]),
             ]),
 
+            # ------------------------------------------------------------------ #
+            t.test_scope("method with yield point", [
+                t.test_scope("Method body that includes sayforsecs (yielding block) returns correctly and waits", [
+                    o.create_var_scope([
+                        o.create_class_at("Speaker", [
+                            o.configure_next_function_args('["msg"]', '[]'),
+                            o.define_instance_method("speak", [
+                                h.looks.sayforsecs(o.get_scope_var("msg"), "0.5"),
+                                o.return_value(h.operator.join("said: ", o.get_scope_var("msg"))),
+                            ]),
+                        ]),
+                        o.set_scope_var("s", o.create_instance("Speaker", '[]')),
+                        t.test_scope("Return value is correct after yield", [
+                            h.sensing.resettimer(),
+                            t.assert_unstrict_equal(
+                                o.call_method(o.get_scope_var("s"), "speak", '["hello"]'),
+                                "said: hello",
+                            ),
+                            t.test_scope("At least 0.4s elapsed (sayforsecs 0.5s actually waited)", [
+                                t.assert_(h.operator.gt(h.sensing.timer(), "0.4")),
+                            ]),
+                        ]),
+                        t.test_scope("Second call also returns correctly and also waits", [
+                            h.sensing.resettimer(),
+                            t.assert_unstrict_equal(
+                                o.call_method(o.get_scope_var("s"), "speak", '["world"]'),
+                                "said: world",
+                            ),
+                            t.test_scope("At least 0.4s elapsed on second call too", [
+                                t.assert_(h.operator.gt(h.sensing.timer(), "0.4")),
+                            ]),
+                        ]),
+                    ]),
+                ]),
+            ]),
+
         ]),
     ]
     return TestProject(blocks, extension_ids=[
@@ -1062,8 +1179,8 @@ def test_inheritance_and_super() -> TestProject:
                         t.assert_not(o.is_subclass("A", "B")),
                         t.assert_not(o.is_subclass("A", "C")),
                     ]),
-                    t.test_scope("A class is not a subclass of itself", [
-                        t.assert_not(o.is_subclass("A", "A")),
+                    t.test_scope("A class is a subclass of itself", [
+                        t.assert_(o.is_subclass("A", "A")),
                     ]),
                 ]),
             ]),
@@ -1300,6 +1417,107 @@ def test_operator_methods() -> TestProject:
                 ]),
             ]),
 
+            # ------------------------------------------------------------------ #
+            t.test_scope("reverse operations", [
+                t.test_scope("Right-side method is used when left operand has no matching method", [
+                    o.create_var_scope([
+                        o.create_class_at("RightOnly", [
+                            # Only defines right add; no left add
+                            o.define_operator_method("right add", [
+                                o.return_value(h.operator.join("R+", o.operator_operator_value())),
+                            ]),
+                        ]),
+                        o.set_scope_var("r", o.create_instance("RightOnly", '[]')),
+                        t.test_scope("plain_number + instance: triggers right add", [
+                            # operator_operator_value() in right add is the left operand ("7")
+                            t.assert_unstrict_equal(
+                                h.operator.add("7", o.get_scope_var("r")),
+                                "R+7",
+                            ),
+                        ]),
+                    ]),
+                ]),
+                t.test_scope("Comparison reverse: op.greater triggers right-side less-than method", [
+                    o.create_var_scope([
+                        o.create_class_at("CompRight", [
+                            # Only defines less than; when used as right of >, operator_value = left operand
+                            o.define_operator_method("less than", [
+                                o.return_value(h.operator.lt(
+                                    o.operator_operator_value(),
+                                    o.get_attribute("threshold", o.self()),
+                                )),
+                            ]),
+                        ]),
+                        o.set_scope_var("c", o.create_instance("CompRight", '[]')),
+                        o.set_attribute(o.get_scope_var("c"), "threshold", "10"),
+                        t.test_scope("5 > c: triggers c's less-than with operator_value=5; 5<10 is true", [
+                            t.assert_(h.operator.gt("5", o.get_scope_var("c"))),
+                        ]),
+                        t.test_scope("15 > c: operator_value=15; 15<10 is false", [
+                            t.assert_not(h.operator.gt("15", o.get_scope_var("c"))),
+                        ]),
+                    ]),
+                ]),
+            ]),
+
+            # ------------------------------------------------------------------ #
+            t.test_scope("all operator kinds", [
+                t.test_scope("Arithmetic operator kinds: each left/right variant is callable", [
+                    o.create_var_scope([
+                        o.create_class_at("ArithOps", [
+                            o.define_operator_method("left add",       [o.return_value("L+")]),
+                            o.define_operator_method("right add",      [o.return_value("R+")]),
+                            o.define_operator_method("left subtract",  [o.return_value("L-")]),
+                            o.define_operator_method("right subtract", [o.return_value("R-")]),
+                            o.define_operator_method("left multiply",  [o.return_value("L*")]),
+                            o.define_operator_method("right multiply", [o.return_value("R*")]),
+                            o.define_operator_method("left divide",    [o.return_value("L/")]),
+                            o.define_operator_method("right divide",   [o.return_value("R/")]),
+                            o.define_operator_method("left power",     [o.return_value("L^")]),
+                            o.define_operator_method("right power",    [o.return_value("R^")]),
+                            o.define_operator_method("left mod",       [o.return_value("L%")]),
+                            o.define_operator_method("right mod",      [o.return_value("R%")]),
+                        ]),
+                        o.set_scope_var("a", o.create_instance("ArithOps", '[]')),
+                        t.test_scope("Left-side arithmetic methods", [
+                            t.assert_strict_equal(h.operator.add(o.get_scope_var("a"), "0"),      "L+"),
+                            t.assert_strict_equal(h.operator.subtract(o.get_scope_var("a"), "0"), "L-"),
+                            t.assert_strict_equal(h.operator.multiply(o.get_scope_var("a"), "1"), "L*"),
+                            t.assert_strict_equal(h.operator.divide(o.get_scope_var("a"), "1"),   "L/"),
+                            t.assert_strict_equal(h.operator.power(o.get_scope_var("a"), "1"),    "L^"),
+                            t.assert_strict_equal(h.operator.mod(o.get_scope_var("a"), "1"),      "L%"),
+                        ]),
+                        t.test_scope("Right-side arithmetic methods (plain number on left)", [
+                            t.assert_strict_equal(h.operator.add("0", o.get_scope_var("a")),      "R+"),
+                            t.assert_strict_equal(h.operator.subtract("0", o.get_scope_var("a")), "R-"),
+                            t.assert_strict_equal(h.operator.multiply("1", o.get_scope_var("a")), "R*"),
+                            t.assert_strict_equal(h.operator.divide("1", o.get_scope_var("a")),   "R/"),
+                            t.assert_strict_equal(h.operator.power("1", o.get_scope_var("a")),    "R^"),
+                            t.assert_strict_equal(h.operator.mod("1", o.get_scope_var("a")),      "R%"),
+                        ]),
+                    ]),
+                ]),
+                t.test_scope("Comparison operator kinds: each kind is callable", [
+                    o.create_var_scope([
+                        o.create_class_at("CompOps", [
+                            o.define_operator_method("equals",           [o.return_value(h.operator.true_boolean())]),
+                            o.define_operator_method("not equals",       [o.return_value(h.operator.true_boolean())]),
+                            o.define_operator_method("greater than",     [o.return_value(h.operator.true_boolean())]),
+                            o.define_operator_method("greater or equal", [o.return_value(h.operator.true_boolean())]),
+                            o.define_operator_method("less than",        [o.return_value(h.operator.true_boolean())]),
+                            o.define_operator_method("less or equal",    [o.return_value(h.operator.true_boolean())]),
+                        ]),
+                        o.set_scope_var("c", o.create_instance("CompOps", '[]')),
+                        t.assert_(h.operator.equals(o.get_scope_var("c"), "x")),
+                        t.assert_(h.operator.notequal(o.get_scope_var("c"), "x")),
+                        t.assert_(h.operator.gt(o.get_scope_var("c"), "x")),
+                        t.assert_(h.operator.gtorequal(o.get_scope_var("c"), "x")),
+                        t.assert_(h.operator.lt(o.get_scope_var("c"), "x")),
+                        t.assert_(h.operator.ltorequal(o.get_scope_var("c"), "x")),
+                    ]),
+                ]),
+            ]),
+
         ]),
     ]
 
@@ -1516,7 +1734,7 @@ def test_class_variables() -> TestProject:
     ])
 
 
-def test_class_definition_blocks() -> TestProject:
+def test_class_definitions() -> TestProject:
     blocks = [
         t.test_scope("Class Definition and Inheritance Blocks", [
 
@@ -1703,6 +1921,9 @@ def test_class_definition_blocks() -> TestProject:
                     ]),
                     t.test_scope("Root's superclass is the built-in Superclass", [
                         t.assert_text_in_value("Superclass", o.get_superclass("Root")),
+                    ]),
+                    t.test_scope("Superclass of the built-in Superclass is Nothing", [
+                        t.assert_(o.typeof_value_is_menu(o.get_superclass(o.get_superclass("Root")), "Nothing (GCE)")),
                     ]),
                     t.test_scope("Missing class throws", [
                         t.assert_throws([
@@ -2015,6 +2236,37 @@ def test_introspection() -> TestProject:
                 ]),
             ]),
 
+            # ------------------------------------------------------------------ #
+            t.test_scope("propertyNamesOfClass: special method and operator names", [
+                o.create_var_scope([
+                    o.create_class_at("Nameable", [
+                        o.define_special_method("init", []),
+                        o.define_special_method("as string", [
+                            o.return_value("nameable"),
+                        ]),
+                        o.define_operator_method("left add", [
+                            o.return_value(h.operator.join("L+", o.operator_operator_value())),
+                        ]),
+                        o.define_operator_method("not equals", [
+                            o.return_value(h.operator.true_boolean()),
+                        ]),
+                    ]),
+                    t.test_scope("init appears as [special] init in instance method list", [
+                        t.assert_text_in_value("[special] init", o.property_names_of_class("instance method", "Nameable")),
+                    ]),
+                    t.test_scope("as string appears as [special] as string in instance method list", [
+                        t.assert_text_in_value("[special] as string", o.property_names_of_class("instance method", "Nameable")),
+                    ]),
+                    t.test_scope("Operator methods appear as public names in operator method list", [
+                        t.assert_text_in_value("left add", o.property_names_of_class("operator method", "Nameable")),
+                        t.assert_text_in_value("not equals", o.property_names_of_class("operator method", "Nameable")),
+                    ]),
+                    t.test_scope("Operator methods do NOT appear in instance method list", [
+                        t.assert_text_not_in_value("left add", o.property_names_of_class("instance method", "Nameable")),
+                    ]),
+                ]),
+            ]),
+
         ]),
     ]
     
@@ -2030,19 +2282,19 @@ def main() -> None:
     projects: list[tuple[TestProject, Path]] = []
     
     #projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
-    #projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
-    #projects.append((test_scoped_variables_blocks(), test_projects_dir / "test_scoped_variables.pmp"))
-    #projects.append((test_function_blocks(), test_projects_dir / "test_function.pmp"))
-    #projects.append((test_utilities_blocks(), test_projects_dir / "test_utilities.pmp"))
-    projects.append((test_class_definition_blocks(), test_projects_dir / "test_class_definition.pmp"))
-    #projects.append((test_instance_methods(), test_projects_dir / "test_instance_methods.pmp"))
-    #projects.append((test_special_method_init(), test_projects_dir / "test_special_method_init.pmp"))
-    #projects.append((test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp"))
-    #projects.append((test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp"))
-    #projects.append((test_operator_methods(), test_projects_dir / "test_operator_methods.pmp"))
-    #projects.append((test_static_methods(), test_projects_dir / "test_static_methods.pmp"))
-    #projects.append((test_class_variables(), test_projects_dir / "test_class_variables.pmp"))
-    #projects.append((test_introspection(), test_projects_dir / "test_introspection.pmp"))
+    projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
+    projects.append((test_scoped_variables(), test_projects_dir / "test_scoped_variables.pmp"))
+    projects.append((test_functions(), test_projects_dir / "test_functions.pmp"))
+    projects.append((test_utilities(), test_projects_dir / "test_utilities.pmp"))
+    projects.append((test_class_definitions(), test_projects_dir / "test_class_definitions.pmp"))
+    projects.append((test_instance_methods(), test_projects_dir / "test_instance_methods.pmp"))
+    projects.append((test_special_method_init(), test_projects_dir / "test_special_method_init.pmp"))
+    projects.append((test_inheritance_and_super(), test_projects_dir / "test_inheritance_and_super.pmp"))
+    projects.append((test_getters_and_setters(), test_projects_dir / "test_getters_and_setters.pmp"))
+    projects.append((test_operator_methods(), test_projects_dir / "test_operator_methods.pmp"))
+    projects.append((test_static_methods(), test_projects_dir / "test_static_methods.pmp"))
+    projects.append((test_class_variables(), test_projects_dir / "test_class_variables.pmp"))
+    projects.append((test_introspection(), test_projects_dir / "test_introspection.pmp"))
 
     for project, path in projects:
         write_project_to_file(project, path)

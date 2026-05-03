@@ -39,7 +39,7 @@ const TRANSLATIONS = {
         "self can only be used within an instance, getter or setter method.": "self kann nur innerhalb einer Instanz-, Getter- oder Setter-Methode verwendet werden.",
         "setter value can only be used within a setter method.": "setter-Wert kann nur innerhalb einer Setter-Methode verwendet werden.",
         "operator value can only be used within an operator method.": "operator-Wert kann nur innerhalb einer Operator-Methode verwendet werden.",
-        '{blockText} can only be used within a class definition or "on class" block.': '{blockText} kann nur innerhalb einer Klassendefinition oder eines "Mit Klasse"-Blocks verwendet werden.',
+        'current class and define method can only be used within a class definition or "on class" block.': 'aktuelle Klasse und definiere Methode können nur innerhalb einer Klassendefinition oder eines "Mit Klasse"-Blocks verwendet werden.',
         "return can only be used within a function or method.": "return kann nur innerhalb einer Funktion oder Methode verwendet werden.",
         "There can only be as many default values as argument names.": "Es darf nur so viele Standardwerte wie Argumentnamen geben.",
         "Can not set a variable in a scope, which does not support variables (e.g. a class definition).": "Kann keine Variable in einem Bereich setzen, der keine Variablen unterstützt (z.B. eine Klassendefinition).",
@@ -154,7 +154,7 @@ const TRANSLATIONS = {
         "Create & Inspect": "Erstellen & Untersuchen",
         "create instance of class [CLASS] with positional args [POSARGS]": "Instanz der Klasse [CLASS] mit Positionsargumenten [POSARGS] erstellen",
         "Creates an instance of a class and passes the given positional arguments to its init method.": "Erstellt eine Instanz einer Klasse und übergibt die angegebenen Positionsargumente an deren Init-Methode.",
-        "is [INSTANCE] an instance of [CLASS] ?": "Ist [INSTANCE] eine Instanz von [CLASS]?",
+        "is [POTENTIAL_INSTANCE] an instance of [CLASS] ?": "Ist [POTENTIAL_INSTANCE] eine Instanz von [CLASS]?",
         "Checks whether an instance belongs to a class or one of its subclasses.": "Prüft, ob eine Instanz zu einer Klasse oder einer ihrer Unterklassen gehört.",
         "get class of [INSTANCE]": "Klasse von [INSTANCE] abrufen",
         "Returns the class that created an instance.": "Gibt die Klasse zurück, die eine Instanz erstellt hat.",
@@ -172,9 +172,6 @@ const TRANSLATIONS = {
         "Calls a static method on a class with positional arguments.": "Ruft eine statische Methode einer Klasse mit Positionsargumenten auf.",
         "get static method [NAME] of [CLASS] as function": "Statische Methode [NAME] von [CLASS] als Funktion abrufen",
         "Returns a static method from a class as a callable function value.": "Gibt eine statische Methode einer Klasse als aufrufbare Funktion zurück.",
-
-        // parts of getInfo block texts
-        "define method": "Methode definieren",
     },
 };
 
@@ -877,20 +874,19 @@ class ScopeStack {
     /**
      * @param {string} blockText
      * @returns {ClassType}
-     */
-    getClsOrThrow(blockText) {
-        blockText = translatedMsg(blockText)
-        const innermost = this._getInnermostScope()
-        if (!innermost.supportsCls) {
-            throwError('{blockText} can only be used within a class definition or "on class" block.', {blockText})
+    */
+    getClsOrThrow() {
+        const scope = this._getQualifiedScope(scope => scope.supportsCls)
+        if (!scope) {
+            throwError('current class and define method can only be used within a class definition or "on class" block.')
         }
-        return innermost.cls
+        return scope.cls
     }
 
     // Exit Scopes
     assertCanReturn() {
-        const innermost = this._getInnermostScope()
-        if (!innermost.isCallable) {
+        const scope = this._getQualifiedScope(scope => scope.isCallable)
+        if (!scope) {
             throwError("return can only be used within a function or method.")
         }
     }
@@ -902,6 +898,7 @@ class ScopeStack {
         this.scopes.shift()
     }
     exitUserScope() {
+        console.log("ScopeStack", this.scopes.flat(5))
         const innermost = this._getInnermostScope()
         if (!innermost.isUserScope) {
             throwInternal("curious-otter")
@@ -1701,6 +1698,8 @@ class BaseCallableType extends CustomType {
      * @returns {*} the return value of the method
      */
     *execute(thread, ...paramsForEnterContext) {
+        // TODO: move prepareReturn to finally block(exitContext) and refractor sizeBefore logic to correct level manager
+        // TODO: test this logic, probably manually
         const sizeBefore = ThreadUtil.getCurrentStack(thread).getSize()
         this.enterContext(thread, ...paramsForEnterContext)
 
@@ -2614,10 +2613,10 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsBoolean,
                     opcode: "isInstance",
-                    text: "is [INSTANCE] an instance of [CLASS] ?",
+                    text: "is [POTENTIAL_INSTANCE] an instance of [CLASS] ?",
                     tooltip: "Checks whether an instance belongs to a class or one of its subclasses.",
                     arguments: {
-                        INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
+                        POTENTIAL_INSTANCE: commonArguments.allowAnything,
                         CLASS: gceClass.ArgumentClassOrVarName,
                     },
                 },
@@ -3280,7 +3279,7 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     currentClass(args, util) {
-        return ThreadUtil.getCurrentStack(util.thread).getClsOrThrow("current class")
+        return ThreadUtil.getCurrentStack(util.thread)
     }
 
     // Use Classes
@@ -3430,9 +3429,12 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     isInstance(args, util) {
-        const instance = Cast.toClassInstance(args.INSTANCE, util.thread)
-        const cls = Cast.toClass(args.CLASS, util.thread)
-        return Cast.toBoolean(instance.cls.isSubclassOf(cls))
+        const potentialInstance = args.POTENTIAL_INSTANCE
+        if (potentialInstance instanceof ClassInstanceType) {
+            const cls = Cast.toClass(args.CLASS, util.thread)
+            return Cast.toBoolean(potentialInstance.cls.isSubclassOf(cls))
+        }
+        return false
     }
 
     /**
@@ -3796,34 +3798,12 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - review and finish project tests
- * + - ~ [DONE] review test_scoped_variables.pmp
- * + - ~ [DONE]review test_class_definition.pmp
- * + - ~ review test_instance_methods.pmp
- * + - ~ review test_special_method_init.pmp // why is it called that
- * + - ~ review test_getters_setters.pmp
- * + - ~ review test_inheritance_and_super.pmp
- * + - ~ review test_getters_and_setters.pmp
- * + - ~ review test_operator_methods.pmp
- * + - ~ review test_static_methods.pmp
- * + - ~ review test_class_variables.pmp
- * + - ~ review test_introspection.pmp // why is it called that
- * + - ensure these are all tested properly:
- * + - ~ specially test special cases of propertyNamesOfClass
- * + - ~ ensure scopeVarExists is tested properly, especially with multiple scopes
- * + - ~ ensure allVariables is tested properly, especially with multiple scopes
- * + - ~ ensure bindVarToScope is tested properly
- * + - ~ ensure getSuperclass is tested properly
- * + - ~ test that createVarScope and onClass and other scopes are executed when an error happens in the branches
- * + - ~ test nested scopes e.g. local variable scope in function 
  * + - look through documentation examples, ensure all features are tested properly
  * + - ensure every block is tested at least once
  * + - at the end run test_unified.pmp
- * + - ~ => requires a developer only "run with seperate globals" block
- * + - replace [option v] in docs with (option v)
  *
  * + HIGH PRIORITY
- * + - ~ consider making the "run with seperate globals" or even locals block public?
+ * + - replace [option v] in docs with (option v)
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
