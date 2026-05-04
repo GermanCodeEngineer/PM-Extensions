@@ -72,7 +72,7 @@ const TRANSLATIONS = {
         "create function named [NAME]": "Erstelle Funktion mit Namen [NAME]",
         "Creates and returns a function with the given name.": "Erstellt und gibt eine Funktion mit dem angegebenen Namen zurück.",
         "Inside Functions & Methods": "Innerhalb von Funktionen & Methoden",
-        "return [VALUE]": "Gib [VALUE] zurück",
+        "return [VALUE]": "return [VALUE]",
         "Returns a value from the current function or method and exits it.": "Gibt einen Wert aus der aktuellen Funktion oder Methode zurück und beendet sie.",
         "Use Functions": "Funktionen verwenden",
         "call function [FUNC] with positional args [POSARGS]": "Rufe Funktion [FUNC] mit Positionsargumenten [POSARGS] auf",

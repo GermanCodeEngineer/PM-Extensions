@@ -2237,7 +2237,7 @@ def test_introspection() -> TestProject:
             ]),
 
             # ------------------------------------------------------------------ #
-            t.test_scope("propertyNamesOfClass: special method and operator names", [
+            t.test_scope("propertyNamesOfClass: special method dropdown", [
                 o.create_var_scope([
                     o.create_class_at("Nameable", [
                         o.define_special_method("init", []),
@@ -2251,18 +2251,65 @@ def test_introspection() -> TestProject:
                             o.return_value(h.operator.true_boolean()),
                         ]),
                     ]),
-                    t.test_scope("init appears as [special] init in instance method list", [
-                        t.assert_text_in_value("[special] init", o.property_names_of_class("instance method", "Nameable")),
+                    t.test_scope("init appears as 'init' in special method list", [
+                        t.assert_text_in_value("init", o.property_names_of_class("special method", "Nameable")),
                     ]),
-                    t.test_scope("as string appears as [special] as string in instance method list", [
-                        t.assert_text_in_value("[special] as string", o.property_names_of_class("instance method", "Nameable")),
+                    t.test_scope("as string appears as 'as string' in special method list", [
+                        t.assert_text_in_value("as string", o.property_names_of_class("special method", "Nameable")),
+                    ]),
+                    t.test_scope("Special methods do NOT appear in instance method list", [
+                        t.assert_text_not_in_value("init", o.property_names_of_class("instance method", "Nameable")),
+                        t.assert_text_not_in_value("as string", o.property_names_of_class("instance method", "Nameable")),
                     ]),
                     t.test_scope("Operator methods appear as public names in operator method list", [
                         t.assert_text_in_value("left add", o.property_names_of_class("operator method", "Nameable")),
                         t.assert_text_in_value("not equals", o.property_names_of_class("operator method", "Nameable")),
                     ]),
-                    t.test_scope("Operator methods do NOT appear in instance method list", [
+                    t.test_scope("Operator methods do NOT appear in instance or special method list", [
                         t.assert_text_not_in_value("left add", o.property_names_of_class("instance method", "Nameable")),
+                        t.assert_text_not_in_value("left add", o.property_names_of_class("special method", "Nameable")),
+                    ]),
+                ]),
+            ]),
+
+            # ------------------------------------------------------------------ #
+            t.test_scope("propertyNamesOfClass: special method inheritance", [
+                o.create_var_scope([
+                    t.test_scope("Empty class always has init from common superclass", [
+                        o.create_class_at("BareClass", []),
+                        t.assert_text_in_value("init", o.property_names_of_class("special method", "BareClass")),
+                    ]),
+                    t.test_scope("Class with only as string still inherits init", [
+                        o.create_class_at("AsStringOnly", [
+                            o.define_special_method("as string", [
+                                o.return_value("str"),
+                            ]),
+                        ]),
+                        t.assert_text_in_value("init", o.property_names_of_class("special method", "AsStringOnly")),
+                        t.assert_text_in_value("as string", o.property_names_of_class("special method", "AsStringOnly")),
+                    ]),
+                    t.test_scope("Subclass inherits special methods from parent", [
+                        o.create_class_at("SpBase", [
+                            o.define_special_method("as string", [
+                                o.return_value("base"),
+                            ]),
+                        ]),
+                        o.create_subclass_at("SpChild", "SpBase", []),
+                        t.assert_text_in_value("as string", o.property_names_of_class("special method", "SpChild")),
+                        t.assert_text_in_value("init", o.property_names_of_class("special method", "SpChild")),
+                    ]),
+                    t.test_scope("Subclass overriding as string replaces, not duplicates", [
+                        o.create_class_at("SpBase2", [
+                            o.define_special_method("as string", [
+                                o.return_value("base2"),
+                            ]),
+                        ]),
+                        o.create_subclass_at("SpChild2", "SpBase2", [
+                            o.define_special_method("as string", [
+                                o.return_value("child2"),
+                            ]),
+                        ]),
+                        t.assert_text_in_value("as string", o.property_names_of_class("special method", "SpChild2")),
                     ]),
                 ]),
             ]),
@@ -2281,7 +2328,7 @@ def main() -> None:
 
     projects: list[tuple[TestProject, Path]] = []
     
-    #projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
+    projects.append((test_TypeChecker(), test_projects_dir / "test_TypeChecker.pmp"))
     projects.append((test_Cast(), test_projects_dir / "test_Cast.pmp"))
     projects.append((test_scoped_variables(), test_projects_dir / "test_scoped_variables.pmp"))
     projects.append((test_functions(), test_projects_dir / "test_functions.pmp"))

@@ -66,30 +66,30 @@ create function at var [myFunction] {
 	...
 	
 	\/\/ to change or delete a global var, bind it first::#949494
-	bind [global v] variable [myGlobalVar] to current scope::#428af5
+	bind (global v) variable [myGlobalVar] to current scope::#428af5
 	delete var [myGlobalVar] in current scope::#428af5
 	...
 	
 	create local variable scope {
 		\/\/ local variables are available even in inward scopes::#949494
-		\/\/ example: (all variables in [all scopes v]::#428af5) is [\["mySecondGlobal", "myFunction", "myLocalVar"\]]::#949494
+		\/\/ example: (all variables in (all scopes v)::#428af5) is [\["mySecondGlobal", "myFunction", "myLocalVar"\]]::#949494
 		\/\/ even though it does not count as local scope anymore::#949494
-		\/\/ example: (all variables in [local scope v]::#428af5) is [\[\]]::#949494
+		\/\/ example: (all variables in (local scope v)::#428af5) is [\[\]]::#949494
 		\/\/ you can also just list global vars::#949494
-		\/\/ example: (all variables in [global scope v]::#428af5) is [\["mySecondGlobal", "myFunction"\]]::#949494
+		\/\/ example: (all variables in (global scope v)::#428af5) is [\["mySecondGlobal", "myFunction"\]]::#949494
 	}::#428af5
 }::#428af5
 execute expression (call function [myFunction] with positional args [\[\]]::#428af5)::#428af5
 \/\/ local variables are not available outside their scope::#949494
-\/\/ example: (all variables in [all scopes v]::#428af5) is [\["mySecondGlobal"\]] ::#949494
+\/\/ example: (all variables in (all scopes v)::#428af5) is [\["mySecondGlobal"\]] ::#949494
 
 define my custom block
-\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
-\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in (all scopes v)?::#428af5> is <false::operators> ::#949494
+\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in (all scopes v)?::#428af5> is <true::operators>::#949494
 
-when I receive [my broadcast v]
-\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in [all scopes v]?::#428af5> is <false::operators> ::#949494
-\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in [all scopes v]?::#428af5> is <true::operators>::#949494
+when I receive (my broadcast v)
+\/\/ local variables from the caller are not available e.g. <var [myLocalVar] exists in (all scopes v)?::#428af5> is <false::operators> ::#949494
+\/\/ global variables are of course available e.g. <var [mySecondGlobal] exists in (all scopes v)?::#428af5> is <true::operators>::#949494
 ```
 
 ---
@@ -201,7 +201,7 @@ create class at var [MyClass] (current class::#428af5) {
 	}::#428af5
 
 	\/\/ Define an operator method ::#949494
-	definẹ operator method [left add v] (other value::#428af5) {
+	definẹ operator method (left add v) (other value::#428af5) {
 		return ((on (self::#428af5) get attribute [score]::#428af5) + (other value::#428af5))::#428af5
 	}::#428af5
 
@@ -214,19 +214,19 @@ create class at var [MyClass] (current class::#428af5) {
 \/\/ Special methods and super calls ::#949494
 create class at var [MyClass] (current class::#428af5) {
 	\/\/ Special method: init \(runs when a new instance is created\) ::#949494
-	definẹ [init v] instance method (self::#428af5) {
+	definẹ (init v) instance method (self::#428af5) {
 		on (self::#428af5) set attribute [name] to [Bob] ::#428af5
 		on (self::#428af5) set attribute [internalScore] to [0] ::#428af5
 	}::#428af5
 
 	\/\/ Special method: as string for (() as string::#428af5) ::#949494
-	definẹ [as string v] instance method (self::#428af5) {
+	definẹ (as string v) instance method (self::#428af5) {
 		return (join (on (self::#428af5) get attribute [name]::#428af5) (on (self::#428af5) get attribute [internalScore]::#428af5)) ::#428af5
 	}::#428af5
 }::#428af5
 
 create subclass at var [MySubclass] with superclass [MyClass] (current class::#428af5) {
-	definẹ [init v] instance method (self::#428af5) {
+	definẹ (init v) instance method (self::#428af5) {
 		\/\/ Call the superclass init method ::#949494
 		call super init method with positional args (blank array::#ff513d)::#428af5
 		on (self::#428af5) set attribute [extra] to [something]::#428af5
@@ -317,9 +317,9 @@ set var [myVar] to [my value] in current scope::#428af5
 
 ---
 ```scratch
-<var [myVar] exists in [all scopes v]?::#428af5>
-<var [myVar] exists in [local scope v]?::#428af5>
-<var [myVar] exists in [global scope v]?::#428af5>
+<var [myVar] exists in (all scopes v)?::#428af5>
+<var [myVar] exists in (local scope v)?::#428af5>
+<var [myVar] exists in (global scope v)?::#428af5>
 ```
 - Checks whether a variable exists in the selected scope range.
 
@@ -331,9 +331,9 @@ delete var [myVar] in current scope::#428af5
 
 ---
 ```scratch
-(all variables in [all scopes v]::#428af5)
-(all variables in [local scope v]::#428af5)
-(all variables in [global scope v]::#428af5)
+(all variables in (all scopes v)::#428af5)
+(all variables in (local scope v)::#428af5)
+(all variables in (global scope v)::#428af5)
 ```
 - Returns all variable names visible in the selected scope range as an array.
 
@@ -353,8 +353,8 @@ run with separate globals {
 
 ---
 ```scratch
-bind [non-local v] variable [myVar] to current scope::#428af5
-bind [global v] variable [myVar] to current scope::#428af5
+bind (non-local v) variable [myVar] to current scope::#428af5
+bind (global v) variable [myVar] to current scope::#428af5
 ```
 - Links a global or non-local variable into the current scope. Because scope resolution happens at runtime, bind outer variables first if you want to modify or delete them from an inner scope.
 
@@ -435,9 +435,9 @@ definẹ instance method [myMethod] (self::#428af5) {
 
 ---
 ```scratch
-definẹ [init v] instance method (self::#428af5) {
+definẹ (init v) instance method (self::#428af5) {
 }::#428af5
-definẹ [as string v] instance method (self::#428af5) {
+definẹ (as string v) instance method (self::#428af5) {
 }::#428af5
 ```
 - Defines a special instance method.
@@ -490,14 +490,14 @@ definẹ setter [myAttr] (self::#428af5) (value::#428af5) {
 
 ---
 ```scratch
-definẹ operator method [left add v] (other value::#428af5) {
+definẹ operator method (left add v) (other value::#428af5) {
 }::#428af5
-definẹ operator method [right add v] (other value::#428af5) {
+definẹ operator method (right add v) (other value::#428af5) {
 }::#428af5
 // AND MANY MORE
-definẹ operator method [right mod v] (other value::#428af5) {
+definẹ operator method (right mod v) (other value::#428af5) {
 }::#428af5
-definẹ operator method [greater or equal v] (other value::#428af5) {
+definẹ operator method (greater or equal v) (other value::#428af5) {
 }::#428af5
 // AND MANY MORE
 ```
@@ -539,12 +539,12 @@ definẹ static method [myMethod] {
 
 ---
 ```scratch
-([instance method v] names of class [MyClass]::#428af5)
-([static method v] names of class [MyClass]::#428af5)
-([getter method v] names of class [MyClass]::#428af5)
-([setter method v] names of class [MyClass]::#428af5)
-([operator method v] names of class [MyClass]::#428af5)
-([class variable v] names of class [MyClass]::#428af5)
+((instance method v) names of class [MyClass]::#428af5)
+((static method v) names of class [MyClass]::#428af5)
+((getter method v) names of class [MyClass]::#428af5)
+((setter method v) names of class [MyClass]::#428af5)
+((operator method v) names of class [MyClass]::#428af5)
+((class variable v) names of class [MyClass]::#428af5)
 ```
 - Returns the names of members of the selected type for a class.
 

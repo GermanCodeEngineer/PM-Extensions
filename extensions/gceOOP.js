@@ -893,7 +893,6 @@ class ScopeStack {
         this.scopes.shift()
     }
     exitUserScope() {
-        console.log("ScopeStack", this.scopes.flat(5))
         const innermost = this._getInnermostScope()
         if (!innermost.isUserScope) {
             throwInternal("curious-otter")
@@ -1693,7 +1692,6 @@ class BaseCallableType extends CustomType {
      * @returns {*} the return value of the method
      */
     *execute(thread, ...paramsForEnterContext) {
-        // TODO: test this logic, probably manually
         const stackManager = ThreadUtil.getStackManager(thread)
         const sizeBefore = stackManager.getSize()
         this.enterContext(thread, ...paramsForEnterContext)
@@ -1805,7 +1803,7 @@ class InstanceMethodType extends BaseCallableType {
     /**
      * @returns {string}
      */
-    prefixDescription() { // TODO: add tests
+    prefixDescription() {
         let name = this.name
         if (MENUS.SPECIAL_METHOD.hasInternalValue(name)) {
             name = MENUS.SPECIAL_METHOD.internalToPublic(name)
@@ -2782,7 +2780,7 @@ class GCEOOPBlocks {
         }
 
         const createWrappedGenerator = (setupCode, stackCode, cleanup, returnVar = null) => {
-            return `(yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})())`
+            return `(yield* (function*() {${setupCode}${stackCode}${cleanup}${returnVar ? `return ${returnVar};` : ""}})())` // QUEST
         }
 
         const createMethodDefinition = (
@@ -2793,7 +2791,7 @@ class GCEOOPBlocks {
             const nameLocal = compiler.localVariables.next()
 
             compiler.source += `const ${nameLocal} = ${nameCode};` +
-                `${CURRENT_STACK}.getClsOrThrow("define method").setMemberOfType(${nameLocal}, ${quote(memberType)}, `+
+                `${CURRENT_STACK}.getClsOrThrow().setMemberOfType(${nameLocal}, ${quote(memberType)}, `+
                 `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             addSubstackCode(compiler, node.SUBSTACK, imports)
             compiler.source += `return ${ENV_PREFIX}.Nothing;` +
@@ -3049,10 +3047,8 @@ class GCEOOPBlocks {
 
                 // Inside Functions & Methods
                 returnValue: (node, compiler, imports) => {
-                    const returnValueLocal = compiler.localVariables.next()
-                    // We need to cache the return value before exiting context, as it might depend on it
-                    compiler.source += `const ${returnValueLocal} = ${compiler.descendInput(node.VALUE).asUnknown()};` +
-                        `return ${returnValueLocal};\n`
+                    compiler.source += `${CURRENT_STACK}.assertCanReturn(); ` +
+                        `return ${compiler.descendInput(node.VALUE).asUnknown()};\n`
                 },
 
                 // Use Functions
@@ -3282,7 +3278,7 @@ class GCEOOPBlocks {
      * @param {BlockUtil} util
      */
     currentClass(args, util) {
-        return ThreadUtil.getCurrentStack(util.thread)
+        return ThreadUtil.getCurrentStack(util.thread).getClsOrThrow()
     }
 
     // Use Classes
@@ -3412,7 +3408,7 @@ class GCEOOPBlocks {
         }
         let names = Object.keys(values)
         if (property == "CP_SPECIAL_METHOD") {
-            names = names.map(name => MENUS.OPERATOR_METHOD.internalToPublic(name))
+            names = names.map(name => MENUS.SPECIAL_METHOD.internalToPublic(name))
         }
         else if (property === "CP_OPERATOR_METHOD") {
             names = names.map(name => MENUS.OPERATOR_METHOD.internalToPublic(name))
@@ -3799,12 +3795,8 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - look through documentation examples, ensure all features are tested properly
- * + - ensure every block is tested at least once
- * + - at the end run test_unified.pmp
  *
  * + HIGH PRIORITY
- * + - replace [option v] in docs with (option v)
  *
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
