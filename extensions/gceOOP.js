@@ -76,6 +76,10 @@ const TRANSLATIONS = {
         "As String methods must always return a string.": "As-String-Methoden müssen immer einen String zurückgeben.",
         "Comparison Operator methods must always return a boolean.": "Vergleichsoperator-Methoden müssen immer einen Wahrheitswert (Boolean) zurückgeben.",
 
+        // parts of error messages
+        "Calling function {name}": "Aufrufen der Funktion {name}",
+        "Calling method {name}": "Aufrufen der Methode {name}",
+
         // CAST
         "Unknown (non-runtime environment)": "Unbekannt (Nicht-Laufzeitumgebung)",
         "class or class variable name": "Klasse oder Klassenvariablenname",
@@ -724,7 +728,7 @@ class ScopeStackManager {
     }
 
     // Exit Scopes
-    prepareReturn() {
+    exitCall() {
         this.getCurrentStackFromManager().assertCanReturn()
         this.popStackFromManager()
     }
@@ -736,15 +740,6 @@ class ScopeStackManager {
      */
     getSize() {
         return this.stacks.length
-    }
-
-    /**
-     * @param {number} size
-     */
-    trimSize(size) {
-        if (size < 0) size = 0
-        if (this.stacks.length <= size) return
-        this.stacks.splice(0, this.stacks.length - size)
     }
 }
 
@@ -913,15 +908,6 @@ class ScopeStack {
      */
     getSize() {
         return this.scopes.length
-    }
-
-    /**
-     * @param {number} size
-     */
-    trimSize(size) {
-        if (size < 0) size = 0
-        if (this.scopes.length <= size) return
-        this.scopes.splice(0, this.scopes.length - size)
     }
 
     // Function Arguments
@@ -1128,6 +1114,14 @@ class MenuManager {
     }
 
     /**
+     * @param {*} internalValue 
+     * @returns {boolean}
+     */
+    hasInternalValue(internalValue) {
+        return internalValue in this._interalToPublic
+    }
+
+    /**
      * @param {string} publicValue
      * @returns {string}
      * @throws if value is not in the menu
@@ -1169,6 +1163,7 @@ const MENUS = {
     // Not translated on purpose, because that could result in different behaviour of scripts
     CLASS_PROPERTY: new MenuManager("Invalid class property: {value}", [
         {value: "CP_INSTANCE_METHOD", text: "instance method"},
+        {value: "CP_SPECIAL_METHOD", text: "special method"},
         {value: "CP_STATIC_METHOD", text: "static method"},
         {value: "CP_GETTER_METHOD", text: "getter method"},
         {value: "CP_SETTER_METHOD", text: "setter method"},
@@ -1698,26 +1693,19 @@ class BaseCallableType extends CustomType {
      * @returns {*} the return value of the method
      */
     *execute(thread, ...paramsForEnterContext) {
-        // TODO: move prepareReturn to finally block(exitContext) and refractor sizeBefore logic to correct level manager
         // TODO: test this logic, probably manually
-        const sizeBefore = ThreadUtil.getCurrentStack(thread).getSize()
+        const stackManager = ThreadUtil.getStackManager(thread)
+        const sizeBefore = stackManager.getSize()
         this.enterContext(thread, ...paramsForEnterContext)
 
         let output
-        let finished = false
         try {
             output = (yield* this.jsFunc(thread))
-            finished = true
         } finally {
-            if (finished) {
-                if (sizeBefore !== ThreadUtil.getCurrentStack(thread).getSize()) {
-                    throwInternal("clever-badger")
-                }
-            } else {
-                // An error happend, so exit stack frames that where interrupted
-                ThreadUtil.getCurrentStack(thread).trimSize(sizeBefore)
+            stackManager.exitCall()
+            if (sizeBefore !== stackManager.getSize()) {
+                throwInternal("clever-badger")
             }
-
         }
         this.checkOutputValue(output)
         return output
@@ -1737,6 +1725,13 @@ class BaseCallableType extends CustomType {
         // Allow better subclassing
     }
 
+    /**
+     * @returns {string}
+     */
+    prefixDescription() {
+        return translatedMsg("Calling function {name}", {name: quote(this.name)})
+    }
+
 
     /**
      * @param {Array} posArgs
@@ -1745,12 +1740,7 @@ class BaseCallableType extends CustomType {
     evaluateArgs(posArgs) {
         const args = {}
         let name
-        let prefix
-
-        if (this instanceof InstanceMethodType && (this.name === "__SM_INIT_METHOD__")) prefix = "Initializing object"
-        else if (this instanceof InstanceMethodType) prefix = `Calling method ${quote(this.name)}`
-        else prefix = `Calling function ${quote(this.name)}`
-
+        const prefix = this.prefixDescription()
         // Ensure there are not too many arguments
         if (posArgs.length > this.argNames.length) {
             throwError("{prefix}: expected at most {maxArgCount} positional arguments, but got {argCount}.", {prefix, argCount: posArgs.length, maxArgCount: this.argNames.length})
@@ -1810,6 +1800,17 @@ class InstanceMethodType extends BaseCallableType {
         // Allow better subclassing
         const args = this.evaluateArgs(posArgs)
         ThreadUtil.getStackManager(thread).enterMethodCall(this, instance, args)
+    }
+
+    /**
+     * @returns {string}
+     */
+    prefixDescription() { // TODO: add tests
+        let name = this.name
+        if (MENUS.SPECIAL_METHOD.hasInternalValue(name)) {
+            name = MENUS.SPECIAL_METHOD.internalToPublic(name)
+        }
+        return translatedMsg("Calling method {name}", {name: quote(name)})
     }
 }
 
@@ -1873,6 +1874,7 @@ class ClassType extends CustomType {
         this.name = name
         this.superCls = superCls
         this.instanceMethods = new VariableManager()
+        this.specialMethods = new VariableManager()
         this.staticMethods = new VariableManager()
         this.getterMethods = new VariableManager()
         this.setterMethods = new VariableManager()
@@ -1895,6 +1897,7 @@ class ClassType extends CustomType {
      */
     getMember(name, recursive, preferSetter) {
         if (this.instanceMethods.has(name)) return {type: "CP_INSTANCE_METHOD", value: this.instanceMethods.get(name)}
+        else if (this.specialMethods.has(name)) return {type: "CP_SPECIAL_METHOD", value: this.specialMethods.get(name)}
         else if (this.staticMethods.has(name)) return {type: "CP_STATIC_METHOD", value: this.staticMethods.get(name)}
         else if (this.getterMethods.has(name) && this.setterMethods.has(name)) {
             if (preferSetter) return {type: "CP_SETTER_METHOD", value: this.setterMethods.get(name)}
@@ -1938,6 +1941,7 @@ class ClassType extends CustomType {
             currentCls = currentCls.superCls
         }
         const instanceMethods = {}
+        const specialMethods = {}
         const staticMethods = {}
         const getterMethods = {}
         const setterMethods = {}
@@ -1945,13 +1949,14 @@ class ClassType extends CustomType {
         const clsVariables = {}
         classChain.forEach((cls) => {
             Object.assign(instanceMethods, cls.instanceMethods.getAll())
+            Object.assign(specialMethods, cls.specialMethods.getAll())
             Object.assign(staticMethods, cls.staticMethods.getAll())
             Object.assign(getterMethods, cls.getterMethods.getAll())
             Object.assign(setterMethods, cls.setterMethods.getAll())
             Object.assign(operatorMethods, cls.operatorMethods.getAll())
             Object.assign(clsVariables, cls.clsVariables.getAll())
         })
-        return [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, clsVariables]
+        return [instanceMethods, specialMethods, staticMethods, getterMethods, setterMethods, operatorMethods, clsVariables]
     }
 
     /**
@@ -1968,6 +1973,7 @@ class ClassType extends CustomType {
             throwError("Can not assign {newMemberType}: {currentMemberType} already exists with the same name {name}.", {newMemberType, currentMemberType, name: quote(name)})
         }
         if (newMemberType === "CP_INSTANCE_METHOD") this.instanceMethods.set(name, value)
+        else if (newMemberType === "CP_SPECIAL_METHOD") this.specialMethods.set(name, value)
         else if (newMemberType === "CP_STATIC_METHOD") this.staticMethods.set(name, value)
         else if (newMemberType === "CP_GETTER_METHOD") this.getterMethods.set(name, value)
         else if (newMemberType === "CP_SETTER_METHOD") this.setterMethods.set(name, value)
@@ -1984,6 +1990,9 @@ class ClassType extends CustomType {
         switch (memberType) {
             case "CP_INSTANCE_METHOD":
                 this.instanceMethods.delete(name)
+                break
+            case "CP_SPECIAL_METHOD":
+                this.specialMethods.delete(name)
                 break
             case "CP_STATIC_METHOD":
                 this.staticMethods.delete(name)
@@ -2010,7 +2019,8 @@ class ClassType extends CustomType {
      */
     *createInstance(thread, posArgs) {
         const instance = new ClassInstanceType(this)
-        const output = yield* instance.executeInstanceMethod(thread, "__SM_INIT_METHOD__", posArgs) // an init method always exists
+        // an init method always exists
+        const output = yield* instance.executeInstanceMethod(thread, "__SM_INIT_METHOD__", posArgs, "CP_SPECIAL_METHOD")
         if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return instance
     }
@@ -2070,11 +2080,12 @@ class ClassInstanceType extends CustomType {
      * @param {Thread} thread
      * @param {string} name
      * @param {PositionalFunctionArgs} posArgs
+     * @param {?string} memberType
      * @returns {*} the return value of the method
      */
-    *executeInstanceMethod(thread, name, posArgs) {
+    *executeInstanceMethod(thread, name, posArgs, memberType = null) {
         /** @type {InstanceMethodType} */
-        const method = this.cls.getMemberOfType(name, "CP_INSTANCE_METHOD")
+        const method = this.cls.getMemberOfType(name, memberType || "CP_INSTANCE_METHOD")
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -2082,13 +2093,14 @@ class ClassInstanceType extends CustomType {
      * @param {Thread} thread
      * @param {string} name
      * @param {PositionalFunctionArgs} posArgs
+     * @param {?string} memberType
      * @returns {*} the return value of the method
      */
-    *executeSuperMethod(thread, name, posArgs) {
+    *executeSuperMethod(thread, name, posArgs, memberType = null) {
         if (!this.cls.superCls) throwError("Can not call super instance method: class has no superclass.")
 
         /** @type {InstanceMethodType} */
-        const method = this.cls.superCls.getMemberOfType(name, "CP_INSTANCE_METHOD")
+        const method = this.cls.superCls.getMemberOfType(name, memberType || "CP_INSTANCE_METHOD")
         return yield* method.execute(thread, this, posArgs)
     }
 
@@ -2099,7 +2111,7 @@ class ClassInstanceType extends CustomType {
      * @returns {*} the return value of the method
      */
     *executeSuperInitMethod(thread, name, posArgs) {
-        const output = yield* this.executeSuperMethod(thread, name, posArgs)
+        const output = yield* this.executeSuperMethod(thread, name, posArgs, "CP_SPECIAL_METHOD")
         if (output !== Nothing) throwError("Initialization methods must return {nothingValue}.", {nothingValue: Nothing})
         return output
     }
@@ -2784,9 +2796,7 @@ class GCEOOPBlocks {
                 `${CURRENT_STACK}.getClsOrThrow("define method").setMemberOfType(${nameLocal}, ${quote(memberType)}, `+
                 `new ${ENV_PREFIX}.${classId}(${nameLocal}, function* (thread) {`
             addSubstackCode(compiler, node.SUBSTACK, imports)
-            compiler.source += `${STACK_MANAGER}.prepareReturn();` +
-                // Nothing is indepedent of function context, so we can exit context before
-                `return ${ENV_PREFIX}.Nothing;` +
+            compiler.source += `return ${ENV_PREFIX}.Nothing;` +
                 `}, ${CURRENT_STACK}, ` +
                 `${CURRENT_STACK}.` + (disableFuncConfig ? "constructor.getDefaultFuncConfig()" : "getAndResetNextFuncConfig()") + "));\n"
         }
@@ -2895,7 +2905,7 @@ class GCEOOPBlocks {
                 defineSpecialMethod: (node, compiler, imports) => {
                     const dropdownValueCode = compiler.descendInput(node.SPECIAL_METHOD).asString()
                     const nameCode = `${MENUS_PREFIX}.SPECIAL_METHOD.standardizeBlockInput(${dropdownValueCode})`
-                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "CP_INSTANCE_METHOD", false)
+                    createMethodDefinition(node, compiler, imports, nameCode, "InstanceMethodType", "CP_SPECIAL_METHOD", false)
                 },
                 callSuperMethod: (node, compiler, imports) => {
                     const nameCode = compiler.descendInput(node.NAME).asString()
@@ -3023,9 +3033,7 @@ class GCEOOPBlocks {
                     compiler.source += `const ${nameLocal} = ${nameCode};` +
                         `${CURRENT_STACK}.setScopeVar(${nameLocal}, new ${ENV_PREFIX}.FunctionType(${nameLocal}, function* (thread) {`
                     addSubstackCode(compiler, node.SUBSTACK, imports)
-                    compiler.source += `${STACK_MANAGER}.prepareReturn();` +
-                        // Nothing is indepedent of function context, so we can exit context before
-                        `return ${ENV_PREFIX}.Nothing;` +
+                    compiler.source += `return ${ENV_PREFIX}.Nothing;` +
                         `}, ${CURRENT_STACK},`+
                         `${CURRENT_STACK}.getAndResetNextFuncConfig()));\n`
                 },
@@ -3033,8 +3041,6 @@ class GCEOOPBlocks {
                     const nameCode = compiler.descendInput(node.NAME).asString()
                     const generatedCode = `(new ${ENV_PREFIX}.FunctionType(${nameCode}, function* (thread) {`+
                         getSubstackCode(compiler, node.SUBSTACK, imports)+
-                        `${STACK_MANAGER}.prepareReturn();` +
-                        // Nothing is indepedent of function context, so we can exit context before
                         `return ${ENV_PREFIX}.Nothing;` +
                         `}, ${CURRENT_STACK},` +
                         `${CURRENT_STACK}.getAndResetNextFuncConfig()))`
@@ -3046,7 +3052,6 @@ class GCEOOPBlocks {
                     const returnValueLocal = compiler.localVariables.next()
                     // We need to cache the return value before exiting context, as it might depend on it
                     compiler.source += `const ${returnValueLocal} = ${compiler.descendInput(node.VALUE).asUnknown()};` +
-                        `${STACK_MANAGER}.prepareReturn();` +
                         `return ${returnValueLocal};\n`
                 },
 
@@ -3114,11 +3119,9 @@ class GCEOOPBlocks {
         this.addObjectExtension()
 
         const commonSuperClass = new ClassType("Superclass", null)
-        commonSuperClass.instanceMethods.set("__SM_INIT_METHOD__", new InstanceMethodType(
+        commonSuperClass.specialMethods.set("__SM_INIT_METHOD__", new InstanceMethodType(
             "__SM_INIT_METHOD__",
             function* (thread) {
-                ThreadUtil.getStackManager(thread).prepareReturn()
-                // Nothing is indepedent of function context, so we can exit context before
                 return Nothing
             },
             new ScopeStack(),
@@ -3389,11 +3392,13 @@ class GCEOOPBlocks {
     propertyNamesOfClass(args, util) {
         const property = MENUS.CLASS_PROPERTY.standardizeBlockInput(args.PROPERTY)
         const cls = Cast.toClass(args.CLASS, util.thread)
-        const [instanceMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
+        const [instanceMethods, specialMethods, staticMethods, getterMethods, setterMethods, operatorMethods, classVariables] = cls.getAllMembers()
         let values = []
         switch (property) {
             case "CP_INSTANCE_METHOD":
                 values = instanceMethods; break
+            case "CP_SPECIAL_METHOD":
+                values = specialMethods; break
             case "CP_STATIC_METHOD":
                 values = staticMethods; break
             case "CP_GETTER_METHOD":
@@ -3406,12 +3411,8 @@ class GCEOOPBlocks {
                 values = classVariables; break
         }
         let names = Object.keys(values)
-        if (property == "CP_INSTANCE_METHOD") {
-            let index
-            index = names.indexOf("__SM_INIT_METHOD__")
-            if (index !== -1) names[index] = "[special] init"
-            index = names.indexOf("__SM_AS_STRING_METHOD__")
-            if (index !== -1) names[index] = "[special] as string"
+        if (property == "CP_SPECIAL_METHOD") {
+            names = names.map(name => MENUS.OPERATOR_METHOD.internalToPublic(name))
         }
         else if (property === "CP_OPERATOR_METHOD") {
             names = names.map(name => MENUS.OPERATOR_METHOD.internalToPublic(name))
@@ -3565,7 +3566,7 @@ class GCEOOPBlocks {
         let method
         try {
             /** @type {InstanceMethodType} */
-            method = object.cls.getMemberOfType("__SM_AS_STRING_METHOD__", "CP_INSTANCE_METHOD")
+            method = object.cls.getMemberOfType("__SM_AS_STRING_METHOD__", "CP_SPECIAL_METHOD")
         } catch {}
         if (!method) return object.toString()
         const output = yield* method.execute(thread, object, [])
@@ -3827,6 +3828,7 @@ if (!isRuntimeEnv) {
  * + - investigate why inputs are not supported in shadow blocks
  * + - make as string work for arrays, objects too
  * + - "all variables that are classes/functions" block
+ * + - make propertyNamesOfClass/getAllMembers more efficient
  * + - proper error framework (maybe in seperate extension)
  * + - ~ throw all errors so that they remember their type
  * + - ~ add catch error of type block

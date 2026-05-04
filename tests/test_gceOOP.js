@@ -486,18 +486,18 @@ describe("ScopeStackManager", () => {
         })
     })
 
-    describe("prepareReturn", () => {
+    describe("exitCall", () => {
         test("pops the callable stack", () => {
             const m = new ScopeStackManager()
             m.enterFunctionCall({ stack: new ScopeStack() }, {})
             assert.equal(m.getSize(), 2)
-            m.prepareReturn()
+            m.exitCall()
             assert.equal(m.getSize(), 1)
         })
 
         test("throws when not inside a callable scope", () => {
             const m = new ScopeStackManager()
-            assertThrows(() => m.prepareReturn(), "return can only be used")
+            assertThrows(() => m.exitCall(), "return can only be used")
         })
     })
 
@@ -510,28 +510,7 @@ describe("ScopeStackManager", () => {
         })
     })
 
-    describe("trimSize", () => {
-        test("reduces stack count to given size", () => {
-            const m = new ScopeStackManager()
-            m.pushStackToManager(new ScopeStack())
-            m.pushStackToManager(new ScopeStack())
-            assert.equal(m.getSize(), 3)
-            m.trimSize(1)
-            assert.equal(m.getSize(), 1)
-        })
 
-        test("is a no-op when already at or below target size", () => {
-            const m = new ScopeStackManager()
-            m.trimSize(10)
-            assert.equal(m.getSize(), 1)
-        })
-
-        test("collapses to empty for zero", () => {
-            const m = new ScopeStackManager()
-            m.trimSize(0)
-            assert.equal(m.getSize(), 0)
-        })
-    })
 })
 
 describe("ScopeStack", () => {
@@ -745,16 +724,7 @@ describe("ScopeStack", () => {
         })
     })
 
-    describe("trimSize", () => {
-        test("reduces scope count to given size", () => {
-            const s = new ScopeStack()
-            s.enterUserScope()
-            s.enterUserScope()
-            assert.equal(s.getSize(), 3)
-            s.trimSize(1)
-            assert.equal(s.getSize(), 1)
-        })
-    })
+
 
     describe("setNextFuncConfig", () => {
         describe("config handling", () => {
@@ -1370,7 +1340,6 @@ describe("BaseCallableType", () => {
                 function* (thread) {
                     const stack = ThreadUtil.getCurrentStack(thread)
                     assert.strictEqual(stack.getScopeVar("value"), 123)
-                    ThreadUtil.getStackManager(thread).prepareReturn()
                     return "done"
                 },
                 new ScopeStack(),
@@ -1400,6 +1369,15 @@ describe("BaseCallableType", () => {
             assertGeneratorThrows(callable.execute(thread, []), "boom")
             assert.strictEqual(ThreadUtil.getCurrentStack(thread).getSize(), 1)
             assert.strictEqual(ThreadUtil.getCurrentStack(thread).hasScopeVar("temp"), false)
+        })
+    })
+
+    describe("prefixDescription", () => {
+        test("returns a string containing 'Calling function' and the function name", () => {
+            const fn = makeFunctionType("myFn")
+            const desc = fn.prefixDescription()
+            assert.ok(desc.includes("Calling function"), `Expected 'Calling function' in: ${desc}`)
+            assert.ok(desc.includes("myFn"), `Expected 'myFn' in: ${desc}`)
         })
     })
 
@@ -1484,7 +1462,24 @@ describe("InstanceMethodType", () => {
             manager.popStackFromManager()
         })
     })
+
+    describe("prefixDescription", () => {
+        test("returns a string containing 'Calling method' and the method name", () => {
+            const method = makeMethodType("doThing")
+            const desc = method.prefixDescription()
+            assert.ok(desc.includes("Calling method"), `Expected 'Calling method' in: ${desc}`)
+            assert.ok(desc.includes("doThing"), `Expected 'doThing' in: ${desc}`)
+        })
+
+        test("translates __SM_INIT_METHOD__ to its public name 'init'", () => {
+            const method = makeMethodType("__SM_INIT_METHOD__")
+            const desc = method.prefixDescription()
+            assert.ok(!desc.includes("__SM_INIT_METHOD__"), `Expected no raw internal name in: ${desc}`)
+            assert.ok(desc.includes("init"), `Expected public name 'init' in: ${desc}`)
+        })
+    })
 })
+
 
 describe("GetterMethodType", () => {
     describe("className", () => {
@@ -1620,7 +1615,7 @@ describe("ClassType", () => {
             sub.setMemberOfType("shared", "CP_CLASS_VARIABLE", "sub")
             sub.setMemberOfType("subOnly", "CP_CLASS_VARIABLE", 2)
 
-            const [, , , , , variables] = sub.getAllMembers()
+            const [im, spm, stm, getm, setm, opm, variables] = sub.getAllMembers()
             assert.deepStrictEqual({ ...variables }, {
                 baseOnly: 1,
                 shared: "sub",
@@ -1732,14 +1727,13 @@ describe("ClassType", () => {
             const cls = new ClassType("Widget", null)
             cls.setMemberOfType(
                 "__SM_INIT_METHOD__",
-                "CP_INSTANCE_METHOD",
+                "CP_SPECIAL_METHOD",
                 new InstanceMethodType(
                     "__SM_INIT_METHOD__",
                     function* (thread) {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
                         self.attributes.label = stack.getScopeVar("label")
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return Nothing
                     },
                     new ScopeStack(),
@@ -1756,11 +1750,10 @@ describe("ClassType", () => {
             const cls = new ClassType("Widget", null)
             cls.setMemberOfType(
                 "__SM_INIT_METHOD__",
-                "CP_INSTANCE_METHOD",
+                "CP_SPECIAL_METHOD",
                 new InstanceMethodType(
                     "__SM_INIT_METHOD__",
                     function* (thread) {
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return "bad"
                     },
                     new ScopeStack(),
@@ -1782,7 +1775,6 @@ describe("ClassType", () => {
                     "make",
                     function* (thread) {
                         const value = ThreadUtil.getCurrentStack(thread).getScopeVar("x")
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return value * 2
                     },
                     new ScopeStack(),
@@ -1849,7 +1841,6 @@ describe("ClassInstanceType", () => {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
                         const word = stack.getScopeVar("word")
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return `${self.cls.name}:${word}`
                     },
                     { argNames: ["word"], argDefaults: [] }
@@ -1879,7 +1870,6 @@ describe("ClassInstanceType", () => {
                     "speak",
                     function* (thread) {
                         const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return `base:${word}`
                     },
                     new ScopeStack(),
@@ -1893,7 +1883,6 @@ describe("ClassInstanceType", () => {
                     "speak",
                     function* (thread) {
                         const word = ThreadUtil.getCurrentStack(thread).getScopeVar("word")
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return `sub:${word}`
                     },
                     new ScopeStack(),
@@ -1924,7 +1913,6 @@ describe("ClassInstanceType", () => {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
                         const other = stack.getOperatorValueOrThrow()
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return self.attributes.base + other
                     }
                 )
@@ -1956,7 +1944,6 @@ describe("ClassInstanceType", () => {
                     "name",
                     function* (thread) {
                         const self = ThreadUtil.getCurrentStack(thread).getSelfOrThrow()
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return `value:${self.attributes.raw}`
                     }
                 )
@@ -1981,7 +1968,6 @@ describe("ClassInstanceType", () => {
                         const stack = ThreadUtil.getCurrentStack(thread)
                         const self = stack.getSelfOrThrow()
                         self.attributes.saved = stack.getSetterValueOrThrow()
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return Nothing
                     }
                 )
@@ -2000,7 +1986,6 @@ describe("ClassInstanceType", () => {
                 makeGetterMethodType(
                     "value",
                     function* (thread) {
-                        ThreadUtil.getStackManager(thread).prepareReturn()
                         return 1
                     }
                 )
