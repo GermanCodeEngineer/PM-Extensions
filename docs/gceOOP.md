@@ -22,21 +22,42 @@ The OOP extension brings structured **object-oriented programming** and **scope-
 - **`as string`:** This converts a value to readable text. For class instances, it calls the special **`as string`** method when one is defined.
 
 ## Block and Input Shapes
-In this extension, the shapes of reporters indicate the **type of value**, they return. Input shapes indicate in the same way which type of value, they expect. Here are some examples for the existing shapes:
+In this extension, the shapes of reporters indicate the **type of value**, they return. Input shapes indicate in the same way which type of value, they expect. If an input has a shape but also allows text, it expects either the value corresponding to the shape or a variable name, that contains one. Here are some examples for the existing shapes:
 ### Class
+#### Block Shape
 ![Class Example](images/create_class_named.png)
+#### Input Shape
+![Class Example](images/get_class_var.png)
+
 ### Class Instance
+#### Block Shape
 ![Class Instance Example](images/create_instance_of.png)
+#### Input Shape
+![Class Instance Example](images/get_attribute.png)
+
 ### Function
+#### Block Shape
 ![Function Example](images/create_function_named.png)
+#### Input Shape
+![Function Example](images/call_function.png)
+
 ### Nothing
+#### Block Shape
 ![Nothing Example](images/Nothing.png)
+
 ### Array (extension by jwklong)
+#### Block Shape
 ![Array Example](images/all_variables_in.png)
+#### Input Shape
+![Array Example](images/call_function.png)
+
 ### Object (extension by dogeiscut)
+#### Block Shape
 ![Object Example](images/all_attributes_of.png)
+
 ### Any value (Normal round reporter)
-![Anything Example](images/attribute_of.png)
+#### Input & Block Shape
+![Anything Example](images/typeof.png)
 
 ## Scoped Variables and Scope Control
 - Create, read, update, and delete variables in the **current scope**.

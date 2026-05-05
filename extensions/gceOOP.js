@@ -3795,7 +3795,6 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - Update docs images
  *
  * + HIGH PRIORITY
  *
