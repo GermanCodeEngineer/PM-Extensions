@@ -41,7 +41,7 @@ const TRANSLATIONS = {
         '["name"]': '["name"]',
         '[]': '[]',
 
-        // getInfo block texts
+        // getInfo block text
         "Functions & Scopes": "Funktionen & Variablen",
         "Missing OOP Extension?": "Fehlende OOP-Erweiterung?",
         "Add OOP Extension": "OOP-Erweiterung hinzufügen",
