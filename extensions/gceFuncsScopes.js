@@ -118,15 +118,17 @@ function translatedMsg(englishMessageTemplate, values) {
     // Let format-message handle interpolation
     // Check if translation exists in TRANSLATIONS.de
     const key = englishMessageTemplate;
-    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+    // Don't check in prerelease
+
+    //const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
     // If the key or key with leading underscore is not found, throw
-    if (!deTranslations || (deTranslations["_" + key] === undefined)) {
-        throw new Error(`Missing German translation for: ${key}`);
-    } else {
+    //if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+    //    throw new Error(`Missing German translation for: ${key}`);
+    //} else {
         // Translation exists, return the translated message
         return Scratch.translate(englishMessageTemplate, values);
-    }
-}
+    //}
+}   
 
 /**
  * Translates an error message and throws it as an Error. Placeholders in the format {key} can be replaced with corresponding values from an object.

@@ -415,14 +415,16 @@ function translatedMsg(englishMessageTemplate, values) {
     // Let format-message handle interpolation
     // Check if translation exists in TRANSLATIONS.de
     const key = englishMessageTemplate;
-    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+    // Don't check in prerelease
+
+    //const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
     // If the key or key with leading underscore is not found, throw
-    if (!deTranslations || (deTranslations["_" + key] === undefined)) {
-        throw new Error(`Missing German translation for: ${key}`);
-    } else {
+    //if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+    //    throw new Error(`Missing German translation for: ${key}`);
+    //} else {
         // Translation exists, return the translated message
         return Scratch.translate(englishMessageTemplate, values);
-    }
+    //}
 }
 
 /**
@@ -3097,9 +3099,10 @@ class GCEOOPBlocks {
                 v => (v instanceof NothingType ? v.toJSON() : null),
                 v => Nothing,
             )
-            Scratch.gui.getBlockly().then(ScratchBlocks => {
-                ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
-            })
+            // Don't register in prerelease currently because of a WIP bug
+            //Scratch.gui.getBlockly().then(ScratchBlocks => {
+            //    ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
+            //})
             
             applyInternalWrappers(Scratch)
         }
