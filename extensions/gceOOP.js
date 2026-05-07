@@ -3901,6 +3901,7 @@ if (!isRuntimeEnv) {
  *
  * + HIGH PRIORITY
  * + fix "[OOP Extension] Failed to create custom shape ReferenceError: ScratchBlocks is not defined"
+ * + fix weird error that TRANSLATIONS is used before it's defined (translatedMsg)
  * 
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
