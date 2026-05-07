@@ -473,17 +473,18 @@ function span(text) {
  * @returns {string}
  */
 function translatedMsg(englishMessageTemplate, values) {
+    try {
+        // Check if translation exists in TRANSLATIONS.de
+        const key = englishMessageTemplate;
+        const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+        // If the key or key with leading underscore is not found, throw
+        if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+            console.error(`Missing German translation for: ${key}`);
+        }
+    } catch (error) {} // Catch TRANSLATIONS not being defined sometimes
+
     // Let format-message handle interpolation
-    // Check if translation exists in TRANSLATIONS.de
-    const key = englishMessageTemplate;
-    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
-    // If the key or key with leading underscore is not found, throw
-    if (!deTranslations || (deTranslations["_" + key] === undefined)) {
-        throw new Error(`Missing German translation for: ${key}`);
-    } else {
-        // Translation exists, return the translated message
-        return Scratch.translate(englishMessageTemplate, values);
-    }
+    return Scratch.translate(englishMessageTemplate, values);
 }
 
 /**
@@ -3897,7 +3898,6 @@ if (!isRuntimeEnv) {
  * + WORKING ON
  *
  * + HIGH PRIORITY
- * + fix weird error that TRANSLATIONS is used before it's defined (translatedMsg)
  * 
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
