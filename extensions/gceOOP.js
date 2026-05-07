@@ -95,7 +95,7 @@ const TRANSLATIONS = {
         "myClassVariable": "meineKlassenvariable",
         "myAttr": "meinAttribut",
 
-        // getInfo block texts
+        // getInfo block text
         "OOP": "OOP",
         "Missing Extensions?": "Fehlen Erweiterungen?",
         "Add Functions & Scopes Extension": "Funktionen & Variablen Erweiterung hinzufügen",
@@ -121,9 +121,9 @@ const TRANSLATIONS = {
         "Returns the superclass of a class, or Nothing if it has none.": "Gibt die Oberklasse einer Klasse zurück oder Nichts, falls keine vorhanden ist.",
         "Class Members": "Klassenmitglieder",
         "Define Instance Methods": "Instanzmethoden definieren",
-        "define instance method [NAME] [SHADOW]": "Instanzmethode [NAME] [SHADOW] definieren",
+        "define instance method [NAME] [SHADOW]": "definiere Instanzmethode [NAME] [SHADOW]",
         "Defines an instance method on the current class.": "Definiert eine Instanzmethode in der aktuellen Klasse.",
-        "define [SPECIAL_METHOD] instance method [SHADOW]": "[SPECIAL_METHOD] Instanzmethode [SHADOW] definieren",
+        "define [SPECIAL_METHOD] instance method [SHADOW]": "definiere [SPECIAL_METHOD] Instanzmethode [SHADOW]",
         "Defines a special instance method.": "Definiert eine spezielle Instanzmethode.",
         "self": "self",
         "Reports the current instance inside a method.": "Gibt die aktuelle Instanz innerhalb einer Methode zurück.",
@@ -132,25 +132,25 @@ const TRANSLATIONS = {
         "call super init method with positional args [POSARGS]": "Super-Init-Methode mit Positionsargumenten [POSARGS] aufrufen",
         "Calls the superclass init method for the current object.": "Ruft die Init-Methode der Oberklasse für das aktuelle Objekt auf.",
         "Define Getters & Setters": "Getter & Setter definieren",
-        "define getter [NAME] [SHADOW]": "Getter [NAME] [SHADOW] definieren",
+        "define getter for [NAME] [SHADOW]": "definiere Getter für [NAME] [SHADOW]",
         "Defines a getter method for an attribute on the current class.": "Definiert eine Getter-Methode für ein Attribut in der aktuellen Klasse.",
-        "define setter [NAME] [SHADOW1] [SHADOW2]": "Setter [NAME] [SHADOW1] [SHADOW2] definieren",
+        "define setter for [NAME] [SHADOW1] [SHADOW2]": "definiere Setter für [NAME] [SHADOW1] [SHADOW2]",
         "Defines a setter method for an attribute on the current class.": "Definiert eine Setter-Methode für ein Attribut in der aktuellen Klasse.",
         "operator value": "Operatorwert",
         "Reports the incoming value inside a setter method.": "Gibt den eingehenden Wert innerhalb einer Setter-Methode zurück.",
         "Define Operator Methods": "Operatormethoden definieren",
-        "define operator method [OPERATOR_KIND] [SHADOW]": "Operatormethode [OPERATOR_KIND] [SHADOW] definieren",
+        "define operator method [OPERATOR_KIND] [SHADOW]": "definiere Operatormethode [OPERATOR_KIND] [SHADOW]",
         "Defines custom behavior for an operator on instances of the current class.": "Definiert benutzerdefiniertes Verhalten für einen Operator bei Instanzen der aktuellen Klasse.",
         "operator value": "Operatorwert",
         "Reports the other operand inside an operator method.": "Gibt den anderen Operanden innerhalb einer Operatormethode zurück.",
         "Define Static Methods & Class Variables": "Statische Methoden & Klassenvariablen definieren",
-        "on [CLASS] set class var [NAME] to [VALUE]": "Setze Klassenvariable [NAME] von [CLASS] auf [VALUE]",
+        "on [CLASS] set class var [NAME] to [VALUE]": "Auf [CLASS] setze Klassenvariable [NAME] auf [VALUE]",
         "Sets a class variable on the selected class.": "Setzt eine Klassenvariable in der ausgewählten Klasse.",
-        "get class var [NAME] of [CLASS]": "Klassenvariable [NAME] von [CLASS] abrufen",
+        "on [CLASS] get class var [NAME]": "Auf [CLASS] lese Klassenvariable [NAME]",
         "Gets a class variable from the selected class.": "Liest eine Klassenvariable aus der ausgewählten Klasse aus.",
-        "on [CLASS] delete class var [NAME]": "Lösche Klassenvariable [NAME] von [CLASS]",
+        "on [CLASS] delete class var [NAME]": "Auf [CLASS] lösche Klassenvariable [NAME]",
         "Deletes a class variable from the selected class.": "Löscht eine Klassenvariable aus der ausgewählten Klasse.",
-        "define static method [NAME]": "Statische Methode [NAME] definieren",
+        "define static method [NAME]": "definiere statische Methode [NAME]",
         "Defines a static method on the current class.": "Definiert eine statische Methode in der aktuellen Klasse.",
         "[PROPERTY] names of class [CLASS]": "[PROPERTY]-Namen der Klasse [CLASS]",
         "Returns the names of members of the selected type for a class.": "Gibt die Namen der Mitglieder des ausgewählten Typs für eine Klasse zurück.",
@@ -163,19 +163,30 @@ const TRANSLATIONS = {
         "get class of [INSTANCE]": "Klasse von [INSTANCE] abrufen",
         "Returns the class that created an instance.": "Gibt die Klasse zurück, die eine Instanz erstellt hat.",
         "Attributes": "Attribute",
-        "on [INSTANCE] set attribute [NAME] to [VALUE]": "Setze Attribut [NAME] von [INSTANCE] auf [VALUE]",
+        "on [INSTANCE] set attribute [NAME] to [VALUE]": "Auf [INSTANCE] setze Attribut [NAME] auf [VALUE]",
         "Sets an attribute on an instance or calls its setter if one exists.": "Setzt ein Attribut einer Instanz oder ruft deren Setter auf, falls vorhanden.",
-        "on [INSTANCE] get attribute [NAME]": "Attribut [NAME] von [INSTANCE]",
+        "on [INSTANCE] get attribute [NAME]": "Auf [INSTANCE] lese Attribut [NAME]",
         "Gets an attribute from an instance or calls its getter if one exists.": "Liest ein Attribut einer Instanz aus oder ruft deren Getter auf, falls vorhanden.",
         "all attributes of [INSTANCE]": "Alle Attribute von [INSTANCE]",
         "Returns all direct instance attributes as an object.": "Gibt alle direkten Instanzattribute als Objekt zurück.",
         "Call Methods": "Methoden aufrufen",
-        "on [INSTANCE] call method [NAME] with positional args [POSARGS]": "Methode [NAME] von [INSTANCE] mit Positionsargumenten [POSARGS] aufrufen",
+        "on [INSTANCE] call method [NAME] with positional args [POSARGS]": "Auf [INSTANCE] rufe Methode [NAME] mit Positionsargumenten [POSARGS] auf",
         "Calls an instance method on an object with positional arguments.": "Ruft eine Instanzmethode eines Objekts mit Positionsargumenten auf.",
-        "on [CLASS] call static method [NAME] with positional args [POSARGS]": "Statische Methode [NAME] von [CLASS] mit Positionsargumenten [POSARGS] aufrufen",
+        "on [CLASS] call static method [NAME] with positional args [POSARGS]": "Auf [CLASS] rufe statische Methode [NAME] mit Positionsargumenten [POSARGS] auf",
         "Calls a static method on a class with positional arguments.": "Ruft eine statische Methode einer Klasse mit Positionsargumenten auf.",
-        "get static method [NAME] of [CLASS] as function": "Statische Methode [NAME] von [CLASS] als Funktion abrufen",
+        "get static method [NAME] of [CLASS] as function": "Auf [CLASS] rufe statische Methode [NAME] als Funktion ab",
         "Returns a static method from a class as a callable function value.": "Gibt eine statische Methode einer Klasse als aufrufbare Funktion zurück.",
+
+        // getInfo block enSwitchText
+        "define special instance method": "definiere spezielle Instanzmethode",
+        "set class var to": "setze Klassenvariable auf",
+        "get class var": "lese Klassenvariable aus",
+        "delete class var": "lösche Klassenvariable",
+        "selected member names of class": "ausgewählte Mitgliedernamen der Klasse",
+        "on instance set attribute to": "auf Instanz setze Attribut auf",
+        "on instance get attribute": "auf Instanz lese Attribut aus",
+        "on instance call method": "auf Instanz rufe Methode auf",
+        "on class call static method": "auf Klasse rufe statische Methode auf",
     },
 };
 
@@ -189,48 +200,98 @@ Object.entries(TRANSLATIONS).forEach(([lang, langTranslations]) => {
 Scratch.translate.setup(TRANSLATIONS);
 
 /************************************************************************************
+*                          Block Right Click Switch Groups                          *
+************************************************************************************/
+
+const SWITCH_GROUPS = [
+    [
+        "createClassAt",
+        "createSubclassAt",
+        "createClassNamed",
+        "createSubclassNamed",
+        "onClass",
+    ],
+    [
+        "defineInstanceMethod",
+        "defineSpecialMethod",
+        "defineGetter",
+        "defineSetter",
+        "defineOperatorMethod",
+    ],
+    [
+        "setClassVariable",
+        "getClassVariable",
+        "deleteClassVariable",
+    ],
+    [
+        "setAttribute",
+        "getAttribute",
+        "getAllAttributes",
+    ],
+    [
+        "createInstance",
+        "callMethod",
+        "callStaticMethod",
+        "getStaticMethodFunc",
+        "callSuperMethod",
+        "callSuperInitMethod",
+    ],
+    [
+        "isInstance",
+        "getClassOfInstance",
+        "isSubclass",
+        "getSuperclass",
+    ],
+    [
+
+    ],
+]
+
+/************************************************************************************
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
-let CUSTOM_SHAPE
-if (isRuntimeEnv) {
-    try { // If ScratchBlocks is not avaliable, skip
-    CUSTOM_SHAPE = {
-        emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
-        emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
-        leftPath: (block) => {
-            const edgeWidth = block.height / 2
-            const s = edgeWidth / 16
-            return [
-                `h ${-12*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
-                `l ${4*s} ${-4*s} `+
-                `l ${-4*s} ${-4*s} `+
-                `l 0 ${-8*s} `+
-                `l ${4*s} ${-4*s} `+
-                `l ${-4*s} ${-4*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
-            ]
-        },
-        rightPath: (block) => {
-            const edgeWidth = block.edgeShapeWidth_
-            const s = edgeWidth / 16
-            return [
-                `h ${12*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
-                `l ${-4*s} ${4*s} `+
-                `l ${4*s} ${4*s} `+
-                `l 0 ${8*s} `+
-                `l ${-4*s} ${4*s} `+
-                `l ${4*s} ${4*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
-                `h ${-12*s}`
-            ]
-        },
+function createCustomShape(ScratchBlocks) {
+    if (isRuntimeEnv) {
+        try { // If ScratchBlocks is not avaliable, skip
+            return {
+                emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
+                emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+                leftPath: (block) => {
+                    const edgeWidth = block.height / 2
+                    const s = edgeWidth / 16
+                    return [
+                        `h ${-12*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+                        `l ${4*s} ${-4*s} `+
+                        `l ${-4*s} ${-4*s} `+
+                        `l 0 ${-8*s} `+
+                        `l ${4*s} ${-4*s} `+
+                        `l ${-4*s} ${-4*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
+                    ]
+                },
+                rightPath: (block) => {
+                    const edgeWidth = block.edgeShapeWidth_
+                    const s = edgeWidth / 16
+                    return [
+                        `h ${12*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
+                        `l ${-4*s} ${4*s} `+
+                        `l ${4*s} ${4*s} `+
+                        `l 0 ${8*s} `+
+                        `l ${-4*s} ${4*s} `+
+                        `l ${4*s} ${4*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
+                        `h ${-12*s}`
+                    ]
+                },
+            }
+        } catch (error) {
+            console.error(translatedMsg("[OOP Extension] Failed to create custom shape"), error)
+        }
     }
-    } catch (error) {
-        console.error(translatedMsg("[OOP Extension] Failed to create custom shape"), error)
-    }
+    return null
 }
 
 /************************************************************************************
@@ -412,19 +473,18 @@ function span(text) {
  * @returns {string}
  */
 function translatedMsg(englishMessageTemplate, values) {
-    // Let format-message handle interpolation
-    // Check if translation exists in TRANSLATIONS.de
-    const key = englishMessageTemplate;
-    // Don't check in prerelease
+    try {
+        // Check if translation exists in TRANSLATIONS.de
+        const key = englishMessageTemplate;
+        const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+        // If the key or key with leading underscore is not found, throw
+        if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+            console.error(`Missing German translation for: ${key}`);
+        }
+    } catch (error) {} // Catch TRANSLATIONS not being defined sometimes
 
-    //const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
-    // If the key or key with leading underscore is not found, throw
-    //if (!deTranslations || (deTranslations["_" + key] === undefined)) {
-    //    throw new Error(`Missing German translation for: ${key}`);
-    //} else {
-        // Translation exists, return the translated message
-        return Scratch.translate(englishMessageTemplate, values);
-    //}
+    // Let format-message handle interpolation
+    return Scratch.translate(englishMessageTemplate, values);
 }
 
 /**
@@ -685,19 +745,6 @@ class ScopeStackManager {
             supportsSelf: true, isCallable: true,
             supportsVars: true,
             self, vars: new VariableManager(args),
-        })
-    }
-
-    /**
-     * @param {BaseCallableType} callable
-     * @param {ClassInstanceType} self
-     */
-    enterGetterMethodCall(callable, self) {
-        this.insertScopeAndPushStack(callable, {
-            type: ScopeStack.GETTER_METHOD,
-            supportsSelf: true, isCallable: true,
-            supportsVars: true,
-            self, vars: new VariableManager(),
         })
     }
 
@@ -2255,7 +2302,7 @@ const gceClass = {
         exemptFromNormalization: true,
     },
 }
-const gceClassInstance = {
+const gceClassInstance = { // Possibly edited in constructor
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
@@ -2274,11 +2321,6 @@ const gceClassInstance = {
         defaultValue: translatedMsg("myInstance"),
         exemptFromNormalization: true,
     },
-}
-if (!CUSTOM_SHAPE) {
-    delete gceClassInstance.Block.blockShape
-    delete gceClassInstance.Argument.shape
-    delete gceClassInstance.ArgumentInstanceOrVarName.shape
 }
 const gceNothing = {
     Type: NothingType,
@@ -2348,7 +2390,7 @@ class GCEOOPBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: BlockType.LABEL, text: text})
-        const info = {
+        const info = { // Please note automatic changes applied below
             id: "gceOOP",
             name: translatedMsg("OOP"),
             color1: "#428af5",
@@ -2466,22 +2508,23 @@ class GCEOOPBlocks {
                     tooltip: "Defines an instance method on the current class.",
                     arguments: {
                         NAME: commonArguments.methodName,
-                        SHADOW: {fillIn: "self"},
+                        SHADOW: {fillIn: "selfValue"},
                     },
                 },
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSpecialMethod",
                     text: ["define [SPECIAL_METHOD] instance method [SHADOW]"],
+                    enSwitchText: "define special instance method",
                     tooltip: "Defines a special instance method.",
                     arguments: {
                         SPECIAL_METHOD: {type: ArgumentType.STRING, menu: "specialMethod"},
-                        SHADOW: {fillIn: "self"},
+                        SHADOW: {fillIn: "selfValue"},
                     },
                 },
                 {
                     ...gceClassInstance.Block,
-                    opcode: "self",
+                    opcode: "selfValue",
                     text: "self",
                     tooltip: "Reports the current instance inside a method.",
                     canDragDuplicate: true,
@@ -2510,21 +2553,21 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineGetter",
-                    text: ["define getter [NAME] [SHADOW]"],
+                    text: ["define getter for [NAME] [SHADOW]"],
                     tooltip: "Defines a getter method for an attribute on the current class.",
                     arguments: {
                         NAME: commonArguments.attributeName,
-                        SHADOW: {fillIn: "self"},
+                        SHADOW: {fillIn: "selfValue"},
                     },
                 },
                 {
                     ...commonBlocks.commandWithBranch,
                     opcode: "defineSetter",
-                    text: ["define setter [NAME] [SHADOW1] [SHADOW2]"],
+                    text: ["define setter for [NAME] [SHADOW1] [SHADOW2]"],
                     tooltip: "Defines a setter method for an attribute on the current class.",
                     arguments: {
                         NAME: commonArguments.attributeName,
-                        SHADOW1: {fillIn: "self"},
+                        SHADOW1: {fillIn: "selfValue"},
                         SHADOW2: {fillIn: "defineSetterValue"},
                     },
                 },
@@ -2562,6 +2605,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.command,
                     opcode: "setClassVariable",
                     text: "on [CLASS] set class var [NAME] to [VALUE]",
+                    enSwitchText: "set class var to",
                     tooltip: "Sets a class variable on the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -2572,7 +2616,8 @@ class GCEOOPBlocks {
                 {
                     ...commonBlocks.returnsAnything,
                     opcode: "getClassVariable",
-                    text: "get class var [NAME] of [CLASS]",
+                    text: "on [CLASS] get class var [NAME]",
+                    enSwitchText: "get class var",
                     tooltip: "Gets a class variable from the selected class.",
                     arguments: {
                         NAME: commonArguments.classVariableName,
@@ -2583,6 +2628,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.command,
                     opcode: "deleteClassVariable",
                     text: "on [CLASS] delete class var [NAME]",
+                    enSwitchText: "delete class var",
                     tooltip: "Deletes a class variable from the selected class.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -2602,6 +2648,7 @@ class GCEOOPBlocks {
                     ...jwArrayStub.Block,
                     opcode: "propertyNamesOfClass",
                     text: "[PROPERTY] names of class [CLASS]",
+                    enSwitchText: "selected member names of class",
                     tooltip: "Returns the names of members of the selected type for a class.",
                     arguments: {
                         PROPERTY: {type: ArgumentType.STRING, menu: "classProperty"},
@@ -2647,6 +2694,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.command,
                     opcode: "setAttribute",
                     text: "on [INSTANCE] set attribute [NAME] to [VALUE]",
+                    enSwitchText: "on instance set attribute to",
                     tooltip: "Sets an attribute on an instance or calls its setter if one exists.",
                     arguments: {
                         INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
@@ -2658,6 +2706,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "getAttribute",
                     text: "on [INSTANCE] get attribute [NAME]",
+                    enSwitchText: "on instance get attribute",
                     tooltip: "Gets an attribute from an instance or calls its getter if one exists.",
                     arguments: {
                         NAME: commonArguments.attributeName,
@@ -2679,6 +2728,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callMethod",
                     text: "on [INSTANCE] call method [NAME] with positional args [POSARGS]",
+                    enSwitchText: "on instance call method",
                     tooltip: "Calls an instance method on an object with positional arguments.",
                     arguments: {
                         INSTANCE: gceClassInstance.ArgumentInstanceOrVarName,
@@ -2690,6 +2740,7 @@ class GCEOOPBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "callStaticMethod",
                     text: "on [CLASS] call static method [NAME] with positional args [POSARGS]",
+                    enSwitchText: "on class call static method",
                     tooltip: "Calls a static method on a class with positional arguments.",
                     arguments: {
                         CLASS: gceClass.ArgumentClassOrVarName,
@@ -2723,16 +2774,55 @@ class GCEOOPBlocks {
                 },
             },
         }
+
+        // Automatically create switchText and translate text
+        const convertText = (text) => {
+            return text.replaceAll(/\[([^\]]+)\]/g, "").replace(/\s+/g, " ").trim()
+        }
+        const LINE_SEP = " / "
         info.blocks.forEach((block) => {
             if (typeof block !== "object") return
-            if (typeof block.text === "string") block.text = translatedMsg(block.text)
-            else if (typeof block.text === "object") {
-                block.text = block.text.map(translatedMsg)
+
+            // Standardize
+            if (typeof block.text === "string") block.text = [block.text]
+
+            // Process
+            block.text = translatedMsg(block.text.join(LINE_SEP)).split(LINE_SEP)
+            if (block.blockType !== BlockType.LABEL && block.blockType !== BlockType.BUTTON) {
+                if (block.enSwitchText) {
+                    block.switchText = translatedMsg(block.enSwitchText)
+                } else {
+                    block.switchText = convertText(block.text.join(LINE_SEP))
+                }
+                if (block.tooltip) block.tooltip = translatedMsg(block.tooltip)
             }
-            if (typeof block.tooltip === "string") block.tooltip = translatedMsg(block.tooltip)
-            else if (typeof block.tooltip === "object") {
-                block.tooltip = block.tooltip.map(translatedMsg)
-            }
+
+            // Un-Standardize
+            if (block.text.length === 1) block.text = block.text[0]
+        })
+
+        // Automatically create switches
+        SWITCH_GROUPS.forEach(group => {
+            const groupBlocks = group.map(
+                opcode => [opcode, info.blocks.find(b => typeof b === "object" && b.opcode === opcode)]
+            )
+
+            groupBlocks.forEach(([opcode, block]) => {
+                if (!block) {
+                    console.error(`Failed to find block ${opcode}`)
+                    return
+                }
+                block.switches = groupBlocks.map(([otherOpcode, otherBlock]) => {
+                    const isReporter = (otherBlock.blockType === BlockType.REPORTER) || (otherBlock.blockType === BlockType.BOOLEAN)
+                    if ((block.blockType === BlockType.COMMAND) && isReporter) {
+                        // Handle edge case where a command block is switched with a reporter block
+                        // Switching in that case unintendetely deletes blocks, which is dangerous
+                        return null
+                    }
+                    return (otherOpcode === opcode) ? {isNoop: true} : {opcode: otherOpcode}
+                    // I have tried "remapArguments", it doesn't seem to help really for my goals
+                }).filter(s => s !== null)
+            })
         })
         return info
     }
@@ -2748,7 +2838,7 @@ class GCEOOPBlocks {
             const result = { kind }
 
             inputs.forEach(inputName => {
-                result[inputName] = inputName === "SUBSTACK"
+                result[inputName] = inputName.startsWith("SUBSTACK")
                     ? generator.descendSubstack(block, inputName)
                     : generator.descendInputOfBlock(block, inputName)
             })
@@ -3084,7 +3174,7 @@ class GCEOOPBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
-            doublePlusShape: CUSTOM_SHAPE, TRANSLATIONS, applyInternalWrappers,
+            doublePlusShape: null, TRANSLATIONS, applyInternalWrappers,
             quote, escapeHTML, span, translatedMsg, throwError, throwInternal, assertType,
             VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager, MENU_ITEMS: MENUS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
@@ -3099,10 +3189,18 @@ class GCEOOPBlocks {
                 v => (v instanceof NothingType ? v.toJSON() : null),
                 v => Nothing,
             )
-            // Don't register in prerelease currently because of a WIP bug
-            //Scratch.gui.getBlockly().then(ScratchBlocks => {
-            //    ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
-            //})
+            Scratch.gui.getBlockly().then(ScratchBlocks => {
+                const CUSTOM_SHAPE = createCustomShape(ScratchBlocks)
+                if (CUSTOM_SHAPE) {
+                    ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
+                    this.environment.doublePlusShape = CUSTOM_SHAPE
+                } else {
+                    // Remove shape references from blocks if custom shapes aren't supported
+                    delete gceClassInstance.Block.blockShape
+                    delete gceClassInstance.Argument.shape
+                    delete gceClassInstance.ArgumentInstanceOrVarName.shape
+                }
+            })
             
             applyInternalWrappers(Scratch)
         }
@@ -3322,7 +3420,7 @@ class GCEOOPBlocks {
      * @param {BlockArgs} args
      * @param {BlockUtil} util
      */
-    self(args, util) {
+    selfValue(args, util) {
         const value =  ThreadUtil.getCurrentStack(util.thread).getSelfOrThrow()
         return assertType("mirthful-dolphin", ClassInstanceType, value)
     }
@@ -3803,12 +3901,11 @@ if (!isRuntimeEnv) {
  * + WORKING ON
  *
  * + HIGH PRIORITY
- *
+ * 
  * + MID PRIORITY
  * + - maybe use better custom block shape (example: divIterators.js)
  * + - maybe reorganize block cagegories
  * + - option to exclude super classes when asking for members
- * + - implement right-click switch options for similar blocks
  * + - name of class/function block
  * + - add "all current variable names" or similar block to function definitions
  * + - possibly make "self", "other" and "value" available as a variable in methods
