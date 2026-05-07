@@ -2805,8 +2805,10 @@ class GCEOOPBlocks {
         })
         // Automatically create switches
         const filterArguments = (arguments) => {
-            Object.entries(arguments).filter((argName, argInfo) => {
-                // TODO: finish
+            return Object.entries(arguments).filter(([argName, argInfo]) => {
+                if (argInfo.fillIn) return false
+                //if (argInfo.menu) return false // TODO ?
+                return true
             })
         }
         SWITCH_GROUPS.forEach(group => {
@@ -2823,8 +2825,15 @@ class GCEOOPBlocks {
                     if (otherOpcode === opcode) {
                         return {isNoop: true}
                     } else {
+                        // Map arg0 to arg0, arg1 to arg1
+                        let ownFilteredArgs = filterArguments(block.arguments || {})
+                        let otherFilteredArgs = filterArguments(otherBlock.arguments || {})
+                        const minArgs = Math.min(ownFilteredArgs.length, otherFilteredArgs.length)
                         const argMap = {}
-                        Object.entries(otherBlock.arguments)
+                        Array.from({length: minArgs}).forEach((_, index) => {
+                            argMap[ownFilteredArgs[index][0]] = otherFilteredArgs[index][0]
+                        })
+
                         return {
                             opcode: otherOpcode,
                             remapArguments: argMap,
