@@ -475,7 +475,6 @@ function translatedMsg(englishMessageTemplate, values) {
     // Check if translation exists in TRANSLATIONS.de
     const key = englishMessageTemplate;
     const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
-    if (key === undefined) throw "hey"
     // If the key or key with leading underscore is not found, throw
     if (!deTranslations || (deTranslations["_" + key] === undefined)) {
         throw new Error(`Missing German translation for: ${key}`);
@@ -2393,7 +2392,7 @@ class GCEOOPBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: BlockType.LABEL, text: text})
-        const info = {
+        const info = { // Please note automatic changes applied below
             id: "gceOOP",
             name: translatedMsg("OOP"),
             color1: "#428af5",
@@ -2777,29 +2776,29 @@ class GCEOOPBlocks {
                 },
             },
         }
-        
+
         // Automatically create switchText and translate text
         const convertText = (text) => {
             return text.replaceAll(/\[([^\]]+)\]/g, "").replace(/\s+/g, " ").trim()
         }
+        const LINE_SEP = " / "
         info.blocks.forEach((block) => {
             if (typeof block !== "object") return
 
             // Standardize
             if (typeof block.text === "string") block.text = [block.text]
-            const textLine = block.text.join(" / ")
 
             // Process
-            block.text = translatedMsg(textLine).split(" / ")
+            block.text = translatedMsg(block.text.join(LINE_SEP)).split(LINE_SEP)
             if (block.blockType !== BlockType.LABEL && block.blockType !== BlockType.BUTTON) {
                 if (block.enSwitchText) {
                     block.switchText = translatedMsg(block.enSwitchText)
                 } else {
-                    block.switchText = convertText(textLine)
+                    block.switchText = convertText(block.text.join(LINE_SEP))
                 }
                 if (block.tooltip) block.tooltip = translatedMsg(block.tooltip)
             }
-            
+
             // Un-Standardize
             if (block.text.length === 1) block.text = block.text[0]
         })
@@ -2816,13 +2815,15 @@ class GCEOOPBlocks {
                     return
                 }
                 block.switches = groupBlocks.map(([otherOpcode, otherBlock]) => {
-                    if (otherOpcode === opcode) {
-                        return {isNoop: true}
-                    } else {
-                        return {opcode: otherOpcode}
-                        // I have tried "remapArguments", it doesn't seem to help really for my goals
+                    const isReporter = (otherBlock.blockType === BlockType.REPORTER) || (otherBlock.blockType === BlockType.BOOLEAN)
+                    if ((block.blockType === BlockType.COMMAND) && isReporter) {
+                        // Handle edge case where a command block is switched with a reporter block
+                        // Switching in that case unintendetely deletes blocks, which is dangerous
+                        return null
                     }
-                })
+                    return (otherOpcode === opcode) ? {isNoop: true} : {opcode: otherOpcode}
+                    // I have tried "remapArguments", it doesn't seem to help really for my goals
+                }).filter(s => s !== null)
             })
         })
         return info
@@ -2839,7 +2840,7 @@ class GCEOOPBlocks {
             const result = { kind }
 
             inputs.forEach(inputName => {
-                result[inputName] = inputName === "SUBSTACK"
+                result[inputName] = inputName.startsWith("SUBSTACK")
                     ? generator.descendSubstack(block, inputName)
                     : generator.descendInputOfBlock(block, inputName)
             })
@@ -3888,8 +3889,7 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - implement right-click switch options for similar blocks
- * + - finish that and apply changes to gceFuncsScopes
+ * + ensure no SWITCH_GROUPS exist with reporter AND command blocks together
  *
  * + HIGH PRIORITY
  * + fix "[OOP Extension] Failed to create custom shape ReferenceError: ScratchBlocks is not defined"

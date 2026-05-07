@@ -32,7 +32,7 @@ const TRANSLATIONS = {
     de: {
         // Errors in chronological order of appearance
         "Functions and Scoped Variables Extension must run unsandboxed.": "Die Funktionen- und Variablen-Erweiterung muss ohne Sandbox laufen.",
-        "An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]": "Ein interner Fehler ist in der Funktionen- und Variablen-Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. ${additionalMsg} [FEHLERCODE: ${code}]",
+        "An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. {additionalMsg} [ERROR CODE: {code}]": "Ein interner Fehler ist in der Funktionen- und Variablen-Erweiterung aufgetreten. Bitte melde ihn im PenguinMod Discord oder auf GitHub. {additionalMsg} [FEHLERCODE: {code}]",
         'The Functions & Scopes Extension requires the OOP Extension to work. Please click the "Add OOP Extension" button.': 'Die Funktionen- und Variablen-Erweiterung benötigt die OOP-Erweiterung, um zu funktionieren. Bitte klicke auf die Schaltfläche "OOP-Erweiterung hinzufügen".',
 
         // getInfo defaults
@@ -60,7 +60,7 @@ const TRANSLATIONS = {
         "Runs the enclosed blocks inside a new local variable scope.": "Führt die eingeschlossenen Blöcke in einem neuen lokalen Variablenbereich aus.",
         "run with separate globals": "Führe mit separaten globalen Variablen aus",
         "Runs the enclosed blocks with a fresh empty global scope and fresh local scopes.": "Führt die eingeschlossenen Blöcke mit einem neuen leeren globalen Bereich und neuen lokalen Bereichen aus.",
-        "bind [KIND] variable [NAME] to current scope": "Binde [KIND]-Variable [NAME] an den aktuellen Bereich",
+        "bind [KIND] variable [NAME] to current scope": "Binde [KIND] Variable [NAME] an den aktuellen Bereich",
         "Links a global or non-local variable into the current scope.": "Verknüpft eine globale oder nicht-lokale Variable mit dem aktuellen Bereich.",
         "Functions": "Funktionen",
         "Configure Before Define": "Vorher konfigurieren",
@@ -92,6 +92,14 @@ const TRANSLATIONS = {
         "Returns the cool Nothing value like None in python.": "Gibt den coolen Nothing-Wert zurück, wie None in Python.",
         "execute expression [EXPR]": "Führe Ausdruck [EXPR] aus",
         "Evaluates the input expression without performing any additional action. This allows you to e.g. use the function call block (a reporter) in a script.": "Wertet den Eingabeausdruck aus, ohne zusätzliche Aktion auszuführen. So kannst du z.B. den Funktionsaufruf-Block (einen Reporter) in einem Skript verwenden.",
+
+        // getInfo block enSwitchText
+        "set var in current scope": "setze Variable im aktuellen Bereich",
+        "var exists in scope kind": "Variable existiert in Bereichstyp",
+        "all variables in scope kind": "alle Variablen in Bereichstyp",
+        "typeof matches type": "typeof entspricht Typ",
+        "selected typeof type": "ausgewählter typeof-Typ",
+        "values are identical": "Werte sind identisch",
     },
 }
 
@@ -103,6 +111,37 @@ Object.entries(TRANSLATIONS).forEach(([lang, langTranslations]) => {
     });
 });
 Scratch.translate.setup(TRANSLATIONS);
+
+/************************************************************************************
+*                          Block Right Click Switch Groups                          *
+************************************************************************************/
+
+const SWITCH_GROUPS = [
+    [
+        "executeExpression",
+        "setScopeVar",
+        "getScopeVar",
+        "scopeVarExists",
+        "deleteScopeVar",
+        "allVariables",
+        "returnValue",
+    ],
+    [
+        "createVarScope",
+        "runWithSeparateGlobals",
+        "bindVarToScope",
+    ],
+    [
+        "createFunctionAt",
+        "createFunctionNamed",
+        "callFunction",
+    ],
+    [
+        "typeofValue",
+        "typeofValueIsMenu",
+        "typeofValueSelection",
+    ],
+]
 
 /************************************************************************************
 *                            Internal Types and Constants                           *
@@ -145,7 +184,7 @@ function throwError(message, values = {}) {
  */
 function throwInternal(code, additionalMsg = "") {
     throwError(
-        "An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. ${additionalMsg} [ERROR CODE: ${code}]", {additionalMsg, code}
+        "An internal error occured in the Functions and Scopes extension. Please report it in the PenguinMod discord or on GitHub. {additionalMsg} [ERROR CODE: {code}]", {additionalMsg, code}
     )
 }
 
@@ -375,7 +414,7 @@ class GCEFuncsScopesBlocks {
      */
     getInfo() {
         const makeLabel = (text) => ({blockType: BlockType.LABEL, text: text})
-        const info = {
+        const info = { // Please note automatic changes applied below
             id: "gceFuncsScopes",
             name: translatedMsg("Functions & Scopes"),
             color1: "#428af5",
@@ -392,6 +431,7 @@ class GCEFuncsScopesBlocks {
                     ...commonBlocks.command,
                     opcode: "setScopeVar",
                     text: "set var [NAME] to [VALUE] in current scope",
+                    enSwitchText: "set var in current scope",
                     tooltip: "Creates or updates a variable in the current scope.",
                     arguments: {
                         NAME: commonArguments.variableName,
@@ -411,6 +451,7 @@ class GCEFuncsScopesBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "scopeVarExists",
                     text: "var [NAME] exists in [KIND]?",
+                    enSwitchText: "var exists in scope kind",
                     tooltip: "Checks whether a variable exists in the selected scope range.",
                     arguments: {
                         NAME: commonArguments.variableName,
@@ -430,6 +471,7 @@ class GCEFuncsScopesBlocks {
                     ...jwArrayStub.Block,
                     opcode: "allVariables",
                     text: "all variables in [KIND]",
+                    enSwitchText: "all variables in scope kind",
                     tooltip: "Returns all variable names visible in the selected scope range as an array.",
                     arguments: {
                         KIND: {type: ArgumentType.STRING, menu: "variableAvailableKind"},
@@ -541,6 +583,7 @@ class GCEFuncsScopesBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "typeofValueIsMenu",
                     text: "typeof [VALUE] is [TYPE] ?",
+                    enSwitchText: "typeof matches type",
                     tooltip: "Check if a value is of a specific type.",
                     arguments: {
                         VALUE: commonArguments.allowAnything,
@@ -551,6 +594,7 @@ class GCEFuncsScopesBlocks {
                     ...commonBlocks.returnsAnything,
                     opcode: "typeofValueSelection",
                     text: "[TYPE]",
+                    enSwitchText: "selected typeof type",
                     tooltip: "Provides a list of value types, you can choose from.",
                     arguments: {
                         TYPE: {type: ArgumentType.STRING, menu: "typeofMenu"},
@@ -560,6 +604,7 @@ class GCEFuncsScopesBlocks {
                     ...commonBlocks.returnsBoolean,
                     opcode: "checkIdentity",
                     text: "[VALUE1] is [VALUE2] ?",
+                    enSwitchText: "values are identical",
                     tooltip: "Checks whether two values are exactly the same value (the same instance).",
                     arguments: {
                         VALUE1: commonArguments.allowAnything,
@@ -597,16 +642,55 @@ class GCEFuncsScopesBlocks {
                 },
             },
         }
+
+        // Automatically create switchText and translate text
+        const convertText = (text) => {
+            return text.replaceAll(/\[([^\]]+)\]/g, "").replace(/\s+/g, " ").trim()
+        }
+        const LINE_SEP = " / "
         info.blocks.forEach((block) => {
             if (typeof block !== "object") return
-            if (typeof block.text === "string") block.text = translatedMsg(block.text)
-            else if (typeof block.text === "object") {
-                block.text = block.text.map(translatedMsg)
+
+            // Standardize
+            if (typeof block.text === "string") block.text = [block.text]
+
+            // Process
+            block.text = translatedMsg(block.text.join(LINE_SEP)).split(LINE_SEP)
+            if (block.blockType !== BlockType.LABEL && block.blockType !== BlockType.BUTTON) {
+                if (block.enSwitchText) {
+                    block.switchText = translatedMsg(block.enSwitchText)
+                } else {
+                    block.switchText = convertText(block.text.join(LINE_SEP))
+                }
+                if (block.tooltip) block.tooltip = translatedMsg(block.tooltip)
             }
-            if (typeof block.tooltip === "string") block.tooltip = translatedMsg(block.tooltip)
-            else if (typeof block.tooltip === "object") {
-                block.tooltip = block.tooltip.map(translatedMsg)
-            }
+
+            // Un-Standardize
+            if (block.text.length === 1) block.text = block.text[0]
+        })
+
+        // Automatically create switches
+        SWITCH_GROUPS.forEach(group => {
+            const groupBlocks = group.map(
+                opcode => [opcode, info.blocks.find(b => typeof b === "object" && b.opcode === opcode)]
+            )
+
+            groupBlocks.forEach(([opcode, block]) => {
+                if (!block) {
+                    console.error(`Failed to find block ${opcode}`)
+                    return
+                }
+                block.switches = groupBlocks.map(([otherOpcode, otherBlock]) => {
+                    const isReporter = (otherBlock.blockType === BlockType.REPORTER) || (otherBlock.blockType === BlockType.BOOLEAN)
+                    if ((block.blockType === BlockType.COMMAND) && isReporter) {
+                        // Handle edge case where a command block is switched with a reporter block
+                        // Switching in that case unintendetely deletes blocks, which is dangerous
+                        return null
+                    }
+                    return (otherOpcode === opcode) ? {isNoop: true} : {opcode: otherOpcode}
+                    // I have tried "remapArguments", it doesn't seem to help really for my goals
+                }).filter(s => s !== null)
+            })
         })
         return info
     }
