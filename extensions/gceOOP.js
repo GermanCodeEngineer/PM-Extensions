@@ -302,9 +302,22 @@ function createCustomShape(ScratchBlocks) {
  * @param {ScratchObject} Scratch
  */
 function applyInternalWrappers(Scratch) {
+    const SecurityManager = Scratch.vm.extensionManager.securityManager
     const {IRGenerator, JSGenerator} = Scratch.vm.exports
     const {TypedInput, TYPE_UNKNOWN, TYPE_BOOLEAN} = JSGenerator.exports
     const ScriptTreeGenerator = IRGenerator.exports.ScriptTreeGenerator
+
+    // wrap vm.extensionManager.securityManager.getSandboxMode to always return "unsandboxed" for my other (required) extensions
+    const oldGetSandboxMode = SecurityManager.getSandboxMode
+    if (!oldGetSandboxMode.isGceOOPModified) {
+        SecurityManager.getSandboxMode = function modifiedGetSandboxMode(extensionURL) {
+            if (extensionURL.startsWith("https://germancodeengineer.github.io/PM-Extensions/extensions/")) {
+                return "unsandboxed"
+            }
+            return oldGetSandboxMode.call(this, extensionURL)
+        }
+        SecurityManager.getSandboxMode.isGceOOPModified = true
+    }
 
     // wrap Scratch.Cast.toBoolean to return false for Nothing
     const oldToBoolean = Scratch.Cast.toBoolean
@@ -3785,6 +3798,12 @@ if (!isRuntimeEnv) {
  * @property {function(string): boolean} isExtensionLoaded
  * @property {function(string): void} loadExtensionIdSync
  * @property {function(string): void} loadExtensionURL
+ * @property {SecurityManager} securityManager
+ */
+
+/**
+ * @typedef {Object} SecurityManager
+ * @property {function(): string} getSandboxMode
  */
 
 /**
