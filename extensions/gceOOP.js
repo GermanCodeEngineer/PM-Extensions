@@ -251,45 +251,47 @@ const SWITCH_GROUPS = [
 *                                Custom Block Shapes                                *
 ************************************************************************************/
 
-let CUSTOM_SHAPE
-if (isRuntimeEnv) {
-    try { // If ScratchBlocks is not avaliable, skip
-    CUSTOM_SHAPE = {
-        emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
-        emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
-        leftPath: (block) => {
-            const edgeWidth = block.height / 2
-            const s = edgeWidth / 16
-            return [
-                `h ${-12*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
-                `l ${4*s} ${-4*s} `+
-                `l ${-4*s} ${-4*s} `+
-                `l 0 ${-8*s} `+
-                `l ${4*s} ${-4*s} `+
-                `l ${-4*s} ${-4*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
-            ]
-        },
-        rightPath: (block) => {
-            const edgeWidth = block.edgeShapeWidth_
-            const s = edgeWidth / 16
-            return [
-                `h ${12*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
-                `l ${-4*s} ${4*s} `+
-                `l ${4*s} ${4*s} `+
-                `l 0 ${8*s} `+
-                `l ${-4*s} ${4*s} `+
-                `l ${4*s} ${4*s} `+
-                `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
-                `h ${-12*s}`
-            ]
-        },
+function createCustomShape(ScratchBlocks) {
+    if (isRuntimeEnv) {
+        try { // If ScratchBlocks is not avaliable, skip
+            return {
+                emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
+                emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
+                leftPath: (block) => {
+                    const edgeWidth = block.height / 2
+                    const s = edgeWidth / 16
+                    return [
+                        `h ${-12*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${-4*s} `+
+                        `l ${4*s} ${-4*s} `+
+                        `l ${-4*s} ${-4*s} `+
+                        `l 0 ${-8*s} `+
+                        `l ${4*s} ${-4*s} `+
+                        `l ${-4*s} ${-4*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
+                    ]
+                },
+                rightPath: (block) => {
+                    const edgeWidth = block.edgeShapeWidth_
+                    const s = edgeWidth / 16
+                    return [
+                        `h ${12*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${4*s} ${4*s}`+
+                        `l ${-4*s} ${4*s} `+
+                        `l ${4*s} ${4*s} `+
+                        `l 0 ${8*s} `+
+                        `l ${-4*s} ${4*s} `+
+                        `l ${4*s} ${4*s} `+
+                        `a ${4*s} ${4*s} 0 0 1 ${-4*s} ${4*s}`+
+                        `h ${-12*s}`
+                    ]
+                },
+            }
+        } catch (error) {
+            console.error(translatedMsg("[OOP Extension] Failed to create custom shape"), error)
+        }
     }
-    } catch (error) {
-        console.error(translatedMsg("[OOP Extension] Failed to create custom shape"), error)
-    }
+    return null
 }
 
 /************************************************************************************
@@ -2299,7 +2301,7 @@ const gceClass = {
         exemptFromNormalization: true,
     },
 }
-const gceClassInstance = {
+const gceClassInstance = { // Possibly edited in constructor
     Type: ClassInstanceType,
     Block: {
         blockType: BlockType.REPORTER,
@@ -2318,11 +2320,6 @@ const gceClassInstance = {
         defaultValue: translatedMsg("myInstance"),
         exemptFromNormalization: true,
     },
-}
-if (!CUSTOM_SHAPE) {
-    delete gceClassInstance.Block.blockShape
-    delete gceClassInstance.Argument.shape
-    delete gceClassInstance.ArgumentInstanceOrVarName.shape
 }
 const gceNothing = {
     Type: NothingType,
@@ -3176,7 +3173,7 @@ class GCEOOPBlocks {
         this.ThreadUtil = ThreadUtil
         // to allow other extensions access to all internal classes
         this.environment = {
-            doublePlusShape: CUSTOM_SHAPE, TRANSLATIONS, applyInternalWrappers,
+            doublePlusShape: null, TRANSLATIONS, applyInternalWrappers,
             quote, escapeHTML, span, translatedMsg, throwError, throwInternal, assertType,
             VariableManager, ThreadUtil, ScopeStackManager, ScopeStack, MenuManager, MENU_ITEMS: MENUS,
             TypeChecker, Cast, CustomType, BaseCallableType, FunctionType,
@@ -3192,7 +3189,16 @@ class GCEOOPBlocks {
                 v => Nothing,
             )
             Scratch.gui.getBlockly().then(ScratchBlocks => {
-                ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
+                const CUSTOM_SHAPE = createCustomShape(ScratchBlocks)
+                if (CUSTOM_SHAPE) {
+                    ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
+                    this.environment.doublePlusShape = CUSTOM_SHAPE
+                } else {
+                    // Remove shape references from blocks if custom shapes aren't supported
+                    delete gceClassInstance.Block.blockShape
+                    delete gceClassInstance.Argument.shape
+                    delete gceClassInstance.ArgumentInstanceOrVarName.shape
+                }
             })
             
             applyInternalWrappers(Scratch)
@@ -3889,10 +3895,8 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + ensure no SWITCH_GROUPS exist with reporter AND command blocks together
  *
  * + HIGH PRIORITY
- * + fix "[OOP Extension] Failed to create custom shape ReferenceError: ScratchBlocks is not defined"
  * + fix weird error that TRANSLATIONS is used before it's defined (translatedMsg)
  * 
  * + MID PRIORITY
