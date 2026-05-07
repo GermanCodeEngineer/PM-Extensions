@@ -148,24 +148,35 @@ const SWITCH_GROUPS = [
 ************************************************************************************/
 
 /**
+ * @param {string} s
+ * @returns {string}
+ */
+function quote(s) {
+    if (typeof s !== "string") s = String(s)
+    s = s.replace(/\\/g, "\\\\").replace(/'/g, "\\'")
+    return `'${s}'`
+}
+
+/**
  * Translates and replaces placeholders in the format {key} with corresponding values from an object.
  * * @param {string} englishMessageTemplate - The english string containing {key} placeholders.
  * @param {Object<string, *>} values - Key-value pairs to inject.
  * @returns {string}
  */
 function translatedMsg(englishMessageTemplate, values) {
+    try {
+        // Check if translation exists in TRANSLATIONS.de
+        const key = englishMessageTemplate;
+        const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
+        // If the key or key with leading underscore is not found, throw
+        if (!deTranslations || (deTranslations["_" + key] === undefined)) {
+            console.error(`Missing German translation for: ${key}`);
+        }
+    } catch (error) {} // Catch TRANSLATIONS not being defined sometimes
+
     // Let format-message handle interpolation
-    // Check if translation exists in TRANSLATIONS.de
-    const key = englishMessageTemplate;
-    const deTranslations = TRANSLATIONS && TRANSLATIONS.de;
-    // If the key or key with leading underscore is not found, throw
-    if (!deTranslations || (deTranslations["_" + key] === undefined)) {
-        throw new Error(`Missing German translation for: ${key}`);
-    } else {
-        // Translation exists, return the translated message
-        return Scratch.translate(englishMessageTemplate, values);
-    }
-}
+    return Scratch.translate(englishMessageTemplate, values);
+}   
 
 /**
  * Translates an error message and throws it as an Error. Placeholders in the format {key} can be replaced with corresponding values from an object.
@@ -700,15 +711,18 @@ class GCEFuncsScopesBlocks {
     ************************************************************************************/
 
     async _isLocalhostAvailable(url) {
-        try {
-            const controller = new AbortController()
-            const timeout = setTimeout(() => controller.abort(), 500)
-            const response = await fetch(url, { method: "HEAD", signal: controller.signal })
-            clearTimeout(timeout)
-            return response.ok
-        } catch {
-            return false
-        }
+        // In prerelease version, don't check localhost
+        return false
+
+        //try {
+        //    const controller = new AbortController()
+        //    const timeout = setTimeout(() => controller.abort(), 500)
+        //    const response = await fetch(url, { method: "HEAD", signal: controller.signal })
+        //    clearTimeout(timeout)
+        //    return response.ok
+        //} catch {
+        //    return false
+        //}
     }
 
     async _addLocalhostOrProdExtension(localUrl, prodUrl) {
@@ -718,6 +732,20 @@ class GCEFuncsScopesBlocks {
 
     addOOPExtension() { // BUTTON
         if (isRuntimeEnv &&!Scratch.vm.extensionManager.isExtensionLoaded("gceOOP")) {
+            const SecurityManager = Scratch.vm.extensionManager.securityManager
+            // wrap vm.extensionManager.securityManager.getSandboxMode to always return "unsandboxed" for my other (required) extensions
+            const oldGetSandboxMode = SecurityManager.getSandboxMode
+            
+            if (!oldGetSandboxMode.isGceOOPModified) {
+                SecurityManager.getSandboxMode = function modifiedGetSandboxMode(extensionURL) {
+                    if (extensionURL.startsWith("https://germancodeengineer.github.io/PM-Extensions/extensions/")) {
+                        return "unsandboxed"
+                    }
+                    return oldGetSandboxMode.call(this, extensionURL)
+                }
+                SecurityManager.getSandboxMode.isGceOOPModified = true
+            }
+
             this._addLocalhostOrProdExtension(
                 "http://localhost:5173/extensions/gceOOP.js",
                 "https://germancodeengineer.github.io/PM-Extensions/extensions/gceOOP.js"
@@ -823,6 +851,12 @@ if (!isRuntimeEnv) {
  * @property {function(string): boolean} isExtensionLoaded
  * @property {function(string): void} loadExtensionIdSync
  * @property {function(string): void} loadExtensionURL
+ * @property {SecurityManager} securityManager
+ */
+
+/**
+ * @typedef {Object} SecurityManager
+ * @property {function(): string} getSandboxMode
  */
 
 /**
