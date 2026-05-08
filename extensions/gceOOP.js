@@ -254,6 +254,35 @@ const SWITCH_GROUPS = [
 function createCustomShape(ScratchBlocks) {
     if (isRuntimeEnv) {
         try { // If ScratchBlocks is not avaliable, skip
+            // Inspired by https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/Div/divIterators.js
+            return {
+                emptyInputPath: `m 31 0 h -15 q -3 0 -5 2 l -8 8 q -3 3 -3 4 v 4 q 0 1 3 4 l 8 8 q 2 2 5 2 h 15 h 11 c 2 0 3 0 4 -1 s 1 -3 0 -4 l -9 -9 v -4 l 8 -8 c 2 -2 2 -4 1 -5 s -2 -1 -4 -1 h -11 z`,
+                leftPath(block) {
+                    const edgeWidth = block.height / 2;
+                    const h = -2*Math.max(edgeWidth - 14*1.25, 0);
+                    return [
+                        block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
+                        ? `h -21 c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h 21` 
+                        : `h ${-13.75 + h/2.} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${13.75 - h/2.}`
+                    ];
+                },
+                rightPath(block) {
+                    const edgeWidth = /*block.height/2.;*/ block.edgeShapeWidth_;
+                    const h = 2*Math.max(edgeWidth - 14*1.25, 0);
+                    //return [`h ${h/2} q 3.75 0 6.25 2.5 l 10 10 q 3.75 3.75 3.75 5 v ${h} q 0 1.25 -3.75 5 l -10 10 q -2.5 2.5 -6.25 2.5 h ${-h/2}`];
+                    return [
+                        true //block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
+                        ? `h 21 c 2.5 0 3.75 0 5 1.25 s 1.25 3.75 0 5 l -11.25 11.25 v ${h} l 10 10 c 2.5 2.5 2.5 5 1.25 6.25 s -2.5 1.25 -5 1.25 h -21`
+                        : `h ${-13.75 + h/2.} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${13.75 - h/2.}`
+                    ];
+                },
+                outputLeftPadding(block) {
+                    return block.inputList.some(i => i.type == ScratchBlocks.NEXT_STATEMENT)
+                    ? -block.height/2 + 22 : 0
+                }
+            }
+
+            // My Shape Original
             return {
                 emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
                 emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
@@ -2408,7 +2437,15 @@ class GCEOOPBlocks {
             name: translatedMsg("OOP"),
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
-            blocks: [
+            blocks: [ // TODO: remove temporary block
+                {
+                    ...gceClassInstance.Block,
+                    opcode: "tempBlock",
+                    text: "temp block with [INSTANCE]",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                    },
+                },
                 makeLabel("Missing Extensions?"),
                 { // BUTTON
                     blockType: BlockType.BUTTON,
