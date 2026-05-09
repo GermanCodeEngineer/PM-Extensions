@@ -271,9 +271,10 @@ function createCustomShape(ScratchBlocks) {
                     const h = 2*Math.max(edgeWidth - 14*1.25, 0);
                     //return [`h ${h/2} q 3.75 0 6.25 2.5 l 10 10 q 3.75 3.75 3.75 5 v ${h} q 0 1.25 -3.75 5 l -10 10 q -2.5 2.5 -6.25 2.5 h ${-h/2}`];
                     return [
-                        true //block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
+                        block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
                         ? `h 21 c 2.5 0 3.75 0 5 1.25 s 1.25 3.75 0 5 l -11.25 11.25 v ${h} l 10 10 c 2.5 2.5 2.5 5 1.25 6.25 s -2.5 1.25 -5 1.25 h -21`
-                        : `h ${-13.75 + h/2.} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${13.75 - h/2.}`
+                        : `h ${-13.75 + h/2.} c 2.5 0 3.75 0 5 1.25 s 1.25 3.75 0 5 l -11.25 11.25 v ${h} l 10 10 c 2.5 2.5 2.5 5 1.25 6.25 s -2.5 1.25 -5 1.25 h ${13.75 - h/2.}`
+                        //: `h ${-13.75 + h/2.} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${13.75 - h/2.}`
                     ];
                 },
                 outputLeftPadding(block) {
