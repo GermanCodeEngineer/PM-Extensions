@@ -261,17 +261,22 @@ function createCustomShape(ScratchBlocks) {
             //SHAPE.emptyInputPath = ScratchBlocks.BlockSvg.getInputShapeInfo_(Scratch.BlockShape.ARROW).path,// `m 16 0 h 15 q 3 0 5 2 l 8 8 q 3 3 3 4 v 4 q 0 1 -3 4 l -8 8 q -2 2 -5 2 h -15 h -11 c -2 0 -3 0 -4 -1 s -1 -3 0 -4 l 9 -9 v -4 l -8 -8 c -2 -2 -2 -4 -1 -5 s 2 -1 4 -1 h 11 z`
             
             //SHAPE.leftPath = (block) => {
-            //    const edgeWidth = block.height / 2
-            //    const h = -2*Math.max(edgeWidth - 14*1.25, 0)
+            //    let h
+            //    if (block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
+            //        h = -14.5
+            //    } else {
+            //        const edgeWidth = block.height / 2
+            //        h = -2 * Math.max(edgeWidth - 14*1.25, 0)
+            //    }
+            //    
             //    const hHalf = h / 2.0
             //    const hHalfOffset = hHalf - 13.75
             //    const negHHalfOffset = - hHalfOffset
-            //
+            //    
             //    return [
-            //        block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
-            //        ? `h -21 c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h 21` 
-            //        : `h ${hHalfOffset} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${negHHalfOffset}`
+            //        `h ${hHalfOffset} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${negHHalfOffset}`
             //    ]
+            //
             //}
 
             //SHAPE.rightPath = (block) => {
@@ -296,16 +301,20 @@ function createCustomShape(ScratchBlocks) {
 
             
             SHAPE.leftPath = (block) => {
-                const edgeWidth = block.height / 2
-                const h = -2*Math.max(edgeWidth - 14*1.25, 0)
+                let h
+                if (block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
+                    h = -14.5
+                } else {
+                    const edgeWidth = block.height / 2
+                    h = -2 * Math.max(edgeWidth - 14*1.25, 0)
+                }
+                
                 const hHalf = h / 2.0
                 const hHalfOffset = hHalf - 13.75
                 const negHHalfOffset = - hHalfOffset
-
+                
                 return [
-                    block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT) 
-                    ? `h -21 c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h 21` 
-                    : `h ${hHalfOffset} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${negHHalfOffset}`
+                    `h ${hHalfOffset} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${negHHalfOffset}`
                 ]
             }
 
