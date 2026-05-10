@@ -281,9 +281,12 @@ function createCustomShape(ScratchBlocks) {
                 ? -block.height/2 + 22 : 0
             }
             
+            // My New Shape
             // Inspired by https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/Div/divIterators.js
+            
             SHAPE.emptyInputPath = `m 31 0 h -15 q -3 0 -5 2 l -8 8 q -3 3 -3 4 v 4 q 0 1 3 4 l 8 8 q 2 2 5 2 h 15 h 11 c 2 0 3 0 4 -1 s 1 -3 0 -4 l -9 -9 v -4 l 8 -8 c 2 -2 2 -4 1 -5 s -2 -1 -4 -1 h -11 z`
 
+            /**
             SHAPE.leftPath = (block) => {
                     const edgeWidth = block.height / 2;
                     const h = -2*Math.max(edgeWidth - 14*1.25, 0);
@@ -295,7 +298,7 @@ function createCustomShape(ScratchBlocks) {
             }
 
             SHAPE.rightPath = (block) => {
-                const edgeWidth = /*block.height/2.;*/ block.edgeShapeWidth_;
+                const edgeWidth = block.edgeShapeWidth_; // block.height/2.;
                 const h = 2*Math.max(edgeWidth - 14*1.25, 0);
                 //return [`h ${h/2} q 3.75 0 6.25 2.5 l 10 10 q 3.75 3.75 3.75 5 v ${h} q 0 1.25 -3.75 5 l -10 10 q -2.5 2.5 -6.25 2.5 h ${-h/2}`];
                 console.log("block inputList", block.inputList)
@@ -305,7 +308,7 @@ function createCustomShape(ScratchBlocks) {
                     : `h ${-13.75 + h/2.} c 2.5 0 3.75 0 5 1.25 s 1.25 3.75 0 5 l -11.25 11.25 v ${h} l 10 10 c 2.5 2.5 2.5 5 1.25 6.25 s -2.5 1.25 -5 1.25 h ${13.75 - h/2.}`
                     //: `h ${-13.75 + h/2.} c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v ${h} l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h ${13.75 - h/2.}`
                 ];
-            }
+            }*/
 
             SHAPE.outputLeftPadding = (block) => {
                 return block.inputList.some(i => i.type == ScratchBlocks.NEXT_STATEMENT)
@@ -4013,6 +4016,7 @@ if (!isRuntimeEnv) {
  *
  * + LOW PRIORITY (optional in future)
  * + - button on blocks that opens a section in the documentation about that block
+ * + - different input background color (e.g. red) for inputs that allow variable names too
  * + - implement translations
  * + - change font of blocks and inputs?
  * + - define toReporterContent e.g. on ClassInstanceType for better visualization
