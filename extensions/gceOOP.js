@@ -296,8 +296,57 @@ function createCustomShape(ScratchBlocks) {
             
             // My New Shape
             // Inspired by https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/Div/divIterators.js
+
             
-            SHAPE.emptyInputPath = (
+            SHAPE.leftPath = (block) => {
+                let h
+                if (block.inputList && block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
+                    h = -14.5
+                } else {
+                    const edgeWidth = block.height / 2
+                    h = -2 * Math.max(edgeWidth - 14 * 1.25, 0)
+                }
+
+                const hHalf = h / 2.0
+                const hHalfOffset = hHalf - 13.75
+                const negHHalfOffset = - hHalfOffset
+                
+                return [
+                    `h ${hHalfOffset} ` +
+                    `c -2.5 0 -3.75 0 -5 -1.25 ` +
+                    `s -1.25 -3.75 0 -5 ` +
+                    `l 11.25 -11.25 ` +
+                    `v ${h} ` +
+                    `l -10 -10 ` +
+                    `c -2.5 -2.5 -2.5 -5 -1.25 -6.25 ` +
+                    `s 2.5 -1.25 5 -1.25 ` +
+                    `h ${negHHalfOffset}`
+                ]
+            }
+
+            SHAPE.rightPath = (block) => {
+                const edgeWidth = /*block.height/2.*/ block.edgeShapeWidth_
+                const h = 2*Math.max(edgeWidth - 14 * 1.25, 0)
+                const negH = -h
+                const hHalf = h / 2.0
+                const negHHalf = -hHalf
+                const hHalfOffset = hHalf + 13.75
+                const negHHalfOffset = - hHalfOffset
+                return [
+                    `h ${hHalfOffset} ` +
+                    `c 2.5 0 3.75 0 5 1.25 ` +
+                    `s 1.25 3.75 0 5 ` +
+                    `l -11.25 11.25 ` +
+                    `v ${h} ` +
+                    `l 10 10 ` +
+                    `c 2.5 2.5 2.5 5 1.25 6.25 ` +
+                    `s -2.5 1.25 -5 1.25 ` +
+                    `h ${negHHalfOffset}`
+                ]
+            }
+
+            
+            (//SHAPE.emptyInputPath = (
                 `m 31 0 `+
                 `h -15 ` +
                 `q -3 0 -5 2  `+
@@ -320,55 +369,11 @@ function createCustomShape(ScratchBlocks) {
                 `z`
             )
 
-            
-            SHAPE.leftPath = (block) => {
-                console.log("leftPath reveiving block", block)
-                let h
-                if (block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
-                    h = -14.5
-                } else {
-                    const edgeWidth = block.height / 2
-                    h = -2 * Math.max(edgeWidth - 14*1.25, 0)
-                }
+            SHAPE.emptyInputPath = `m 31 0 h 16.25 c 2.5 0 3.75 0 5 1.25 s 1.25 3.75 0 5 l -11.25 11.25 v 5 l 10 10 c 2.5 2.5 2.5 5 1.25 6.25 s -2.5 1.25 -5 1.25 h -16.25 h -20 h -16.25 c -2.5 0 -3.75 0 -5 -1.25 s -1.25 -3.75 0 -5 l 11.25 -11.25 v -5 l -10 -10 c -2.5 -2.5 -2.5 -5 -1.25 -6.25 s 2.5 -1.25 5 -1.25 h 16.25 z`
+            // HERE: adapt new block shape
 
-                const hHalf = h / 2.0
-                const hHalfOffset = hHalf - 13.75
-                const negHHalfOffset = - hHalfOffset
-                
-                return [
-                    `h ${hHalfOffset} ` +
-                    `c -2.5 0 -3.75 0 -5 -1.25 ` +
-                    `s -1.25 -3.75 0 -5 ` +
-                    `l 11.25 -11.25 ` +
-                    `v ${h} ` +
-                    `l -10 -10 ` +
-                    `c -2.5 -2.5 -2.5 -5 -1.25 -6.25 ` +
-                    `s 2.5 -1.25 5 -1.25 ` +
-                    `h ${negHHalfOffset}`
-                ]
-            }
-
-            SHAPE.rightPath = (block) => {
-                console.log("rightPath reveiving block", block)
-                const edgeWidth = /*block.height/2.*/ block.edgeShapeWidth_
-                const h = 2*Math.max(edgeWidth - 14*1.25, 0)
-                const negH = -h
-                const hHalf = h / 2.0
-                const negHHalf = -hHalf
-                const hHalfOffset = hHalf // seemingly without any offset
-                const negHHalfOffset = - hHalfOffset
-                return [
-                    `h ${- negHHalfOffset} ` +
-                    `c 2.5 0 3.75 0 5 1.25 ` +
-                    `s 1.25 3.75 0 5 ` +
-                    `l -11.25 11.25 ` +
-                    `v ${h} ` +
-                    `l 10 10 ` +
-                    `c 2.5 2.5 2.5 5 1.25 6.25 ` +
-                    `s -2.5 1.25 -5 1.25 ` +
-                    `h ${- hHalfOffset}`
-                ]
-            }
+            const tempBlock = {height: -40, edgeShapeWidth_: 40}
+            SHAPE.newPath = SHAPE.leftPath(tempBlock).concat(SHAPE.rightPath(tempBlock))
 
             return SHAPE
             
