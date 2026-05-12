@@ -297,15 +297,28 @@ function createCustomShape(ScratchBlocks) {
             // My New Shape
             // Inspired by https://github.com/PenguinMod/PenguinMod-ExtensionsGallery/blob/main/static/extensions/Div/divIterators.js
             
-            SHAPE.emptyInputPath = `m 31 0 h -15 ` +
-                `q -3 0 -5 2 l -8 8 ` +
-                `q -3 3 -3 4 v 4 ` +
-                `q 0 1 3 4 l 8 8 ` +
-                `q 2 2 5 2 h 15 ` +
-                `h 11 c 2 0 3 0 4 -1 s 1 -3 0 -4 ` +
-                `l -9 -9 v -4 ` +
-                `l 8 -8 c 2 -2 2 -4 1 -5 s -2 -1 -4 -1 ` +
-                `h -11 z`
+            SHAPE.emptyInputPath = (
+                `m 31 0 `+
+                `h -15 ` +
+                `q -3 0 -5 2  `+
+                `l -8 8 ` +
+                `q -3 3 -3 4  `+
+                `v 4 ` +
+                `q 0 1 3 4  `+
+                `l 8 8 ` +
+                `q 2 2 5 2  `+
+                `h 15 ` +
+                `h 11  `+
+                `c 2 0 3 0 4 -1  `+
+                `s 1 -3 0 -4 ` +
+                `l -9 -9  `+
+                `v -4 ` +
+                `l 8 -8  `+
+                `c 2 -2 2 -4 1 -5  `+
+                `s -2 -1 -4 -1 ` +
+                `h -11  `+
+                `z`
+            )
 
             
             SHAPE.leftPath = (block) => {
