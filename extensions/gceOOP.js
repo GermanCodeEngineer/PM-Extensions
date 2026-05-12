@@ -358,15 +358,15 @@ function createCustomShape(ScratchBlocks) {
                 const hHalfOffset = hHalf // seemingly without any offset
                 const negHHalfOffset = - hHalfOffset
                 return [
-                    `h ${negHHalfOffset} ` +
+                    `h ${- negHHalfOffset} ` +
                     `c 2.5 0 3.75 0 5 1.25 ` +
                     `s 1.25 3.75 0 5 ` +
                     `l -11.25 11.25 ` +
-                    `v ${negH} ` +
+                    `v ${h} ` +
                     `l 10 10 ` +
                     `c 2.5 2.5 2.5 5 1.25 6.25 ` +
                     `s -2.5 1.25 -5 1.25 ` +
-                    `h ${hHalfOffset}`
+                    `h ${- hHalfOffset}`
                 ]
             }
 
