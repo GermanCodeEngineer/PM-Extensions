@@ -252,9 +252,9 @@ function createCustomShape(ScratchBlocks) {
     if (isRuntimeEnv) {
         try { // If ScratchBlocks is not avaliable, skip
             const SHAPE = {
-                leftPath: (block) => {
-                    let h
-                    if (block.inputList && block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
+                leftPath: (block) => { // Drawn second
+                    let h // TODO: consider reenabling
+                    if (false && block.inputList && block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
                         h = -14.5
                     } else {
                         const edgeWidth = block.height / 2
@@ -278,9 +278,14 @@ function createCustomShape(ScratchBlocks) {
                     ]
                 },
 
-                rightPath: (block) => {
+                rightPath: (block) => { // Drawn first
                     const edgeWidth = /*block.height/2.*/ block.edgeShapeWidth_
-                    const h = 2*Math.max(edgeWidth - 14 * 1.25, 0)
+                    let h = 2 * Math.max(edgeWidth - 14 * 1.25, 0)
+                    console.log("rightPath with block", block)
+                    if (false) {
+                        h = Math.min(h, /* */)
+                    }
+
                     const negH = -h
                     const hHalf = h / 2.0
                     const negHHalf = -hHalf
@@ -314,7 +319,7 @@ function createCustomShape(ScratchBlocks) {
             return {
                 emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
                 emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
-                leftPath: (block) => {
+                leftPath: (block) => { // Drawn second
                     const edgeWidth = block.height / 2
                     const s = edgeWidth / 16
                     return [
@@ -328,7 +333,7 @@ function createCustomShape(ScratchBlocks) {
                         `a ${4*s} ${4*s} 0 0 1 ${4*s} ${-4*s}`
                     ]
                 },
-                rightPath: (block) => {
+                rightPath: (block) => { // Drawn first
                     const edgeWidth = block.edgeShapeWidth_
                     const s = edgeWidth / 16
                     return [
@@ -2350,24 +2355,28 @@ const gceClass = {
     Type: ClassType,
     Block: {
         blockType: BlockType.REPORTER,
-        blockShape: BlockShape.BUMPED,
+        //blockShape: BlockShape.BUMPED,
+        blockShape: "gceOOP-doublePlus",
         forceOutputType: "gceClass",
         disableMonitor: true,
     },
     Argument: {
-        shape: BlockShape.BUMPED,
+        //shape: BlockShape.BUMPED,
+        shape: "gceOOP-doublePlus",
         check: ["gceClass"],
         exemptFromNormalization: true,
     },
     ArgumentClassOrVarName: {
         type: ArgumentType.STRING,
-        shape: BlockShape.BUMPED,
+        //shape: BlockShape.BUMPED,
+        shape: "gceOOP-doublePlus",
         defaultValue: translatedMsg("MyClass"),
         exemptFromNormalization: true,
     },
     ArgumentSubclassOrVarName: {
         type: ArgumentType.STRING,
-        shape: BlockShape.BUMPED,
+        //shape: BlockShape.BUMPED,
+        shape: "gceOOP-doublePlus",
         defaultValue: translatedMsg("MySubclass"),
         exemptFromNormalization: true,
     },
@@ -3282,10 +3291,16 @@ class GCEOOPBlocks {
                     ScratchBlocks.BlockSvg.registerCustomShape("gceOOP-doublePlus", CUSTOM_SHAPE)
                     this.environment.doublePlusShape = CUSTOM_SHAPE
                 } else {
+                    // TODO: finalize
                     // Remove shape references from blocks if custom shapes aren't supported
                     delete gceClassInstance.Block.blockShape
                     delete gceClassInstance.Argument.shape
                     delete gceClassInstance.ArgumentInstanceOrVarName.shape
+
+                    gceClass.Block.blockShape = BlockShape.BUMPED
+                    gceClass.Argument.shape = BlockShape.BUMPED
+                    gceClass.ArgumentClassOrVarName.shape = BlockShape.BUMPED
+                    gceClass.ArgumentSubclassOrVarName.shape = BlockShape.BUMPED
                 }
             })
             
@@ -3990,9 +4005,12 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
- * + - maybe use better custom block shape (example: divIterators.js)
+ * + - switch custom shape blocks and maybe add second shape
+ * + - ~ probably use new shape for classes
+ * + - ~ use corrected old shape for instances
  *
  * + HIGH PRIORITY
+ * + - update docs images (block shapes might have changed)
  * + - remove semicolons
  * 
  * + MID PRIORITY
