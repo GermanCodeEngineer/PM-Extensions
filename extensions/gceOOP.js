@@ -242,9 +242,6 @@ const SWITCH_GROUPS = [
         "isSubclass",
         "getSuperclass",
     ],
-    [
-
-    ],
 ]
 
 /************************************************************************************
@@ -254,6 +251,66 @@ const SWITCH_GROUPS = [
 function createCustomShape(ScratchBlocks) {
     if (isRuntimeEnv) {
         try { // If ScratchBlocks is not avaliable, skip
+            const SHAPE = {
+                leftPath: (block) => {
+                    let h
+                    if (block.inputList && block.inputList.some(i => i.type === ScratchBlocks.NEXT_STATEMENT)) {
+                        h = -14.5
+                    } else {
+                        const edgeWidth = block.height / 2
+                        h = -2 * Math.max(edgeWidth - 14 * 1.25, 0)
+                    }
+                    
+                    const hHalf = h / 2.0
+                    const hHalfOffset = hHalf - 13.75
+                    const negHHalfOffset = - hHalfOffset
+                    
+                    return [
+                        `h ${hHalfOffset} ` +
+                        `c -2.5 0 -3.75 0 -5 -1.25 ` +
+                        `s -1.25 -3.75 0 -5 ` +
+                        `l 11.25 -11.25 ` +
+                        `v ${h} ` +
+                        `l -10 -10 ` +
+                        `c -2.5 -2.5 -2.5 -5 -1.25 -6.25 ` +
+                        `s 2.5 -1.25 5 -1.25 ` +
+                        `h ${negHHalfOffset}`
+                    ]
+                },
+
+                rightPath: (block) => {
+                    const edgeWidth = /*block.height/2.*/ block.edgeShapeWidth_
+                    const h = 2*Math.max(edgeWidth - 14 * 1.25, 0)
+                    const negH = -h
+                    const hHalf = h / 2.0
+                    const negHHalf = -hHalf
+                    const hHalfOffset = hHalf + 13.75
+                    const negHHalfOffset = - hHalfOffset
+                    return [
+                        `h ${hHalfOffset} ` +
+                        `c 2.5 0 3.75 0 5 1.25 ` +
+                        `s 1.25 3.75 0 5 ` +
+                        `l -11.25 11.25 ` +
+                        `v ${h} ` +
+                        `l 10 10 ` +
+                        `c 2.5 2.5 2.5 5 1.25 6.25 ` +
+                        `s -2.5 1.25 -5 1.25 ` +
+                        `h ${negHHalfOffset}`
+                    ]
+                },
+
+                // HOW TO UPDATE emptyInputPath reliably:
+                // 1. Open element inspector in devtools
+                // 2. inspect the element of a block or input with the custom shape
+                // 3. Copy "d" of the svg element, paste it into https://yqnn.github.io/svg-path-editor/
+                // 4. Scale and adjust width to be much smaller
+                emptyInputPath: `m 29.962 0 h 11.5375 c 1.775 0 2.6625 0 3.55 1.0117 s 0.8875 3.0352 0 4.047 l -7.9875 9.1057 v 4.047 l 7.1 8.094 c 1.775 2.0235 1.775 4.047 0.8875 5.0587 s -1.775 1.0117 -3.55 1.0117 h -11.5375 h -14.2 h -11.5375 c -1.775 0 -2.6625 0 -3.55 -1.0117 s -0.8875 -3.0352 0 -4.047 l 7.9875 -9.1057 v -4.047 l -7.1 -8.094 c -1.775 -2.0235 -1.775 -4.047 -0.8875 -5.0587 s 1.775 -1.0117 3.55 -1.0117 h 11.5375 z`,
+            }
+            
+            return SHAPE
+            
+
+            // My Shape Original
             return {
                 emptyInputPath: "m 16 0 h 16 h 12 a 4 4 0 0 1 4 4 l -4 4 l 4 4 l 0 8 l -4 4 l 4 4 a 4 4 0 0 1 -4 4 h -12 h -16 h -12 a 4 4 0 0 1 -4 -4 l 4 -4 l -4 -4 l 0 -8 l 4 -4 l -4 -4 a 4 4 0 0 1 4 -4 z",
                 emptyInputWidth: 10 * ScratchBlocks.BlockSvg.GRID_UNIT,
@@ -2408,7 +2465,24 @@ class GCEOOPBlocks {
             name: translatedMsg("OOP"),
             color1: "#428af5",
             menuIconURI: "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICB2aWV3Qm94PSIwIDAgMjAgMjAiCiAgdmVyc2lvbj0iMS4xIgogIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZQogICAgY3g9IjEwIgogICAgY3k9IjEwIgogICAgcj0iOSIKICAgIHN0eWxlPSJmaWxsOiM0MjhhZjVmZjsgc3Ryb2tlOiMyZDVmYTg7IHN0cm9rZS13aWR0aDoycHg7IGZpbGwtb3BhY2l0eToxOyBzdHJva2Utb3BhY2l0eToxOyBwYWludC1vcmRlcjpzdHJva2UiIC8+CiAgPHBhdGgKICAgIGQ9Im0gMy41LDEwIDQuNSwtNS41IDEuMiwwLjYgLTMuNyw0LjkgMy43LDQuOSAtMS4yLDAuNiB6CiAgICAgICBtIDEzLDAgLTQuNSwtNS41IC0xLjIsMC42IDMuNyw0LjkgLTMuNyw0LjkgMS4yLDAuNiB6IgogICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KPC9zdmc+",
-            blocks: [
+            blocks: [ // TODO: remove temporary block
+                {
+                    ...gceClassInstance.Block,
+                    opcode: "tempBlock",
+                    text: "temp block with [INSTANCE] end",
+                    arguments: {
+                        INSTANCE: gceClassInstance.Argument,
+                    },
+                },
+                {
+                    ...commonBlocks.command,
+                    opcode: "tempBlock2",
+                    text: "temp command with [A] and [B]",
+                    arguments: {
+                        A: gceClassInstance.Argument,
+                        B: gceFunction.Argument,
+                    },
+                },
                 makeLabel("Missing Extensions?"),
                 { // BUTTON
                     blockType: BlockType.BUTTON,
@@ -3918,11 +3992,12 @@ if (!isRuntimeEnv) {
  * TODO
  * 
  * + WORKING ON
+ * + - maybe use better custom block shape (example: divIterators.js)
  *
  * + HIGH PRIORITY
+ * + - remove semicolons
  * 
  * + MID PRIORITY
- * + - maybe use better custom block shape (example: divIterators.js)
  * + - maybe reorganize block cagegories
  * + - option to exclude super classes when asking for members
  * + - name of class/function block
@@ -3936,6 +4011,7 @@ if (!isRuntimeEnv) {
  *
  * + LOW PRIORITY (optional in future)
  * + - button on blocks that opens a section in the documentation about that block
+ * + - different input background color (e.g. red) for inputs that allow variable names too
  * + - implement translations
  * + - change font of blocks and inputs?
  * + - define toReporterContent e.g. on ClassInstanceType for better visualization

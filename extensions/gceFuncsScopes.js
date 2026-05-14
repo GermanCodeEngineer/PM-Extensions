@@ -851,6 +851,12 @@ if (!isRuntimeEnv) {
  * @property {function(string): boolean} isExtensionLoaded
  * @property {function(string): void} loadExtensionIdSync
  * @property {function(string): void} loadExtensionURL
+ * @property {SecurityManager} securityManager
+ */
+
+/**
+ * @typedef {Object} SecurityManager
+ * @property {function(): string} getSandboxMode
  */
 
 /**
