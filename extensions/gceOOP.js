@@ -4047,6 +4047,7 @@ if (!isRuntimeEnv) {
  *
  * + ON RELEASE / AFTER TESTING:
  * + - change both localhost URLs to extensions.penguinmod URL
+ * + - remove temporary shape testing blocks
  *
  * + DOC NOTES TO REMEMBER
  */
