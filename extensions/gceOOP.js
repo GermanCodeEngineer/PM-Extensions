@@ -3319,16 +3319,18 @@ class GCEOOPBlocks {
     ************************************************************************************/
 
     async _isLocalhostAvailable(url) {
-        // In dev version, check localhost
-        try {
-            const controller = new AbortController()
-            const timeout = setTimeout(() => controller.abort(), 500)
-            const response = await fetch(url, { method: "HEAD", signal: controller.signal })
-            clearTimeout(timeout)
-            return response.ok
-        } catch {
-            return false
-        }
+        // In prerelease version, don't check localhost
+        return false
+
+        //try {
+        //    const controller = new AbortController()
+        //    const timeout = setTimeout(() => controller.abort(), 500)
+        //    const response = await fetch(url, { method: "HEAD", signal: controller.signal })
+        //    clearTimeout(timeout)
+        //    return response.ok
+        //} catch {
+        //    return false
+        //}
     }
 
     async _addLocalhostOrProdExtension(localUrl, prodUrl) {
