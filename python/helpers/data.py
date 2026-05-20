@@ -1,282 +1,514 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class data:
 
-    @staticmethod
-    def setvariableto(value: INPUT_COMPATIBLE_T, variable: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::set [VARIABLE] to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+    class setvariableto(ThirdBlock):
 
-    @staticmethod
-    def changevariableby(value: INPUT_COMPATIBLE_T, variable: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::change [VARIABLE] by (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+        def __init__(self, value: INPUT_COMPATIBLE_T, variable: str):
+            self.value = value
+            self.variable = variable
 
-    @staticmethod
-    def showvariable(variable: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::show variable [VARIABLE]",
-            inputs={},
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::set [VARIABLE] to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def hidevariable(variable: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::hide variable [VARIABLE]",
-            inputs={},
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+    class changevariableby(ThirdBlock):
 
-    @staticmethod
-    def variable(variable: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::value of [VARIABLE]",
-            inputs={},
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+        def __init__(self, value: INPUT_COMPATIBLE_T, variable: str):
+            self.value = value
+            self.variable = variable
 
-    @staticmethod
-    def addtolist(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::add (ITEM) to [LIST]",
-            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::change [VARIABLE] by (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def deleteoflist(index: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::delete (INDEX) of [LIST]",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class showvariable(ThirdBlock):
 
-    @staticmethod
-    def deletealloflist(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::delete all of [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, variable: str):
+            self.variable = variable
 
-    @staticmethod
-    def shiftlist(index: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::shift [LIST] by (INDEX)",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::show variable [VARIABLE]",
+                inputs={},
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def insertatlist(
-        item: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T, list: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::insert (ITEM) at (INDEX) of [LIST]",
-            inputs={
-                "ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue),
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class hidevariable(ThirdBlock):
 
-    @staticmethod
-    def replaceitemoflist(
-        index: INPUT_COMPATIBLE_T, item: INPUT_COMPATIBLE_T, list: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::replace item (INDEX) of [LIST] with (ITEM)",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
-                "ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, variable: str):
+            self.variable = variable
 
-    @staticmethod
-    def listforeachitem(
-        body: INPUT_COMPATIBLE_T, variable: str, list: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::For each item [VARIABLE] in [LIST] {BODY}",
-            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable),
-                "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list),
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::hide variable [VARIABLE]",
+                inputs={},
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def listforeachnum(body: INPUT_COMPATIBLE_T, variable: str, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::For each item # [VARIABLE] in [LIST] {BODY}}",
-            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable),
-                "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list),
-            },
-        )
+    class variable(ThirdBlock):
 
-    @staticmethod
-    def itemoflist(index: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::item (INDEX) of [LIST]",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, variable: str):
+            self.variable = variable
 
-    @staticmethod
-    def itemnumoflist(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::item # of (ITEM) in [LIST]",
-            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::value of [VARIABLE]",
+                inputs={},
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def amountinlist(value: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::amount of (VALUE) of [LIST]",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class addtolist(ThirdBlock):
 
-    @staticmethod
-    def lengthoflist(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::length of [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
+            self.item = item
+            self.list = list
 
-    @staticmethod
-    def listcontainsitem(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::[LIST] contains (ITEM) ?",
-            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::add (ITEM) to [LIST]",
+                inputs={
+                    "ITEM": ThirdInputValue.as_input(
+                        self.item, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
 
-    @staticmethod
-    def itemexistslist(index: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::item (INDEX) exists in [LIST] ?",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class deleteoflist(ThirdBlock):
 
-    @staticmethod
-    def listisempty(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::is [LIST] empty?",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
+            self.index = index
+            self.list = list
 
-    @staticmethod
-    def reverselist(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::reverse [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::delete (INDEX) of [LIST]",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
 
-    @staticmethod
-    def filterlist(keep: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::filter [LIST] by (INDEX) (ITEM) <KEEP>",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(
-                    ThirdInputValue(data.filterlistindex()), p.SREmbeddedBlockInputValue
-                ),
-                "ITEM": ThirdInputValue.as_input(
-                    ThirdInputValue(data.filterlistitem()), p.SREmbeddedBlockInputValue
-                ),
-                "KEEP": ThirdInputValue.as_input(keep, p.SRBlockAndBoolInputValue),
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class deletealloflist(ThirdBlock):
 
-    @staticmethod
-    def arraylist(value: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::set [LIST] to array (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, list: str):
+            self.list = list
 
-    @staticmethod
-    def listarray(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::get list [LIST] as an array",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::delete all of [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
 
-    @staticmethod
-    def showlist(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::show list [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+    class shiftlist(ThirdBlock):
 
-    @staticmethod
-    def hidelist(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&lists::hide list [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
+            self.index = index
+            self.list = list
 
-    @staticmethod
-    def listcontents(list: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&variables::value of [LIST]",
-            inputs={},
-            dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::shift [LIST] by (INDEX)",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
 
-    @staticmethod
-    def filterlistindex() -> p.SRBlock:
-        return p.SRBlock(opcode="&lists::{{FILTER INDEX}}", inputs={}, dropdowns={})
+    class insertatlist(ThirdBlock):
 
-    @staticmethod
-    def filterlistitem() -> p.SRBlock:
-        return p.SRBlock(opcode="&lists::{{FILTER ITEM}}", inputs={}, dropdowns={})
+        def __init__(
+            self, item: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T, list: str
+        ):
+            self.item = item
+            self.index = index
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::insert (ITEM) at (INDEX) of [LIST]",
+                inputs={
+                    "ITEM": ThirdInputValue.as_input(
+                        self.item, p.SRBlockAndTextInputValue
+                    ),
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class replaceitemoflist(ThirdBlock):
+
+        def __init__(
+            self, index: INPUT_COMPATIBLE_T, item: INPUT_COMPATIBLE_T, list: str
+        ):
+            self.index = index
+            self.item = item
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::replace item (INDEX) of [LIST] with (ITEM)",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    ),
+                    "ITEM": ThirdInputValue.as_input(
+                        self.item, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class listforeachitem(ThirdBlock):
+
+        def __init__(self, body: INPUT_COMPATIBLE_T, variable: str, list: str):
+            self.body = body
+            self.variable = variable
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::For each item [VARIABLE] in [LIST] {BODY}",
+                inputs={
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue)
+                },
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    ),
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list),
+                },
+            )
+
+    class listforeachnum(ThirdBlock):
+
+        def __init__(self, body: INPUT_COMPATIBLE_T, variable: str, list: str):
+            self.body = body
+            self.variable = variable
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::For each item # [VARIABLE] in [LIST] {BODY}}",
+                inputs={
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue)
+                },
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    ),
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list),
+                },
+            )
+
+    class itemoflist(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
+            self.index = index
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::item (INDEX) of [LIST]",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class itemnumoflist(ThirdBlock):
+
+        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
+            self.item = item
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::item # of (ITEM) in [LIST]",
+                inputs={
+                    "ITEM": ThirdInputValue.as_input(
+                        self.item, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class amountinlist(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T, list: str):
+            self.value = value
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::amount of (VALUE) of [LIST]",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class lengthoflist(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::length of [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class listcontainsitem(ThirdBlock):
+
+        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
+            self.item = item
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::[LIST] contains (ITEM) ?",
+                inputs={
+                    "ITEM": ThirdInputValue.as_input(
+                        self.item, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class itemexistslist(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
+            self.index = index
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::item (INDEX) exists in [LIST] ?",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class listisempty(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::is [LIST] empty?",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class reverselist(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::reverse [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class filterlist(ThirdBlock):
+
+        def __init__(self, keep: INPUT_COMPATIBLE_T, list: str):
+            self.keep = keep
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::filter [LIST] by (INDEX) (ITEM) <KEEP>",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        ThirdInputValue(data.filterlistindex()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "ITEM": ThirdInputValue.as_input(
+                        ThirdInputValue(data.filterlistitem()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "KEEP": ThirdInputValue.as_input(
+                        self.keep, p.SRBlockAndBoolInputValue
+                    ),
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class arraylist(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T, list: str):
+            self.value = value
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::set [LIST] to array (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class listarray(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::get list [LIST] as an array",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class showlist(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::show list [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class hidelist(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&lists::hide list [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class listcontents(ThirdBlock):
+
+        def __init__(self, list: str):
+            self.list = list
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&variables::value of [LIST]",
+                inputs={},
+                dropdowns={
+                    "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.list)
+                },
+            )
+
+    class filterlistindex(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&lists::{{FILTER INDEX}}", inputs={}, dropdowns={})
+
+    class filterlistitem(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&lists::{{FILTER ITEM}}", inputs={}, dropdowns={})

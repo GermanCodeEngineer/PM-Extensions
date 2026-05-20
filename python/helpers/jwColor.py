@@ -1,158 +1,255 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwColor:
 
-    @staticmethod
-    def new_color(color: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::new color (COLOR)",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class new_color(ThirdBlock):
 
-    @staticmethod
-    def from_rgb(
-        r: INPUT_COMPATIBLE_T, g: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::from RGB (R) (G) (B)",
-            inputs={
-                "R": ThirdInputValue.as_input(r, p.SRBlockAndTextInputValue),
-                "G": ThirdInputValue.as_input(g, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, color: INPUT_COMPATIBLE_T):
+            self.color = color
 
-    @staticmethod
-    def from_hsv(
-        h: INPUT_COMPATIBLE_T, s: INPUT_COMPATIBLE_T, v: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::from HSV (H) (S) (V)",
-            inputs={
-                "H": ThirdInputValue.as_input(h, p.SRBlockAndTextInputValue),
-                "S": ThirdInputValue.as_input(s, p.SRBlockAndTextInputValue),
-                "V": ThirdInputValue.as_input(v, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::new color (COLOR)",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def from_hex(hex: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::from hex (HEX)",
-            inputs={"HEX": ThirdInputValue.as_input(hex, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class from_rgb(ThirdBlock):
 
-    @staticmethod
-    def add(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::(A) + (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self, r: INPUT_COMPATIBLE_T, g: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
+        ):
+            self.r = r
+            self.g = g
+            self.b = b
 
-    @staticmethod
-    def sub(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::(A) - (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::from RGB (R) (G) (B)",
+                inputs={
+                    "R": ThirdInputValue.as_input(self.r, p.SRBlockAndTextInputValue),
+                    "G": ThirdInputValue.as_input(self.g, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def mul(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::(A) * (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class from_hsv(ThirdBlock):
 
-    @staticmethod
-    def interpolate(
-        a: INPUT_COMPATIBLE_T,
-        b: INPUT_COMPATIBLE_T,
-        i: INPUT_COMPATIBLE_T,
-        option: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::interpolate (A) to (B) by (I) using (OPTION)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-                "I": ThirdInputValue.as_input(i, p.SRBlockAndTextInputValue),
-                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self, h: INPUT_COMPATIBLE_T, s: INPUT_COMPATIBLE_T, v: INPUT_COMPATIBLE_T
+        ):
+            self.h = h
+            self.s = s
+            self.v = v
 
-    @staticmethod
-    def get(color: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::get (OPTION) (COLOR)",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue),
-                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::from HSV (H) (S) (V)",
+                inputs={
+                    "H": ThirdInputValue.as_input(self.h, p.SRBlockAndTextInputValue),
+                    "S": ThirdInputValue.as_input(self.s, p.SRBlockAndTextInputValue),
+                    "V": ThirdInputValue.as_input(self.v, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def set(
-        color: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::set (OPTION) (COLOR) to (VALUE)",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+    class from_hex(ThirdBlock):
 
-    @staticmethod
-    def to_decimal(color: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::(COLOR) to decimal",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, hex: INPUT_COMPATIBLE_T):
+            self.hex = hex
 
-    @staticmethod
-    def to_hex(color: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::(COLOR) to hexadecimal",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::from hex (HEX)",
+                inputs={
+                    "HEX": ThirdInputValue.as_input(
+                        self.hex, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def menu_interpolate_option() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwColor::#menu:interpolateOption", inputs={}, dropdowns={}
-        )
+    class add(ThirdBlock):
 
-    @staticmethod
-    def menu_prop_option() -> p.SRBlock:
-        return p.SRBlock(opcode="&jwColor::#menu:propOption", inputs={}, dropdowns={})
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::(A) + (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class sub(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::(A) - (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class mul(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::(A) * (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class interpolate(ThirdBlock):
+
+        def __init__(
+            self,
+            a: INPUT_COMPATIBLE_T,
+            b: INPUT_COMPATIBLE_T,
+            i: INPUT_COMPATIBLE_T,
+            option: INPUT_COMPATIBLE_T,
+        ):
+            self.a = a
+            self.b = b
+            self.i = i
+            self.option = option
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::interpolate (A) to (B) by (I) using (OPTION)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                    "I": ThirdInputValue.as_input(self.i, p.SRBlockAndTextInputValue),
+                    "OPTION": ThirdInputValue.as_input(
+                        self.option, p.SRBlockOnlyInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get(ThirdBlock):
+
+        def __init__(self, color: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T):
+            self.color = color
+            self.option = option
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::get (OPTION) (COLOR)",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    ),
+                    "OPTION": ThirdInputValue.as_input(
+                        self.option, p.SRBlockOnlyInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class set(ThirdBlock):
+
+        def __init__(
+            self,
+            color: INPUT_COMPATIBLE_T,
+            value: INPUT_COMPATIBLE_T,
+            option: INPUT_COMPATIBLE_T,
+        ):
+            self.color = color
+            self.value = value
+            self.option = option
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::set (OPTION) (COLOR) to (VALUE)",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                    "OPTION": ThirdInputValue.as_input(
+                        self.option, p.SRBlockOnlyInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class to_decimal(ThirdBlock):
+
+        def __init__(self, color: INPUT_COMPATIBLE_T):
+            self.color = color
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::(COLOR) to decimal",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class to_hex(ThirdBlock):
+
+        def __init__(self, color: INPUT_COMPATIBLE_T):
+            self.color = color
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::(COLOR) to hexadecimal",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class menu_interpolate_option(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::#menu:interpolateOption", inputs={}, dropdowns={}
+            )
+
+    class menu_prop_option(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwColor::#menu:propOption", inputs={}, dropdowns={}
+            )

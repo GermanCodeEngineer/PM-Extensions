@@ -1,124 +1,199 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class event:
 
-    @staticmethod
-    def whenflagclicked() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when green flag clicked", inputs={}, dropdowns={}
-        )
+    class whenflagclicked(ThirdBlock):
 
-    @staticmethod
-    def whenstopclicked() -> p.SRBlock:
-        return p.SRBlock(opcode="&events::when stop clicked", inputs={}, dropdowns={})
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def always() -> p.SRBlock:
-        return p.SRBlock(opcode="&events::always", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when green flag clicked", inputs={}, dropdowns={}
+            )
 
-    @staticmethod
-    def whenanything(condition: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when <CONDITION>",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class whenstopclicked(ThirdBlock):
 
-    @staticmethod
-    def whenkeypressed(key: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when [KEY] key pressed",
-            inputs={},
-            dropdowns={"KEY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, key)},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def whenkeyhit(key: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when [KEY] key hit",
-            inputs={},
-            dropdowns={"KEY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, key)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when stop clicked", inputs={}, dropdowns={}
+            )
 
-    @staticmethod
-    def whenmousescrolled(direction: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when mouse is scrolled [DIRECTION]",
-            inputs={},
-            dropdowns={
-                "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
-            },
-        )
+    class always(ThirdBlock):
 
-    @staticmethod
-    def whenthisspriteclicked() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when this sprite clicked", inputs={}, dropdowns={}
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def whenstageclicked() -> p.SRBlock:
-        return p.SRBlock(opcode="&events::when stage clicked", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&events::always", inputs={}, dropdowns={})
 
-    @staticmethod
-    def whenbackdropswitchesto(backdrop: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when backdrop switches to [BACKDROP]",
-            inputs={},
-            dropdowns={
-                "BACKDROP": p.SRDropdownValue(p.DropdownValueKind.STANDARD, backdrop)
-            },
-        )
+    class whenanything(ThirdBlock):
 
-    @staticmethod
-    def whengreaterthan(value: INPUT_COMPATIBLE_T, option: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when [OPTION] > (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "OPTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, option)
-            },
-        )
+        def __init__(self, condition: INPUT_COMPATIBLE_T):
+            self.condition = condition
 
-    @staticmethod
-    def whenbroadcastreceived(message: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::when I receive [MESSAGE]",
-            inputs={},
-            dropdowns={
-                "MESSAGE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, message)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when <CONDITION>",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def broadcast(message: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::broadcast ([MESSAGE])",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(
-                    message, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class whenkeypressed(ThirdBlock):
 
-    @staticmethod
-    def broadcastandwait(message: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&events::broadcast ([MESSAGE]) and wait",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(
-                    message, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, key: str):
+            self.key = key
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when [KEY] key pressed",
+                inputs={},
+                dropdowns={
+                    "KEY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.key)
+                },
+            )
+
+    class whenkeyhit(ThirdBlock):
+
+        def __init__(self, key: str):
+            self.key = key
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when [KEY] key hit",
+                inputs={},
+                dropdowns={
+                    "KEY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.key)
+                },
+            )
+
+    class whenmousescrolled(ThirdBlock):
+
+        def __init__(self, direction: str):
+            self.direction = direction
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when mouse is scrolled [DIRECTION]",
+                inputs={},
+                dropdowns={
+                    "DIRECTION": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.direction
+                    )
+                },
+            )
+
+    class whenthisspriteclicked(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when this sprite clicked", inputs={}, dropdowns={}
+            )
+
+    class whenstageclicked(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when stage clicked", inputs={}, dropdowns={}
+            )
+
+    class whenbackdropswitchesto(ThirdBlock):
+
+        def __init__(self, backdrop: str):
+            self.backdrop = backdrop
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when backdrop switches to [BACKDROP]",
+                inputs={},
+                dropdowns={
+                    "BACKDROP": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.backdrop
+                    )
+                },
+            )
+
+    class whengreaterthan(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T, option: str):
+            self.value = value
+            self.option = option
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when [OPTION] > (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "OPTION": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.option
+                    )
+                },
+            )
+
+    class whenbroadcastreceived(ThirdBlock):
+
+        def __init__(self, message: str):
+            self.message = message
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::when I receive [MESSAGE]",
+                inputs={},
+                dropdowns={
+                    "MESSAGE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.message
+                    )
+                },
+            )
+
+    class broadcast(ThirdBlock):
+
+        def __init__(self, message: INPUT_COMPATIBLE_T):
+            self.message = message
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::broadcast ([MESSAGE])",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class broadcastandwait(ThirdBlock):
+
+        def __init__(self, message: INPUT_COMPATIBLE_T):
+            self.message = message
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&events::broadcast ([MESSAGE]) and wait",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 from gceutils import field, grepr_dataclass, enforce_argument_types
 import pmp_manip as p
 from uuid import UUID, uuid4
@@ -9,6 +10,7 @@ from typing import Any
 
 # Derived from SR of py-pmp-manip
 p.SRProject
+@grepr_dataclass()
 class ThirdProject:
     stage: ThirdStage
     sprites: list[ThirdSprite]
@@ -37,6 +39,7 @@ class ThirdProject:
         )
 
 p.SRTarget
+@grepr_dataclass()
 class ThirdTarget:
     scripts: list[ThirdScript]
     comments: list[p.SRComment]
@@ -46,6 +49,7 @@ class ThirdTarget:
     volume: int | float
 
 p.SRSprite
+@grepr_dataclass()
 class ThirdSprite(ThirdTarget):
     name: str
     local_variables: list[p.SRVariable]
@@ -82,6 +86,7 @@ class ThirdSprite(ThirdTarget):
         )
     
 p.SRStage
+@grepr_dataclass()
 class ThirdStage(ThirdTarget):
     @classmethod
     def create_empty(cls) -> ThirdStage:
@@ -95,21 +100,19 @@ class ThirdStage(ThirdTarget):
         )
 
 p.SRScript
+@grepr_dataclass()
 class ThirdScript:
     position: tuple[int | float, int | float]
     blocks: list[ThirdBlock]
 
 p.SRBlock
-class ThirdBlock:
-    opcode: str
-    inputs: dict[str, ThirdInputValue] = field(default_factory=dict)
-    dropdowns: dict[str, ThirdDropdownValue] = field(default_factory=dict)
-    comment: p.SRComment | None = field(default=None)
-    mutation: p.SRMutation | None = field(default=None)
+@grepr_dataclass()
+class ThirdBlock(ABC):
+    @abstractmethod
+    def to_second(self) -> p.SRBlock:
+        ...
 
-
-
-INPUT_COMPATIBLE_T = list[p.SRBlock] | p.SRBlock | str | bool | p.SRDropdownValue | None
+INPUT_COMPATIBLE_T = list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None
 
 # TODO: properly convert the following to actual classes not just conversion helpr
 p.SRInputValue
@@ -117,11 +120,15 @@ p.SRInputValue
 class ThirdInputValue:
     value: INPUT_COMPATIBLE_T
 
+    @enforce_argument_types
+    def __init__(self, value: INPUT_COMPATIBLE_T | ThirdInputValue | Any) -> None:
+        self.value = value
+    
     def to_second[_T: p.SRInputValue](self, input_type: type[_T]) -> _T:
         match input_type:
             case p.SRBlockAndTextInputValue:
-                if isinstance(self.value, p.SRBlock):
-                    return input_type(block=self.value, immediate="")
+                if isinstance(self.value, ThirdBlock):
+                    return input_type(block=self.value.to_second(), immediate="")
                 elif isinstance(self.value, str):
                     return input_type(block=None, immediate=self.value)
                 elif isinstance(self.value, bool):
@@ -132,10 +139,10 @@ class ThirdInputValue:
                 else: raise ValueError(self.value, type(self.value))
 
             case p.SRBlockAndDropdownInputValue:
-                if isinstance(self.value, p.SRBlock):
+                if isinstance(self.value, ThirdBlock):
                     return input_type(block=self.value, dropdown=None)
-                elif isinstance(self.value, p.SRDropdownValue):
-                    return input_type(block=None, dropdown=self.value)
+                elif isinstance(self.value, ThirdDropdownValue):
+                    return input_type(block=None, dropdown=self.value.to_second())
                 elif isinstance(self.value, str):
                     return input_type(block=None, dropdown=p.SRDropdownValue(
                         p.DropdownValueKind.STANDARD, self.value,
@@ -143,20 +150,20 @@ class ThirdInputValue:
                 else: raise ValueError(self.value)
 
             case p.SRBlockAndBoolInputValue:
-                if isinstance(self.value, p.SRBlock):
+                if isinstance(self.value, ThirdBlock):
                     return input_type(block=self.value, immediate=False)
                 elif isinstance(self.value, bool):
                     return input_type(block=None, immediate=self.value)
                 else: raise ValueError(self.value)
 
             case p.SRBlockOnlyInputValue | p.SREmbeddedBlockInputValue:
-                if isinstance(self.value, p.SRBlock) or self.value is None:
+                if isinstance(self.value, ThirdBlock) or self.value is None:
                     return input_type(block=self.value)
                 else: raise ValueError(self.value)
 
             case p.SRScriptInputValue:
                 if isinstance(self.value, list):
-                    # and all(isinstance(item, p.SRBlock) for item in self.value)
+                    # and all(isinstance(item, ThirdBlock) for item in self.value)
                     return input_type(blocks=self.value)
                 else: raise ValueError(self.value)
 
@@ -166,7 +173,7 @@ class ThirdInputValue:
     @enforce_argument_types
     @staticmethod
     def as_input[_T: p.SRInputValue](value: INPUT_COMPATIBLE_T | ThirdInputValue | Any, input_type: type[_T]) -> _T:
-        if isinstance(value, (list, p.SRBlock, str, bool, p.SRDropdownValue, type(None))):
+        if isinstance(value, (list, ThirdBlock, str, bool, ThirdDropdownValue, type(None))):
             return ThirdInputValue(value).to_second(input_type)
         elif isinstance(value, ThirdInputValue):
             return value.to_second(input_type)
@@ -174,5 +181,9 @@ class ThirdInputValue:
             raise ValueError("Value is not compatible with any input type", value)
 
 p.SRDropdownValue
+@grepr_dataclass()
 class ThirdDropdownValue:
-    ...
+    value: str
+
+    def to_second(self) -> p.SRDropdownValue:
+        return p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.value)

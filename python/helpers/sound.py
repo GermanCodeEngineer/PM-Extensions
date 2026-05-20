@@ -1,181 +1,278 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class sound:
 
-    @staticmethod
-    def playuntildone(sound: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::play sound ([SOUND]) until done",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+    class playuntildone(ThirdBlock):
 
-    @staticmethod
-    def play_at_seconds_until_done(
-        sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::play sound ([SOUND]) starting at (SECONDS) seconds until done",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(
-                    sound, p.SRBlockAndDropdownInputValue
-                ),
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, sound: INPUT_COMPATIBLE_T):
+            self.sound = sound
 
-    @staticmethod
-    def play(sound: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::start sound ([SOUND])",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::play sound ([SOUND]) until done",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def play_at_seconds(
-        sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::start sound ([SOUND]) at (SECONDS) seconds",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(
-                    sound, p.SRBlockAndDropdownInputValue
-                ),
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+    class play_at_seconds_until_done(ThirdBlock):
 
-    @staticmethod
-    def stop(sound: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::stop sound ([SOUND])",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
+            self.sound = sound
+            self.seconds = seconds
 
-    @staticmethod
-    def playallsounds() -> p.SRBlock:
-        return p.SRBlock(opcode="&sound::play all sounds", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::play sound ([SOUND]) starting at (SECONDS) seconds until done",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def stopallsounds() -> p.SRBlock:
-        return p.SRBlock(opcode="&sound::stop all sounds", inputs={}, dropdowns={})
+    class play(ThirdBlock):
 
-    @staticmethod
-    def set_stop_fadeout_to(
-        seconds: INPUT_COMPATIBLE_T, sound: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::set fadeout to (SECONDS) seconds on ([SOUND])",
-            inputs={
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-                "SOUND": ThirdInputValue.as_input(
-                    sound, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, sound: INPUT_COMPATIBLE_T):
+            self.sound = sound
 
-    @staticmethod
-    def is_sound_playing(sound: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::is ([SOUND]) playing?",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::start sound ([SOUND])",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def get_length(sound: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::length of ([SOUND])?",
-            inputs={
-                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+    class play_at_seconds(ThirdBlock):
 
-    @staticmethod
-    def changeeffectby(amount: INPUT_COMPATIBLE_T, effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::change [EFFECT] sound effect by (AMOUNT)",
-            inputs={
-                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+        def __init__(self, sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
+            self.sound = sound
+            self.seconds = seconds
 
-    @staticmethod
-    def seteffectto(value: INPUT_COMPATIBLE_T, effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::set [EFFECT] sound effect to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::start sound ([SOUND]) at (SECONDS) seconds",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def cleareffects() -> p.SRBlock:
-        return p.SRBlock(opcode="&sound::clear sound effects", inputs={}, dropdowns={})
+    class stop(ThirdBlock):
 
-    @staticmethod
-    def get_effect_value(effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sounds::[EFFECT] effect",
-            inputs={},
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+        def __init__(self, sound: INPUT_COMPATIBLE_T):
+            self.sound = sound
 
-    @staticmethod
-    def changevolumeby(amount: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::change volume by (AMOUNT)",
-            inputs={
-                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::stop sound ([SOUND])",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def setvolumeto(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sound::set volume to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class playallsounds(ThirdBlock):
 
-    @staticmethod
-    def volume() -> p.SRBlock:
-        return p.SRBlock(opcode="&sound::volume", inputs={}, dropdowns={})
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def sounds_menu() -> p.SRBlock:
-        return p.SRBlock(opcode="&sound::#SOUND MENU", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sound::play all sounds", inputs={}, dropdowns={})
+
+    class stopallsounds(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sound::stop all sounds", inputs={}, dropdowns={})
+
+    class set_stop_fadeout_to(ThirdBlock):
+
+        def __init__(self, seconds: INPUT_COMPATIBLE_T, sound: INPUT_COMPATIBLE_T):
+            self.seconds = seconds
+            self.sound = sound
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::set fadeout to (SECONDS) seconds on ([SOUND])",
+                inputs={
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class is_sound_playing(ThirdBlock):
+
+        def __init__(self, sound: INPUT_COMPATIBLE_T):
+            self.sound = sound
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::is ([SOUND]) playing?",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class get_length(ThirdBlock):
+
+        def __init__(self, sound: INPUT_COMPATIBLE_T):
+            self.sound = sound
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::length of ([SOUND])?",
+                inputs={
+                    "SOUND": ThirdInputValue.as_input(
+                        self.sound, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class changeeffectby(ThirdBlock):
+
+        def __init__(self, amount: INPUT_COMPATIBLE_T, effect: str):
+            self.amount = amount
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::change [EFFECT] sound effect by (AMOUNT)",
+                inputs={
+                    "AMOUNT": ThirdInputValue.as_input(
+                        self.amount, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class seteffectto(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T, effect: str):
+            self.value = value
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::set [EFFECT] sound effect to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class cleareffects(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::clear sound effects", inputs={}, dropdowns={}
+            )
+
+    class get_effect_value(ThirdBlock):
+
+        def __init__(self, effect: str):
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sounds::[EFFECT] effect",
+                inputs={},
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class changevolumeby(ThirdBlock):
+
+        def __init__(self, amount: INPUT_COMPATIBLE_T):
+            self.amount = amount
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::change volume by (AMOUNT)",
+                inputs={
+                    "AMOUNT": ThirdInputValue.as_input(
+                        self.amount, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class setvolumeto(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T):
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sound::set volume to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class volume(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sound::volume", inputs={}, dropdowns={})
+
+    class sounds_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sound::#SOUND MENU", inputs={}, dropdowns={})

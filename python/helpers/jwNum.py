@@ -1,279 +1,418 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwNum:
 
-    @staticmethod
-    def add(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) + (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class add(ThirdBlock):
 
-    @staticmethod
-    def sub(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) - (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def mul(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) * (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) + (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def div(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) / (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class sub(ThirdBlock):
 
-    @staticmethod
-    def pow(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) ^ (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def fact(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::[A]!",
-            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) - (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def eq(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) = (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class mul(ThirdBlock):
 
-    @staticmethod
-    def gt(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) > (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def gte(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) >= (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) * (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def lt(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) < (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class div(ThirdBlock):
 
-    @staticmethod
-    def lte(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) <= (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def root(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::root (A) (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) / (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def ssqrt(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::square super-root (A)",
-            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class pow(ThirdBlock):
 
-    @staticmethod
-    def log(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::log (A) (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def slog(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::super log (A) (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) ^ (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def mod(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) % (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class fact(ThirdBlock):
 
-    @staticmethod
-    def round(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::([A]) (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndDropdownInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T):
+            self.a = a
 
-    @staticmethod
-    def is_integer(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::is (A) an integer?",
-            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::[A]!",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def hyper(
-        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) hyper (B) (C)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class eq(ThirdBlock):
 
-    @staticmethod
-    def arrow(
-        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) arrow (B) (C)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def reverse_arrow(
-        a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(C) reverse arrow (B) (A)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) = (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def expansion(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) expansion (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class gt(ThirdBlock):
 
-    @staticmethod
-    def to_string(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) to string",
-            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def to_string_d(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) to string with (B) decimal places",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) > (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def to_hyper_e(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&jwNum::(A) to hyper E",
-            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class gte(ThirdBlock):
 
-    @staticmethod
-    def menu_round() -> p.SRBlock:
-        return p.SRBlock(opcode="&jwNum::#menu:round", inputs={}, dropdowns={})
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) >= (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class lt(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) < (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class lte(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) <= (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class root(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::root (A) (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class ssqrt(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T):
+            self.a = a
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::square super-root (A)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class log(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::log (A) (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class slog(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::super log (A) (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class mod(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) % (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class round(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::([A]) (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(
+                        self.a, p.SRBlockAndDropdownInputValue
+                    ),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class is_integer(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T):
+            self.a = a
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::is (A) an integer?",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class hyper(ThirdBlock):
+
+        def __init__(
+            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
+        ):
+            self.a = a
+            self.b = b
+            self.c = c
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) hyper (B) (C)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                    "C": ThirdInputValue.as_input(self.c, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class arrow(ThirdBlock):
+
+        def __init__(
+            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
+        ):
+            self.a = a
+            self.b = b
+            self.c = c
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) arrow (B) (C)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                    "C": ThirdInputValue.as_input(self.c, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class reverse_arrow(ThirdBlock):
+
+        def __init__(
+            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
+        ):
+            self.a = a
+            self.b = b
+            self.c = c
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(C) reverse arrow (B) (A)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                    "C": ThirdInputValue.as_input(self.c, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class expansion(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) expansion (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class to_string(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T):
+            self.a = a
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) to string",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class to_string_d(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) to string with (B) decimal places",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class to_hyper_e(ThirdBlock):
+
+        def __init__(self, a: INPUT_COMPATIBLE_T):
+            self.a = a
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&jwNum::(A) to hyper E",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class menu_round(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&jwNum::#menu:round", inputs={}, dropdowns={})

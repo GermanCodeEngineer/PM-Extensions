@@ -1,415 +1,640 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class control:
 
-    @staticmethod
-    def wait(seconds: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::wait (SECONDS) seconds",
-            inputs={
-                "SECONDS": ThirdInputValue.as_input(seconds, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class wait(ThirdBlock):
 
-    @staticmethod
-    def waitsecondsoruntil(
-        seconds: INPUT_COMPATIBLE_T, condition: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::wait (SECONDS) seconds or until <CONDITION>",
-            inputs={
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, seconds: INPUT_COMPATIBLE_T):
+            self.seconds = seconds
 
-    @staticmethod
-    def repeat(times: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::repeat (TIMES) {BODY}",
-            inputs={
-                "TIMES": ThirdInputValue.as_input(times, p.SRBlockAndTextInputValue),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::wait (SECONDS) seconds",
+                inputs={
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def forever(body: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::forever {BODY}",
-            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
-            dropdowns={},
-        )
+    class waitsecondsoruntil(ThirdBlock):
 
-    @staticmethod
-    def for_each(
-        range: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T, variable: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::for each [VARIABLE] in (RANGE) {BODY}",
-            inputs={
-                "RANGE": ThirdInputValue.as_input(range, p.SRBlockAndTextInputValue),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={
-                "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
-            },
-        )
+        def __init__(self, seconds: INPUT_COMPATIBLE_T, condition: INPUT_COMPATIBLE_T):
+            self.seconds = seconds
+            self.condition = condition
 
-    @staticmethod
-    def exit_loop() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::escape loop", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::wait (SECONDS) seconds or until <CONDITION>",
+                inputs={
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def continue_loop() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::continue loop", inputs={}, dropdowns={})
+    class repeat(ThirdBlock):
 
-    @staticmethod
-    def switch(condition: INPUT_COMPATIBLE_T, cases: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::switch (CONDITION) {CASES}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockOnlyInputValue
-                ),
-                "CASES": ThirdInputValue.as_input(cases, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, times: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
+            self.times = times
+            self.body = body
 
-    @staticmethod
-    def switch_default(
-        condition: INPUT_COMPATIBLE_T,
-        cases: INPUT_COMPATIBLE_T,
-        default: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::switch (CONDITION) {CASES} default {DEFAULT}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockOnlyInputValue
-                ),
-                "CASES": ThirdInputValue.as_input(cases, p.SRScriptInputValue),
-                "DEFAULT": ThirdInputValue.as_input(default, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::repeat (TIMES) {BODY}",
+                inputs={
+                    "TIMES": ThirdInputValue.as_input(
+                        self.times, p.SRBlockAndTextInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def exit_case() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::exit case", inputs={}, dropdowns={})
+    class forever(ThirdBlock):
 
-    @staticmethod
-    def case_next(condition: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::run next case when (CONDITION)",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndTextInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, body: INPUT_COMPATIBLE_T):
+            self.body = body
 
-    @staticmethod
-    def case(condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::case (CONDITION) {BODY}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndTextInputValue
-                ),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::forever {BODY}",
+                inputs={
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue)
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def if_(condition: INPUT_COMPATIBLE_T, then: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::if <CONDITION> then {THEN}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-                "THEN": ThirdInputValue.as_input(then, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+    class for_each(ThirdBlock):
 
-    @staticmethod
-    def if_else(
-        condition: INPUT_COMPATIBLE_T,
-        then: INPUT_COMPATIBLE_T,
-        else_: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::if <CONDITION> then {THEN} else {ELSE}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-                "THEN": ThirdInputValue.as_input(then, p.SRScriptInputValue),
-                "ELSE": ThirdInputValue.as_input(else_, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self, range: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T, variable: str
+        ):
+            self.range = range
+            self.body = body
+            self.variable = variable
 
-    @staticmethod
-    def if_return_else_return(
-        condition: INPUT_COMPATIBLE_T,
-        truevalue: INPUT_COMPATIBLE_T,
-        falsevalue: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::if <CONDITION> then (TRUEVALUE) else (FALSEVALUE)",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-                "TRUEVALUE": ThirdInputValue.as_input(
-                    truevalue, p.SRBlockAndTextInputValue
-                ),
-                "FALSEVALUE": ThirdInputValue.as_input(
-                    falsevalue, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::for each [VARIABLE] in (RANGE) {BODY}",
+                inputs={
+                    "RANGE": ThirdInputValue.as_input(
+                        self.range, p.SRBlockAndTextInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={
+                    "VARIABLE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.variable
+                    )
+                },
+            )
 
-    @staticmethod
-    def wait_until(condition: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::wait until <CONDITION>",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class exit_loop(ThirdBlock):
 
-    @staticmethod
-    def repeat_until(
-        condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::repeat until <CONDITION> {BODY}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def while_(condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::while <CONDITION> {BODY}",
-            inputs={
-                "CONDITION": ThirdInputValue.as_input(
-                    condition, p.SRBlockAndBoolInputValue
-                ),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::escape loop", inputs={}, dropdowns={})
 
-    @staticmethod
-    def all_at_once(body: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::all at once {BODY}",
-            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
-            dropdowns={},
-        )
+    class continue_loop(ThirdBlock):
 
-    @staticmethod
-    def run_as_sprite(
-        target: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::as ([TARGET]) {BODY}",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                ),
-                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def try_catch(try_: INPUT_COMPATIBLE_T, iferror: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::try to do {TRY} if a block errors {IFERROR}",
-            inputs={
-                "TRY": ThirdInputValue.as_input(try_, p.SRScriptInputValue),
-                "IFERROR": ThirdInputValue.as_input(iferror, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::continue loop", inputs={}, dropdowns={})
 
-    @staticmethod
-    def throw_error(error: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::throw error (ERROR)",
-            inputs={
-                "ERROR": ThirdInputValue.as_input(error, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class switch(ThirdBlock):
 
-    @staticmethod
-    def error() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::error", inputs={}, dropdowns={})
+        def __init__(self, condition: INPUT_COMPATIBLE_T, cases: INPUT_COMPATIBLE_T):
+            self.condition = condition
+            self.cases = cases
 
-    @staticmethod
-    def back_to_green_flag() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::run flag", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::switch (CONDITION) {CASES}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockOnlyInputValue
+                    ),
+                    "CASES": ThirdInputValue.as_input(self.cases, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def stop_sprite(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::stop sprite ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class switch_default(ThirdBlock):
 
-    @staticmethod
-    def stop(target: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::stop script [TARGET]",
-            inputs={},
-            dropdowns={
-                "TARGET": p.SRDropdownValue(p.DropdownValueKind.STANDARD, target)
-            },
-        )
+        def __init__(
+            self,
+            condition: INPUT_COMPATIBLE_T,
+            cases: INPUT_COMPATIBLE_T,
+            default: INPUT_COMPATIBLE_T,
+        ):
+            self.condition = condition
+            self.cases = cases
+            self.default = default
 
-    @staticmethod
-    def start_as_clone() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::when I start as a clone", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::switch (CONDITION) {CASES} default {DEFAULT}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockOnlyInputValue
+                    ),
+                    "CASES": ThirdInputValue.as_input(self.cases, p.SRScriptInputValue),
+                    "DEFAULT": ThirdInputValue.as_input(
+                        self.default, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def create_clone_of(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::create clone of ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class exit_case(ThirdBlock):
 
-    @staticmethod
-    def delete_clones_of(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::delete clones of ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def delete_this_clone() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::delete this clone", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::exit case", inputs={}, dropdowns={})
 
-    @staticmethod
-    def is_clone() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::is clone?", inputs={}, dropdowns={})
+    class case_next(ThirdBlock):
 
-    @staticmethod
-    def stop_sprite_menu() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::#STOP SPRITE MENU", inputs={}, dropdowns={})
+        def __init__(self, condition: INPUT_COMPATIBLE_T):
+            self.condition = condition
 
-    @staticmethod
-    def create_clone_of_menu() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::#CLONE TARGET MENU", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::run next case when (CONDITION)",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def run_as_sprite_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::#RUN AS SPRITE MENU", inputs={}, dropdowns={}
-        )
+    class case(ThirdBlock):
 
-    @staticmethod
-    def expandable_if() -> p.SRBlock:
-        raise NotImplementedError(
-            "This opcode is not supported yet, because it requires flexible input counts."
-        )
+        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
+            self.condition = condition
+            self.body = body
 
-    @staticmethod
-    def repeat_for_seconds(
-        times: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::repeat for (TIMES) seconds {SUBSTACK}",
-            inputs={
-                "TIMES": ThirdInputValue.as_input(times, p.SRBlockAndTextInputValue),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::case (CONDITION) {BODY}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndTextInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def inline_stack_output(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::inline block {SUBSTACK}",
-            inputs={
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
-            },
-            dropdowns={},
-        )
+    class if_(ThirdBlock):
 
-    @staticmethod
-    def waittick() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::wait until next tick", inputs={}, dropdowns={}
-        )
+        def __init__(self, condition: INPUT_COMPATIBLE_T, then: INPUT_COMPATIBLE_T):
+            self.condition = condition
+            self.then = then
 
-    @staticmethod
-    def get_counter() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::counter", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::if <CONDITION> then {THEN}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                    "THEN": ThirdInputValue.as_input(self.then, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def incr_counter() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::increment counter", inputs={}, dropdowns={})
+    class if_else(ThirdBlock):
 
-    @staticmethod
-    def decr_counter() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::decrement counter", inputs={}, dropdowns={})
+        def __init__(
+            self,
+            condition: INPUT_COMPATIBLE_T,
+            then: INPUT_COMPATIBLE_T,
+            else_: INPUT_COMPATIBLE_T,
+        ):
+            self.condition = condition
+            self.then = then
+            self.else_ = else_
 
-    @staticmethod
-    def set_counter(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&control::set counter to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::if <CONDITION> then {THEN} else {ELSE}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                    "THEN": ThirdInputValue.as_input(self.then, p.SRScriptInputValue),
+                    "ELSE": ThirdInputValue.as_input(self.else_, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def clear_counter() -> p.SRBlock:
-        return p.SRBlock(opcode="&control::clear counter", inputs={}, dropdowns={})
+    class if_return_else_return(ThirdBlock):
+
+        def __init__(
+            self,
+            condition: INPUT_COMPATIBLE_T,
+            truevalue: INPUT_COMPATIBLE_T,
+            falsevalue: INPUT_COMPATIBLE_T,
+        ):
+            self.condition = condition
+            self.truevalue = truevalue
+            self.falsevalue = falsevalue
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::if <CONDITION> then (TRUEVALUE) else (FALSEVALUE)",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                    "TRUEVALUE": ThirdInputValue.as_input(
+                        self.truevalue, p.SRBlockAndTextInputValue
+                    ),
+                    "FALSEVALUE": ThirdInputValue.as_input(
+                        self.falsevalue, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class wait_until(ThirdBlock):
+
+        def __init__(self, condition: INPUT_COMPATIBLE_T):
+            self.condition = condition
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::wait until <CONDITION>",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class repeat_until(ThirdBlock):
+
+        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
+            self.condition = condition
+            self.body = body
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::repeat until <CONDITION> {BODY}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
+
+    class while_(ThirdBlock):
+
+        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
+            self.condition = condition
+            self.body = body
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::while <CONDITION> {BODY}",
+                inputs={
+                    "CONDITION": ThirdInputValue.as_input(
+                        self.condition, p.SRBlockAndBoolInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
+
+    class all_at_once(ThirdBlock):
+
+        def __init__(self, body: INPUT_COMPATIBLE_T):
+            self.body = body
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::all at once {BODY}",
+                inputs={
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue)
+                },
+                dropdowns={},
+            )
+
+    class run_as_sprite(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
+            self.target = target
+            self.body = body
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::as ([TARGET]) {BODY}",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    ),
+                    "BODY": ThirdInputValue.as_input(self.body, p.SRScriptInputValue),
+                },
+                dropdowns={},
+            )
+
+    class try_catch(ThirdBlock):
+
+        def __init__(self, try_: INPUT_COMPATIBLE_T, iferror: INPUT_COMPATIBLE_T):
+            self.try_ = try_
+            self.iferror = iferror
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::try to do {TRY} if a block errors {IFERROR}",
+                inputs={
+                    "TRY": ThirdInputValue.as_input(self.try_, p.SRScriptInputValue),
+                    "IFERROR": ThirdInputValue.as_input(
+                        self.iferror, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class throw_error(ThirdBlock):
+
+        def __init__(self, error: INPUT_COMPATIBLE_T):
+            self.error = error
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::throw error (ERROR)",
+                inputs={
+                    "ERROR": ThirdInputValue.as_input(
+                        self.error, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class error(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::error", inputs={}, dropdowns={})
+
+    class back_to_green_flag(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::run flag", inputs={}, dropdowns={})
+
+    class stop_sprite(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::stop sprite ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class stop(ThirdBlock):
+
+        def __init__(self, target: str):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::stop script [TARGET]",
+                inputs={},
+                dropdowns={
+                    "TARGET": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.target
+                    )
+                },
+            )
+
+    class start_as_clone(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::when I start as a clone", inputs={}, dropdowns={}
+            )
+
+    class create_clone_of(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::create clone of ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class delete_clones_of(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::delete clones of ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class delete_this_clone(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::delete this clone", inputs={}, dropdowns={}
+            )
+
+    class is_clone(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::is clone?", inputs={}, dropdowns={})
+
+    class stop_sprite_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::#STOP SPRITE MENU", inputs={}, dropdowns={}
+            )
+
+    class create_clone_of_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::#CLONE TARGET MENU", inputs={}, dropdowns={}
+            )
+
+    class run_as_sprite_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::#RUN AS SPRITE MENU", inputs={}, dropdowns={}
+            )
+
+    class expandable_if(ThirdBlock):
+
+        def __init__(self):
+            raise NotImplementedError(
+                "This opcode is not supported yet, because it requires flexible input counts."
+            )
+
+        def to_second(self) -> p.SRBlock:
+            raise NotImplementedError(
+                "This opcode is not supported yet, because it requires flexible input counts."
+            )
+
+    class repeat_for_seconds(ThirdBlock):
+
+        def __init__(self, times: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.times = times
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::repeat for (TIMES) seconds {SUBSTACK}",
+                inputs={
+                    "TIMES": ThirdInputValue.as_input(
+                        self.times, p.SRBlockAndTextInputValue
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class inline_stack_output(ThirdBlock):
+
+        def __init__(self, substack: INPUT_COMPATIBLE_T):
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::inline block {SUBSTACK}",
+                inputs={
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class waittick(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::wait until next tick", inputs={}, dropdowns={}
+            )
+
+    class get_counter(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::counter", inputs={}, dropdowns={})
+
+    class incr_counter(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::increment counter", inputs={}, dropdowns={}
+            )
+
+    class decr_counter(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::decrement counter", inputs={}, dropdowns={}
+            )
+
+    class set_counter(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T):
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&control::set counter to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class clear_counter(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&control::clear counter", inputs={}, dropdowns={})

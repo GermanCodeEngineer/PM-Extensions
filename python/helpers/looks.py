@@ -1,408 +1,642 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class looks:
 
-    @staticmethod
-    def sayforsecs(
-        message: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::say (MESSAGE) for (SECONDS) seconds",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(
-                    message, p.SRBlockAndTextInputValue
-                ),
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+    class sayforsecs(ThirdBlock):
 
-    @staticmethod
-    def say(message: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::say (MESSAGE)",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(message, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, message: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
+            self.message = message
+            self.seconds = seconds
 
-    @staticmethod
-    def thinkforsecs(
-        message: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::think (MESSAGE) for (SECONDS) seconds",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(
-                    message, p.SRBlockAndTextInputValue
-                ),
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::say (MESSAGE) for (SECONDS) seconds",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndTextInputValue
+                    ),
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def think(message: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::think (MESSAGE)",
-            inputs={
-                "MESSAGE": ThirdInputValue.as_input(message, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class say(ThirdBlock):
 
-    @staticmethod
-    def stoptalking() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::stop speaking", inputs={}, dropdowns={})
+        def __init__(self, message: INPUT_COMPATIBLE_T):
+            self.message = message
 
-    @staticmethod
-    def set_font(font: INPUT_COMPATIBLE_T, font_size: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set font to (FONT) with font size (FONT-SIZE)",
-            inputs={
-                "FONT": ThirdInputValue.as_input(font, p.SRBlockAndTextInputValue),
-                "FONT-SIZE": ThirdInputValue.as_input(
-                    font_size, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::say (MESSAGE)",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def set_color(color: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set [PROPERTY] color to (COLOR)",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+    class thinkforsecs(ThirdBlock):
 
-    @staticmethod
-    def set_shape(value: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set text bubble [PROPERTY] to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+        def __init__(self, message: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
+            self.message = message
+            self.seconds = seconds
 
-    @staticmethod
-    def say_width() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::bubble width", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::think (MESSAGE) for (SECONDS) seconds",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndTextInputValue
+                    ),
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def say_height() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::bubble height", inputs={}, dropdowns={})
+    class think(ThirdBlock):
 
-    @staticmethod
-    def switchcostumeto(costume: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::switch costume to ([COSTUME])",
-            inputs={
-                "COSTUME": ThirdInputValue.as_input(
-                    costume, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, message: INPUT_COMPATIBLE_T):
+            self.message = message
 
-    @staticmethod
-    def nextcostume() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::next costume", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::think (MESSAGE)",
+                inputs={
+                    "MESSAGE": ThirdInputValue.as_input(
+                        self.message, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def getinputofcostume(
-        property: INPUT_COMPATIBLE_T, costume: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::([PROPERTY]) of ([COSTUME])",
-            inputs={
-                "PROPERTY": ThirdInputValue.as_input(
-                    property, p.SRBlockAndDropdownInputValue
-                ),
-                "COSTUME": ThirdInputValue.as_input(
-                    costume, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={},
-        )
+    class stoptalking(ThirdBlock):
 
-    @staticmethod
-    def switchbackdropto(backdrop: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::switch backdrop to ([BACKDROP])",
-            inputs={
-                "BACKDROP": ThirdInputValue.as_input(
-                    backdrop, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def nextbackdrop() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::next backdrop", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::stop speaking", inputs={}, dropdowns={})
 
-    @staticmethod
-    def changesizeby(amount: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::change size by (AMOUNT)",
-            inputs={
-                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class set_font(ThirdBlock):
 
-    @staticmethod
-    def setsizeto(size: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set size to (SIZE)",
-            inputs={"SIZE": ThirdInputValue.as_input(size, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def __init__(self, font: INPUT_COMPATIBLE_T, font_size: INPUT_COMPATIBLE_T):
+            self.font = font
+            self.font_size = font_size
 
-    @staticmethod
-    def set_stretch(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set stretch to x: (X) y: (Y)",
-            inputs={
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set font to (FONT) with font size (FONT-SIZE)",
+                inputs={
+                    "FONT": ThirdInputValue.as_input(
+                        self.font, p.SRBlockAndTextInputValue
+                    ),
+                    "FONT-SIZE": ThirdInputValue.as_input(
+                        self.font_size, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def change_stretch(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks:: change stretch by x: (X) y: (Y)",
-            inputs={
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class set_color(ThirdBlock):
 
-    @staticmethod
-    def stretch_get_x() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::x stretch", inputs={}, dropdowns={})
+        def __init__(self, color: INPUT_COMPATIBLE_T, property: str):
+            self.color = color
+            self.property = property
 
-    @staticmethod
-    def stretch_get_y() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::y stretch", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set [PROPERTY] color to (COLOR)",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
 
-    @staticmethod
-    def changeeffectby(amount: INPUT_COMPATIBLE_T, effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::change [EFFECT] effect by (AMOUNT)",
-            inputs={
-                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+    class set_shape(ThirdBlock):
 
-    @staticmethod
-    def seteffectto(value: INPUT_COMPATIBLE_T, effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set [EFFECT] effect to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+        def __init__(self, value: INPUT_COMPATIBLE_T, property: str):
+            self.value = value
+            self.property = property
 
-    @staticmethod
-    def set_tint_color(color: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::set tint color to (COLOR)",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set text bubble [PROPERTY] to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
 
-    @staticmethod
-    def cleargraphiceffects() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::clear graphic effects", inputs={}, dropdowns={}
-        )
+    class say_width(ThirdBlock):
 
-    @staticmethod
-    def get_effect_value(effect: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::[EFFECT] effect",
-            inputs={},
-            dropdowns={
-                "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
-            },
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def tint_color() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::tint color", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::bubble width", inputs={}, dropdowns={})
 
-    @staticmethod
-    def show() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::show", inputs={}, dropdowns={})
+    class say_height(ThirdBlock):
 
-    @staticmethod
-    def hide() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::hide", inputs={}, dropdowns={})
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def get_sprite_visible() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::visible?", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::bubble height", inputs={}, dropdowns={})
 
-    @staticmethod
-    def change_visibility_of_sprite_show(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::show ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class switchcostumeto(ThirdBlock):
 
-    @staticmethod
-    def change_visibility_of_sprite_hide(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::hide ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, costume: INPUT_COMPATIBLE_T):
+            self.costume = costume
 
-    @staticmethod
-    def get_other_sprite_visible(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sounds::is ([TARGET]) visible?",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::switch costume to ([COSTUME])",
+                inputs={
+                    "COSTUME": ThirdInputValue.as_input(
+                        self.costume, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def gotofrontback(layer: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::go to [LAYER] layer",
-            inputs={},
-            dropdowns={"LAYER": p.SRDropdownValue(p.DropdownValueKind.STANDARD, layer)},
-        )
+    class nextcostume(ThirdBlock):
 
-    @staticmethod
-    def goforwardbackwardlayers(
-        layers: INPUT_COMPATIBLE_T, direction: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::go [DIRECTION] (LAYERS) layers",
-            inputs={
-                "LAYERS": ThirdInputValue.as_input(layers, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
-            },
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def layers_set_layer(layer: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::go to layer (LAYER)",
-            inputs={
-                "LAYER": ThirdInputValue.as_input(layer, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::next costume", inputs={}, dropdowns={})
 
-    @staticmethod
-    def go_target_layer(target: INPUT_COMPATIBLE_T, direction: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::go [DIRECTION] ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={
-                "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
-            },
-        )
+    class getinputofcostume(ThirdBlock):
 
-    @staticmethod
-    def layers_get_layer() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::layer", inputs={}, dropdowns={})
+        def __init__(self, property: INPUT_COMPATIBLE_T, costume: INPUT_COMPATIBLE_T):
+            self.property = property
+            self.costume = costume
 
-    @staticmethod
-    def costumenumbername(property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::costume [PROPERTY]",
-            inputs={},
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::([PROPERTY]) of ([COSTUME])",
+                inputs={
+                    "PROPERTY": ThirdInputValue.as_input(
+                        self.property, p.SRBlockAndDropdownInputValue
+                    ),
+                    "COSTUME": ThirdInputValue.as_input(
+                        self.costume, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def backdropnumbername(property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::backdrop [PROPERTY]",
-            inputs={},
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+    class switchbackdropto(ThirdBlock):
 
-    @staticmethod
-    def size() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::size", inputs={}, dropdowns={})
+        def __init__(self, backdrop: INPUT_COMPATIBLE_T):
+            self.backdrop = backdrop
 
-    @staticmethod
-    def costume() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::#COSTUME MENU", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::switch backdrop to ([BACKDROP])",
+                inputs={
+                    "BACKDROP": ThirdInputValue.as_input(
+                        self.backdrop, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def backdrops() -> p.SRBlock:
-        return p.SRBlock(opcode="&looks::#BACKDROP MENU", inputs={}, dropdowns={})
+    class nextbackdrop(ThirdBlock):
 
-    @staticmethod
-    def getinput_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::#COSTUME PROPERTY MENU", inputs={}, dropdowns={}
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def change_visibility_of_sprite_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::#SHOW/HIDE SPRITE MENU", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::next backdrop", inputs={}, dropdowns={})
 
-    @staticmethod
-    def get_other_sprite_visible_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&looks::#IS SPRITE VISIBLE MENU", inputs={}, dropdowns={}
-        )
+    class changesizeby(ThirdBlock):
+
+        def __init__(self, amount: INPUT_COMPATIBLE_T):
+            self.amount = amount
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::change size by (AMOUNT)",
+                inputs={
+                    "AMOUNT": ThirdInputValue.as_input(
+                        self.amount, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class setsizeto(ThirdBlock):
+
+        def __init__(self, size: INPUT_COMPATIBLE_T):
+            self.size = size
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set size to (SIZE)",
+                inputs={
+                    "SIZE": ThirdInputValue.as_input(
+                        self.size, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class set_stretch(ThirdBlock):
+
+        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set stretch to x: (X) y: (Y)",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class change_stretch(ThirdBlock):
+
+        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks:: change stretch by x: (X) y: (Y)",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class stretch_get_x(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::x stretch", inputs={}, dropdowns={})
+
+    class stretch_get_y(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::y stretch", inputs={}, dropdowns={})
+
+    class changeeffectby(ThirdBlock):
+
+        def __init__(self, amount: INPUT_COMPATIBLE_T, effect: str):
+            self.amount = amount
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::change [EFFECT] effect by (AMOUNT)",
+                inputs={
+                    "AMOUNT": ThirdInputValue.as_input(
+                        self.amount, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class seteffectto(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T, effect: str):
+            self.value = value
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set [EFFECT] effect to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class set_tint_color(ThirdBlock):
+
+        def __init__(self, color: INPUT_COMPATIBLE_T):
+            self.color = color
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::set tint color to (COLOR)",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class cleargraphiceffects(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::clear graphic effects", inputs={}, dropdowns={}
+            )
+
+    class get_effect_value(ThirdBlock):
+
+        def __init__(self, effect: str):
+            self.effect = effect
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::[EFFECT] effect",
+                inputs={},
+                dropdowns={
+                    "EFFECT": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.effect
+                    )
+                },
+            )
+
+    class tint_color(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::tint color", inputs={}, dropdowns={})
+
+    class show(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::show", inputs={}, dropdowns={})
+
+    class hide(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::hide", inputs={}, dropdowns={})
+
+    class get_sprite_visible(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::visible?", inputs={}, dropdowns={})
+
+    class change_visibility_of_sprite_show(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::show ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class change_visibility_of_sprite_hide(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::hide ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class get_other_sprite_visible(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sounds::is ([TARGET]) visible?",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class gotofrontback(ThirdBlock):
+
+        def __init__(self, layer: str):
+            self.layer = layer
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::go to [LAYER] layer",
+                inputs={},
+                dropdowns={
+                    "LAYER": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.layer)
+                },
+            )
+
+    class goforwardbackwardlayers(ThirdBlock):
+
+        def __init__(self, layers: INPUT_COMPATIBLE_T, direction: str):
+            self.layers = layers
+            self.direction = direction
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::go [DIRECTION] (LAYERS) layers",
+                inputs={
+                    "LAYERS": ThirdInputValue.as_input(
+                        self.layers, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "DIRECTION": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.direction
+                    )
+                },
+            )
+
+    class layers_set_layer(ThirdBlock):
+
+        def __init__(self, layer: INPUT_COMPATIBLE_T):
+            self.layer = layer
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::go to layer (LAYER)",
+                inputs={
+                    "LAYER": ThirdInputValue.as_input(
+                        self.layer, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class go_target_layer(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T, direction: str):
+            self.target = target
+            self.direction = direction
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::go [DIRECTION] ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={
+                    "DIRECTION": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.direction
+                    )
+                },
+            )
+
+    class layers_get_layer(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::layer", inputs={}, dropdowns={})
+
+    class costumenumbername(ThirdBlock):
+
+        def __init__(self, property: str):
+            self.property = property
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::costume [PROPERTY]",
+                inputs={},
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
+
+    class backdropnumbername(ThirdBlock):
+
+        def __init__(self, property: str):
+            self.property = property
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::backdrop [PROPERTY]",
+                inputs={},
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
+
+    class size(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::size", inputs={}, dropdowns={})
+
+    class costume(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::#COSTUME MENU", inputs={}, dropdowns={})
+
+    class backdrops(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&looks::#BACKDROP MENU", inputs={}, dropdowns={})
+
+    class getinput_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::#COSTUME PROPERTY MENU", inputs={}, dropdowns={}
+            )
+
+    class change_visibility_of_sprite_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::#SHOW/HIDE SPRITE MENU", inputs={}, dropdowns={}
+            )
+
+    class get_other_sprite_visible_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&looks::#IS SPRITE VISIBLE MENU", inputs={}, dropdowns={}
+            )

@@ -1,461 +1,750 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class sensing:
 
-    @staticmethod
-    def touchingobject(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::touching ([OBJECT]) ?",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(
-                    object, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class touchingobject(ThirdBlock):
 
-    @staticmethod
-    def objecttouchingobject(
-        object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::([OBJECT]) touching ([SPRITE]) ?",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(
-                    object, p.SRBlockAndDropdownInputValue
-                ),
-                "SPRITE": ThirdInputValue.as_input(
-                    sprite, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
 
-    @staticmethod
-    def objecttouchingclonesprite(
-        object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::([OBJECT]) touching clone of ([SPRITE]) ?",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(
-                    object, p.SRBlockAndDropdownInputValue
-                ),
-                "SPRITE": ThirdInputValue.as_input(
-                    sprite, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::touching ([OBJECT]) ?",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def touchingcolor(color: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::touching color (COLOR) ?",
-            inputs={
-                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class objecttouchingobject(ThirdBlock):
 
-    @staticmethod
-    def coloristouchingcolor(
-        color1: INPUT_COMPATIBLE_T, color2: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::color (COLOR1) is touching color (COLOR2) ?",
-            inputs={
-                "COLOR1": ThirdInputValue.as_input(color1, p.SRBlockAndTextInputValue),
-                "COLOR2": ThirdInputValue.as_input(color2, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.sprite = sprite
 
-    @staticmethod
-    def getxyoftouchingsprite(object: INPUT_COMPATIBLE_T, coordinate: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::[COORDINATE] of touching ([OBJECT]) point",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(
-                    object, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={
-                "COORDINATE": p.SRDropdownValue(
-                    p.DropdownValueKind.STANDARD, coordinate
-                )
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::([OBJECT]) touching ([SPRITE]) ?",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SPRITE": ThirdInputValue.as_input(
+                        self.sprite, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def distanceto(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::distance to ([OBJECT])",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(
-                    object, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class objecttouchingclonesprite(ThirdBlock):
 
-    @staticmethod
-    def distance_to(
-        x1: INPUT_COMPATIBLE_T,
-        y1: INPUT_COMPATIBLE_T,
-        x2: INPUT_COMPATIBLE_T,
-        y2: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::distance from (X1) (Y1) to (X2) (Y2)",
-            inputs={
-                "X1": ThirdInputValue.as_input(x1, p.SRBlockAndTextInputValue),
-                "Y1": ThirdInputValue.as_input(y1, p.SRBlockAndTextInputValue),
-                "X2": ThirdInputValue.as_input(x2, p.SRBlockAndTextInputValue),
-                "Y2": ThirdInputValue.as_input(y2, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.sprite = sprite
 
-    @staticmethod
-    def direction_to(
-        x1: INPUT_COMPATIBLE_T,
-        y1: INPUT_COMPATIBLE_T,
-        x2: INPUT_COMPATIBLE_T,
-        y2: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::direction to (X1) (Y1) from (X2) (Y2)",
-            inputs={
-                "X1": ThirdInputValue.as_input(x1, p.SRBlockAndTextInputValue),
-                "Y1": ThirdInputValue.as_input(y1, p.SRBlockAndTextInputValue),
-                "X2": ThirdInputValue.as_input(x2, p.SRBlockAndTextInputValue),
-                "Y2": ThirdInputValue.as_input(y2, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::([OBJECT]) touching clone of ([SPRITE]) ?",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SPRITE": ThirdInputValue.as_input(
+                        self.sprite, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def askandwait(question: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::ask (QUESTION) and wait",
-            inputs={
-                "QUESTION": ThirdInputValue.as_input(
-                    question, p.SRBlockAndTextInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class touchingcolor(ThirdBlock):
 
-    @staticmethod
-    def answer() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::answer", inputs={}, dropdowns={})
+        def __init__(self, color: INPUT_COMPATIBLE_T):
+            self.color = color
 
-    @staticmethod
-    def thing_is_text(string: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::(STRING) is text?",
-            inputs={
-                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::touching color (COLOR) ?",
+                inputs={
+                    "COLOR": ThirdInputValue.as_input(
+                        self.color, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def thing_is_number(string: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::(STRING) is number?",
-            inputs={
-                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class coloristouchingcolor(ThirdBlock):
 
-    @staticmethod
-    def keypressed(key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::key ([KEY]) pressed?",
-            inputs={
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, color1: INPUT_COMPATIBLE_T, color2: INPUT_COMPATIBLE_T):
+            self.color1 = color1
+            self.color2 = color2
 
-    @staticmethod
-    def keyhit(key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::key ([KEY]) hit?",
-            inputs={
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::color (COLOR1) is touching color (COLOR2) ?",
+                inputs={
+                    "COLOR1": ThirdInputValue.as_input(
+                        self.color1, p.SRBlockAndTextInputValue
+                    ),
+                    "COLOR2": ThirdInputValue.as_input(
+                        self.color2, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def mousescrolling(direction: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::is mouse scrolling ([DIRECTION]) ?",
-            inputs={
-                "DIRECTION": ThirdInputValue.as_input(
-                    direction, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+    class getxyoftouchingsprite(ThirdBlock):
 
-    @staticmethod
-    def mousedown() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::mouse down?", inputs={}, dropdowns={})
+        def __init__(self, object: INPUT_COMPATIBLE_T, coordinate: str):
+            self.object = object
+            self.coordinate = coordinate
 
-    @staticmethod
-    def mouseclicked() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::mouse clicked?", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::[COORDINATE] of touching ([OBJECT]) point",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={
+                    "COORDINATE": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.coordinate
+                    )
+                },
+            )
 
-    @staticmethod
-    def mousex() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::mouse x", inputs={}, dropdowns={})
+    class distanceto(ThirdBlock):
 
-    @staticmethod
-    def mousey() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::mouse y", inputs={}, dropdowns={})
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
 
-    @staticmethod
-    def setclipboard(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::add (TEXT) to clipboard",
-            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::distance to ([OBJECT])",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def getclipboard() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::clipboard item", inputs={}, dropdowns={})
+    class distance_to(ThirdBlock):
 
-    @staticmethod
-    def setdragmode(mode: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::set drag mode [MODE]",
-            inputs={},
-            dropdowns={"MODE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, mode)},
-        )
+        def __init__(
+            self,
+            x1: INPUT_COMPATIBLE_T,
+            y1: INPUT_COMPATIBLE_T,
+            x2: INPUT_COMPATIBLE_T,
+            y2: INPUT_COMPATIBLE_T,
+        ):
+            self.x1 = x1
+            self.y1 = y1
+            self.x2 = x2
+            self.y2 = y2
 
-    @staticmethod
-    def getdragmode() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::draggable?", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::distance from (X1) (Y1) to (X2) (Y2)",
+                inputs={
+                    "X1": ThirdInputValue.as_input(self.x1, p.SRBlockAndTextInputValue),
+                    "Y1": ThirdInputValue.as_input(self.y1, p.SRBlockAndTextInputValue),
+                    "X2": ThirdInputValue.as_input(self.x2, p.SRBlockAndTextInputValue),
+                    "Y2": ThirdInputValue.as_input(self.y2, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def loudness() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::loudness", inputs={}, dropdowns={})
+    class direction_to(ThirdBlock):
 
-    @staticmethod
-    def loud() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::loud?", inputs={}, dropdowns={})
+        def __init__(
+            self,
+            x1: INPUT_COMPATIBLE_T,
+            y1: INPUT_COMPATIBLE_T,
+            x2: INPUT_COMPATIBLE_T,
+            y2: INPUT_COMPATIBLE_T,
+        ):
+            self.x1 = x1
+            self.y1 = y1
+            self.x2 = x2
+            self.y2 = y2
 
-    @staticmethod
-    def resettimer() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::reset timer", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::direction to (X1) (Y1) from (X2) (Y2)",
+                inputs={
+                    "X1": ThirdInputValue.as_input(self.x1, p.SRBlockAndTextInputValue),
+                    "Y1": ThirdInputValue.as_input(self.y1, p.SRBlockAndTextInputValue),
+                    "X2": ThirdInputValue.as_input(self.x2, p.SRBlockAndTextInputValue),
+                    "Y2": ThirdInputValue.as_input(self.y2, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def timer() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::timer", inputs={}, dropdowns={})
+    class askandwait(ThirdBlock):
 
-    @staticmethod
-    def set_of(
-        value: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T, property: str
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::set [PROPERTY] of ([TARGET]) to (VALUE)",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+        def __init__(self, question: INPUT_COMPATIBLE_T):
+            self.question = question
 
-    @staticmethod
-    def of(target: INPUT_COMPATIBLE_T, property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::[PROPERTY] of ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::ask (QUESTION) and wait",
+                inputs={
+                    "QUESTION": ThirdInputValue.as_input(
+                        self.question, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def current(property: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::current [PROPERTY]",
-            inputs={},
-            dropdowns={
-                "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
-            },
-        )
+    class answer(ThirdBlock):
 
-    @staticmethod
-    def dayssince2000() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::days since 2000", inputs={}, dropdowns={})
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def mobile() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::mobile?", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::answer", inputs={}, dropdowns={})
 
-    @staticmethod
-    def fingerdown(index: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::finger ([INDEX]) down?",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+    class thing_is_text(ThirdBlock):
 
-    @staticmethod
-    def fingertapped(index: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::finger ([INDEX]) tapped?",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, string: INPUT_COMPATIBLE_T):
+            self.string = string
 
-    @staticmethod
-    def fingerx(index: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::finger ([INDEX]) x",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::(STRING) is text?",
+                inputs={
+                    "STRING": ThirdInputValue.as_input(
+                        self.string, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def fingery(index: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::finger ([INDEX]) y",
-            inputs={
-                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
-            },
-            dropdowns={},
-        )
+    class thing_is_number(ThirdBlock):
 
-    @staticmethod
-    def username() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::username", inputs={}, dropdowns={})
+        def __init__(self, string: INPUT_COMPATIBLE_T):
+            self.string = string
 
-    @staticmethod
-    def loggedin() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::logged in?", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::(STRING) is number?",
+                inputs={
+                    "STRING": ThirdInputValue.as_input(
+                        self.string, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def touchingobjectmenu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::#TOUCHING OBJECT MENU", inputs={}, dropdowns={}
-        )
+    class keypressed(ThirdBlock):
 
-    @staticmethod
-    def fulltouchingobjectmenu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::#FULL TOUCHING OBJECT MENU", inputs={}, dropdowns={}
-        )
+        def __init__(self, key: INPUT_COMPATIBLE_T):
+            self.key = key
 
-    @staticmethod
-    def touchingobjectmenusprites() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::#TOUCHING OBJECT MENU SPRITES", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::key ([KEY]) pressed?",
+                inputs={
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def distancetomenu() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::#DISTANCE TO MENU", inputs={}, dropdowns={})
+    class keyhit(ThirdBlock):
 
-    @staticmethod
-    def keyoptions() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::#KEY MENU", inputs={}, dropdowns={})
+        def __init__(self, key: INPUT_COMPATIBLE_T):
+            self.key = key
 
-    @staticmethod
-    def scrolldirections() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::#SCROLL DIRECTION MENU", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::key ([KEY]) hit?",
+                inputs={
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def of_object_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::#OJBECT PROPERTY MENU", inputs={}, dropdowns={}
-        )
+    class mousescrolling(ThirdBlock):
 
-    @staticmethod
-    def fingeroptions() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::#FINGER INDEX MENU", inputs={}, dropdowns={})
+        def __init__(self, direction: INPUT_COMPATIBLE_T):
+            self.direction = direction
 
-    @staticmethod
-    def thing_has_number(text1: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::(TEXT1) has number?",
-            inputs={
-                "TEXT1": ThirdInputValue.as_input(text1, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::is mouse scrolling ([DIRECTION]) ?",
+                inputs={
+                    "DIRECTION": ThirdInputValue.as_input(
+                        self.direction, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def is_upper_case(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::is character (text) uppercase?",
-            inputs={"text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class mousedown(ThirdBlock):
 
-    @staticmethod
-    def regextest(
-        text: INPUT_COMPATIBLE_T, reg: INPUT_COMPATIBLE_T, regrule: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::test regex (reg) (regrule) with text (text)",
-            inputs={
-                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
-                "reg": ThirdInputValue.as_input(reg, p.SRBlockAndTextInputValue),
-                "regrule": ThirdInputValue.as_input(
-                    regrule, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def getspritewithattrib(
-        var: INPUT_COMPATIBLE_T, val: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&sensing::get sprite with (var) set to (val)",
-            inputs={
-                "var": ThirdInputValue.as_input(var, p.SRBlockAndTextInputValue),
-                "val": ThirdInputValue.as_input(val, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::mouse down?", inputs={}, dropdowns={})
 
-    @staticmethod
-    def getoperatingsystem() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::operating system", inputs={}, dropdowns={})
+    class mouseclicked(ThirdBlock):
 
-    @staticmethod
-    def getbrowser() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::browser", inputs={}, dropdowns={})
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def geturl() -> p.SRBlock:
-        return p.SRBlock(opcode="&sensing::url", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::mouse clicked?", inputs={}, dropdowns={})
+
+    class mousex(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::mouse x", inputs={}, dropdowns={})
+
+    class mousey(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::mouse y", inputs={}, dropdowns={})
+
+    class setclipboard(ThirdBlock):
+
+        def __init__(self, text: INPUT_COMPATIBLE_T):
+            self.text = text
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::add (TEXT) to clipboard",
+                inputs={
+                    "TEXT": ThirdInputValue.as_input(
+                        self.text, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class getclipboard(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::clipboard item", inputs={}, dropdowns={})
+
+    class setdragmode(ThirdBlock):
+
+        def __init__(self, mode: str):
+            self.mode = mode
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::set drag mode [MODE]",
+                inputs={},
+                dropdowns={
+                    "MODE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.mode)
+                },
+            )
+
+    class getdragmode(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::draggable?", inputs={}, dropdowns={})
+
+    class loudness(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::loudness", inputs={}, dropdowns={})
+
+    class loud(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::loud?", inputs={}, dropdowns={})
+
+    class resettimer(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::reset timer", inputs={}, dropdowns={})
+
+    class timer(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::timer", inputs={}, dropdowns={})
+
+    class set_of(ThirdBlock):
+
+        def __init__(
+            self, value: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T, property: str
+        ):
+            self.value = value
+            self.target = target
+            self.property = property
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::set [PROPERTY] of ([TARGET]) to (VALUE)",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
+
+    class of(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T, property: str):
+            self.target = target
+            self.property = property
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::[PROPERTY] of ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
+
+    class current(ThirdBlock):
+
+        def __init__(self, property: str):
+            self.property = property
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::current [PROPERTY]",
+                inputs={},
+                dropdowns={
+                    "PROPERTY": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.property
+                    )
+                },
+            )
+
+    class dayssince2000(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::days since 2000", inputs={}, dropdowns={}
+            )
+
+    class mobile(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::mobile?", inputs={}, dropdowns={})
+
+    class fingerdown(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T):
+            self.index = index
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::finger ([INDEX]) down?",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class fingertapped(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T):
+            self.index = index
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::finger ([INDEX]) tapped?",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class fingerx(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T):
+            self.index = index
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::finger ([INDEX]) x",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class fingery(ThirdBlock):
+
+        def __init__(self, index: INPUT_COMPATIBLE_T):
+            self.index = index
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::finger ([INDEX]) y",
+                inputs={
+                    "INDEX": ThirdInputValue.as_input(
+                        self.index, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class username(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::username", inputs={}, dropdowns={})
+
+    class loggedin(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::logged in?", inputs={}, dropdowns={})
+
+    class touchingobjectmenu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#TOUCHING OBJECT MENU", inputs={}, dropdowns={}
+            )
+
+    class fulltouchingobjectmenu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#FULL TOUCHING OBJECT MENU", inputs={}, dropdowns={}
+            )
+
+    class touchingobjectmenusprites(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#TOUCHING OBJECT MENU SPRITES",
+                inputs={},
+                dropdowns={},
+            )
+
+    class distancetomenu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#DISTANCE TO MENU", inputs={}, dropdowns={}
+            )
+
+    class keyoptions(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::#KEY MENU", inputs={}, dropdowns={})
+
+    class scrolldirections(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#SCROLL DIRECTION MENU", inputs={}, dropdowns={}
+            )
+
+    class of_object_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#OJBECT PROPERTY MENU", inputs={}, dropdowns={}
+            )
+
+    class fingeroptions(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::#FINGER INDEX MENU", inputs={}, dropdowns={}
+            )
+
+    class thing_has_number(ThirdBlock):
+
+        def __init__(self, text1: INPUT_COMPATIBLE_T):
+            self.text1 = text1
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::(TEXT1) has number?",
+                inputs={
+                    "TEXT1": ThirdInputValue.as_input(
+                        self.text1, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class is_upper_case(ThirdBlock):
+
+        def __init__(self, text: INPUT_COMPATIBLE_T):
+            self.text = text
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::is character (text) uppercase?",
+                inputs={
+                    "text": ThirdInputValue.as_input(
+                        self.text, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class regextest(ThirdBlock):
+
+        def __init__(
+            self,
+            text: INPUT_COMPATIBLE_T,
+            reg: INPUT_COMPATIBLE_T,
+            regrule: INPUT_COMPATIBLE_T,
+        ):
+            self.text = text
+            self.reg = reg
+            self.regrule = regrule
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::test regex (reg) (regrule) with text (text)",
+                inputs={
+                    "text": ThirdInputValue.as_input(
+                        self.text, p.SRBlockAndTextInputValue
+                    ),
+                    "reg": ThirdInputValue.as_input(
+                        self.reg, p.SRBlockAndTextInputValue
+                    ),
+                    "regrule": ThirdInputValue.as_input(
+                        self.regrule, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class getspritewithattrib(ThirdBlock):
+
+        def __init__(self, var: INPUT_COMPATIBLE_T, val: INPUT_COMPATIBLE_T):
+            self.var = var
+            self.val = val
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::get sprite with (var) set to (val)",
+                inputs={
+                    "var": ThirdInputValue.as_input(
+                        self.var, p.SRBlockAndTextInputValue
+                    ),
+                    "val": ThirdInputValue.as_input(
+                        self.val, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class getoperatingsystem(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&sensing::operating system", inputs={}, dropdowns={}
+            )
+
+    class getbrowser(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::browser", inputs={}, dropdowns={})
+
+    class geturl(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&sensing::url", inputs={}, dropdowns={})

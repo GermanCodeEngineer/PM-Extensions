@@ -15,12 +15,12 @@ from pmp_manip.opcode_info import api as info
 
 PMP_MANIP_NAME = d.Name(id="p", ctx=d.Load())
 INPUT_VALUE_NAME = d.Name(id="ThirdInputValue", ctx=d.Load())
+THIRD_BLOCK_NAME = d.Name(id="ThirdBlock", ctx=d.Load())
 INPUT_COMPATIBLE_T_NAME = d.Name(id="INPUT_COMPATIBLE_T", ctx=d.Load())
 DROPDOWN_VALUE_NAME = d.Name(id="SRDropdownValue", ctx=d.Load())
 DROPDOWN_VALUE_KIND_NAME = d.Name(id="DropdownValueKind", ctx=d.Load())
 STR_NAME = d.Name(id="str", ctx=d.Load())
 NOT_IMPLEMENTED_ERROR_NAME = d.Name(id="NotImplementedError", ctx=d.Load())
-STATICMETHOD_NAME = d.Name(id="staticmethod", ctx=d.Load())
 
 def to_snake_case(target_name: str) -> str:
     target_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", target_name)
@@ -65,6 +65,7 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
             module="third",
             names=[
                 d.alias(name=INPUT_VALUE_NAME.id, asname=None),
+                d.alias(name=THIRD_BLOCK_NAME.id, asname=None),
                 d.alias(name=INPUT_COMPATIBLE_T_NAME.id, asname=None),
             ],
             level=0,
@@ -91,7 +92,12 @@ def create_input_value_call(input_id: str, input_info: info.InputInfo, class_nam
             keywords=[],
         )
     else:
-        try_as_input_arg = d.Name(id=pick_legal_name(to_snake_case(input_id)), ctx=d.Load())
+        legal_name = pick_legal_name(to_snake_case(input_id))
+        try_as_input_arg = d.Attribute(
+            value=d.Name(id="self", ctx=d.Load()),
+            attr=legal_name,
+            ctx=d.Load(),
+        )
 
     example_input_value = p.SRInputValue.from_mode(input_info.type.mode)
 
@@ -113,6 +119,7 @@ def create_input_value_call(input_id: str, input_info: info.InputInfo, class_nam
     )
 
 def create_dropdown_value_call(dropdown_id: str) -> d.Call:
+    legal_name = pick_legal_name(to_snake_case(dropdown_id))
     return d.Call(
         func=d.Attribute(
             value=PMP_MANIP_NAME,
@@ -129,12 +136,16 @@ def create_dropdown_value_call(dropdown_id: str) -> d.Call:
                 attr="STANDARD",
                 ctx=d.Load(),
             ),
-            d.Name(id=pick_legal_name(to_snake_case(dropdown_id)), ctx=d.Load()),
+            d.Attribute(
+                value=d.Name(id="self", ctx=d.Load()),
+                attr=legal_name,
+                ctx=d.Load(),
+            ),
         ],
         keywords=[],
     )
 
-def create_block_call(
+def create_srblock_call(
         old_opcode: str, class_name: str,
         input_infos: dict[str, info.InputInfo],
         dropdown_infos: dict[str, info.DropdownInfo],
@@ -192,37 +203,63 @@ def get_new_input_ids_infos(opcode_info: info.OpcodeInfo) -> dict[str, info.Inpu
         return None
     
 
-def create_staticmethod(old_opcode: str, opcode_info: info.OpcodeInfo, class_name: str) -> d.FunctionDef:
+def create_block_helper(old_opcode: str, opcode_info: info.OpcodeInfo, class_name: str) -> d.FunctionDef:
     block_id = get_method_name(old_opcode)
     input_infos = get_new_input_ids_infos(opcode_info)
     dropdown_infos = opcode_info.get_new_dropdown_ids_infos()
 
-    args = []
+    init_args = [d.arg(arg="self", annotation=None, type_comment=None)]
+    init_body = []
     if input_infos is not None:
         for input_id, input_info in input_infos.items():
             # Skip shadow blocks (not needed as inputs)
             if input_info.type.mode is info.InputMode.FORCED_EMBEDDED_BLOCK:
                 continue
+            legal_name = pick_legal_name(to_snake_case(input_id))
             arg = d.arg(
-                arg=pick_legal_name(to_snake_case(input_id)),
+                arg=legal_name,
                 annotation=INPUT_COMPATIBLE_T_NAME,
                 type_comment=None,
             )
-            args.append(arg)
+            init_args.append(arg)
+            init_body.append(
+                d.Assign(
+                    targets=[d.Attribute(
+                        value=d.Name(id="self", ctx=d.Load()),
+                        attr=legal_name,
+                        ctx=d.Store(),
+                    )],
+                    value=d.Name(id=legal_name, ctx=d.Load()),
+                )
+            )
 
         for dropdown_id, dropdown_info in dropdown_infos.items():
+            legal_name = pick_legal_name(to_snake_case(dropdown_id))
             arg = d.arg(
-                arg=pick_legal_name(to_snake_case(dropdown_id)),
+                arg=legal_name,
                 annotation=STR_NAME,
                 type_comment=None,
             )
-            args.append(arg)
+            init_args.append(arg)
+            init_body.append(
+                d.Assign(
+                    targets=[d.Attribute(
+                        value=d.Name(id="self", ctx=d.Load()),
+                        attr=legal_name,
+                        ctx=d.Store(),
+                    )],
+                    value=d.Name(id=legal_name, ctx=d.Load()),
+                )
+            )
         
-        body = [d.Return(
-            value=create_block_call(old_opcode, class_name, input_infos, dropdown_infos)
+        if len(init_body) == 0:
+            init_body.append(d.Pass())
+        
+        conversion_body = [d.Return(
+            value=create_srblock_call(old_opcode, class_name, input_infos, dropdown_infos)
         )]
     else:
-        body = [d.Raise(
+        init_body = conversion_body = [d.Raise(
             exc=d.Call(
                 func=NOT_IMPLEMENTED_ERROR_NAME,
                 args=[
@@ -232,28 +269,56 @@ def create_staticmethod(old_opcode: str, opcode_info: info.OpcodeInfo, class_nam
                 ]
             )
         )]
-    
-    return d.FunctionDef(
-        name=block_id,
+
+    init_method = d.FunctionDef(
+        name="__init__",
         args=d.arguments(
             posonlyargs=[],
-            args=args,
+            args=init_args,
             vararg=None,
             kwonlyargs=[],
             kw_defaults=[],
             kwarg=None,
             defaults=[],
         ),
-        body=body,
-        decorator_list=[
-            STATICMETHOD_NAME,
-        ],
+        body=init_body,
+        decorator_list=[],
+        returns=None,
+        type_comment=None,
+        type_params=[],
+    )
+
+    conversion_method = d.FunctionDef(
+        name="to_second",
+        args=d.arguments(
+            posonlyargs=[],
+            args=[d.arg(arg="self", annotation=None, type_comment=None)],
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
+        ),
+        body=conversion_body,
+        decorator_list=[],
         returns=d.Attribute(
             value=PMP_MANIP_NAME,
             attr="SRBlock",
             ctx=d.Load(),
         ),
         type_comment=None,
+        type_params=[],
+    )
+    
+    return d.ClassDef(
+        name=block_id,
+        bases=[THIRD_BLOCK_NAME],
+        keywords=[],
+        body=[
+            init_method,
+            conversion_method,
+        ],
+        decorator_list=[],
         type_params=[],
     )
 
@@ -265,7 +330,7 @@ def create_module(extension_id: str) -> d.Module | None:
         if not old_opcode.startswith(opcode_prefix):
             continue
 
-        body.append(create_staticmethod(
+        body.append(create_block_helper(
             old_opcode=old_opcode,
             opcode_info=p.info_api.get_info_by_old(old_opcode),
             class_name=class_name,

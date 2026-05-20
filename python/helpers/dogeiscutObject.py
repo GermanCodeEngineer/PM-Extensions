@@ -1,271 +1,460 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class dogeiscutObject:
 
-    @staticmethod
-    def blank() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::blank object", inputs={}, dropdowns={}
-        )
+    class blank(ThirdBlock):
 
-    @staticmethod
-    def parse(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::parse (VALUE) as object",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def from_entries(array: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::from entries (ARRAY)",
-            inputs={
-                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::blank object", inputs={}, dropdowns={}
+            )
 
-    @staticmethod
-    def current_object() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::current object", inputs={}, dropdowns={}
-        )
+    class parse(ThirdBlock):
 
-    @staticmethod
-    def builder(substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::object builder {:CURRENT_OBJECT:} {SUBSTACK}",
-            inputs={
-                "CURRENT_OBJECT": ThirdInputValue.as_input(
-                    ThirdInputValue(dogeiscutObject.current_object()),
-                    p.SREmbeddedBlockInputValue,
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, value: INPUT_COMPATIBLE_T):
+            self.value = value
 
-    @staticmethod
-    def builder_append(key: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::append key (KEY) value (VALUE) to builder",
-            inputs={
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::parse (VALUE) as object",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def builder_append_empty(key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::append key (KEY) to builder",
-            inputs={"KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class from_entries(ThirdBlock):
 
-    @staticmethod
-    def builder_set(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::set builder to (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, array: INPUT_COMPATIBLE_T):
+            self.array = array
 
-    @staticmethod
-    def get(object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::get (KEY) in (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::from entries (ARRAY)",
+                inputs={
+                    "ARRAY": ThirdInputValue.as_input(
+                        self.array, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def get_path(object: INPUT_COMPATIBLE_T, array: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::get path (ARRAY) in (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class current_object(ThirdBlock):
 
-    @staticmethod
-    def has(object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::(OBJECT) has key (KEY)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def size(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::size of (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::current object", inputs={}, dropdowns={}
+            )
 
-    @staticmethod
-    def set(
-        object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::set (KEY) in (OBJECT) to (VALUE)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class builder(ThirdBlock):
 
-    @staticmethod
-    def set_path(
-        object: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T, array: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::set path (ARRAY) in (OBJECT) to (VALUE)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, substack: INPUT_COMPATIBLE_T):
+            self.substack = substack
 
-    @staticmethod
-    def delete(object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::delete key (KEY) from (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::object builder {:CURRENT_OBJECT:} {SUBSTACK}",
+                inputs={
+                    "CURRENT_OBJECT": ThirdInputValue.as_input(
+                        ThirdInputValue(dogeiscutObject.current_object()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def delete_at_path(
-        object: INPUT_COMPATIBLE_T, array: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::delete at path (ARRAY) from (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class builder_append(ThirdBlock):
 
-    @staticmethod
-    def merge(one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::merge (ONE) into (TWO)",
-            inputs={
-                "ONE": ThirdInputValue.as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": ThirdInputValue.as_input(two, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, key: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
+            self.key = key
+            self.value = value
 
-    @staticmethod
-    def to_string(object: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::stringify (OBJECT) (FORMAT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "FORMAT": ThirdInputValue.as_input(format, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::append key (KEY) value (VALUE) to builder",
+                inputs={
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def keys(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::keys of (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+    class builder_append_empty(ThirdBlock):
 
-    @staticmethod
-    def values(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::values of (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, key: INPUT_COMPATIBLE_T):
+            self.key = key
 
-    @staticmethod
-    def entries(object: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::entries of (OBJECT)",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::append key (KEY) to builder",
+                inputs={
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def is_(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::does (VALUE) parse as an object?",
-            inputs={
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class builder_set(ThirdBlock):
 
-    @staticmethod
-    def for_each_k() -> p.SRBlock:
-        return p.SRBlock(opcode="&dogeiscutObject::key", inputs={}, dropdowns={})
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
 
-    @staticmethod
-    def for_each_v() -> p.SRBlock:
-        return p.SRBlock(opcode="&dogeiscutObject::value", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::set builder to (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def for_each(object: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::for {:K:} {:V:} of (OBJECT) {SUBSTACK}",
-            inputs={
-                "OBJECT": ThirdInputValue.as_input(object, p.SRBlockOnlyInputValue),
-                "K": ThirdInputValue.as_input(
-                    ThirdInputValue(dogeiscutObject.for_each_k()),
-                    p.SREmbeddedBlockInputValue,
-                ),
-                "V": ThirdInputValue.as_input(
-                    ThirdInputValue(dogeiscutObject.for_each_v()),
-                    p.SREmbeddedBlockInputValue,
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+    class get(ThirdBlock):
 
-    @staticmethod
-    def menu_stringify_format() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&dogeiscutObject::#menu:stringifyFormat", inputs={}, dropdowns={}
-        )
+        def __init__(self, object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.key = key
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::get (KEY) in (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_path(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, array: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.array = array
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::get path (ARRAY) in (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "ARRAY": ThirdInputValue.as_input(
+                        self.array, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class has(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.key = key
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::(OBJECT) has key (KEY)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class size(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::size of (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class set(ThirdBlock):
+
+        def __init__(
+            self,
+            object: INPUT_COMPATIBLE_T,
+            key: INPUT_COMPATIBLE_T,
+            value: INPUT_COMPATIBLE_T,
+        ):
+            self.object = object
+            self.key = key
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::set (KEY) in (OBJECT) to (VALUE)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class set_path(ThirdBlock):
+
+        def __init__(
+            self,
+            object: INPUT_COMPATIBLE_T,
+            value: INPUT_COMPATIBLE_T,
+            array: INPUT_COMPATIBLE_T,
+        ):
+            self.object = object
+            self.value = value
+            self.array = array
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::set path (ARRAY) in (OBJECT) to (VALUE)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                    "ARRAY": ThirdInputValue.as_input(
+                        self.array, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class delete(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, key: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.key = key
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::delete key (KEY) from (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "KEY": ThirdInputValue.as_input(
+                        self.key, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class delete_at_path(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, array: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.array = array
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::delete at path (ARRAY) from (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "ARRAY": ThirdInputValue.as_input(
+                        self.array, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class merge(ThirdBlock):
+
+        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
+            self.one = one
+            self.two = two
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::merge (ONE) into (TWO)",
+                inputs={
+                    "ONE": ThirdInputValue.as_input(self.one, p.SRBlockOnlyInputValue),
+                    "TWO": ThirdInputValue.as_input(self.two, p.SRBlockOnlyInputValue),
+                },
+                dropdowns={},
+            )
+
+    class to_string(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.format = format
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::stringify (OBJECT) (FORMAT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "FORMAT": ThirdInputValue.as_input(
+                        self.format, p.SRBlockOnlyInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class keys(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::keys of (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class values(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::values of (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class entries(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T):
+            self.object = object
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::entries of (OBJECT)",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class is_(ThirdBlock):
+
+        def __init__(self, value: INPUT_COMPATIBLE_T):
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::does (VALUE) parse as an object?",
+                inputs={
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class for_each_k(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&dogeiscutObject::key", inputs={}, dropdowns={})
+
+    class for_each_v(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&dogeiscutObject::value", inputs={}, dropdowns={})
+
+    class for_each(ThirdBlock):
+
+        def __init__(self, object: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.object = object
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::for {:K:} {:V:} of (OBJECT) {SUBSTACK}",
+                inputs={
+                    "OBJECT": ThirdInputValue.as_input(
+                        self.object, p.SRBlockOnlyInputValue
+                    ),
+                    "K": ThirdInputValue.as_input(
+                        ThirdInputValue(dogeiscutObject.for_each_k()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "V": ThirdInputValue.as_input(
+                        ThirdInputValue(dogeiscutObject.for_each_v()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class menu_stringify_format(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&dogeiscutObject::#menu:stringifyFormat",
+                inputs={},
+                dropdowns={},
+            )

@@ -1,500 +1,758 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class gceOOP:
 
-    @staticmethod
-    def temp_block(instance: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::temp block with (INSTANCE) end",
-            inputs={
-                "INSTANCE": ThirdInputValue.as_input(instance, p.SRBlockOnlyInputValue)
-            },
-            dropdowns={},
-        )
+    class temp_block(ThirdBlock):
 
-    @staticmethod
-    def temp_block2(a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::temp command with (A) and (B)",
-            inputs={
-                "A": ThirdInputValue.as_input(a, p.SRBlockOnlyInputValue),
-                "B": ThirdInputValue.as_input(b, p.SRBlockOnlyInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, instance: INPUT_COMPATIBLE_T):
+            self.instance = instance
 
-    @staticmethod
-    def create_class_at(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create class at var (NAME) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::temp block with (INSTANCE) end",
+                inputs={
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockOnlyInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def create_subclass_at(
-        name: INPUT_COMPATIBLE_T,
-        superclass: INPUT_COMPATIBLE_T,
-        substack: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create subclass at var (NAME) with superclass (SUPERCLASS) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SUPERCLASS": ThirdInputValue.as_input(
-                    superclass, p.SRBlockAndTextInputValue
-                ),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+    class temp_block2(ThirdBlock):
 
-    @staticmethod
-    def create_class_named(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create class named (NAME) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
+            self.a = a
+            self.b = b
 
-    @staticmethod
-    def create_subclass_named(
-        name: INPUT_COMPATIBLE_T,
-        superclass: INPUT_COMPATIBLE_T,
-        substack: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create subclass named (NAME) with superclass (SUPERCLASS) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SUPERCLASS": ThirdInputValue.as_input(
-                    superclass, p.SRBlockAndTextInputValue
-                ),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::temp command with (A) and (B)",
+                inputs={
+                    "A": ThirdInputValue.as_input(self.a, p.SRBlockOnlyInputValue),
+                    "B": ThirdInputValue.as_input(self.b, p.SRBlockOnlyInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def on_class(class_: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on class (CLASS) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.current_class()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+    class create_class_at(ThirdBlock):
 
-    @staticmethod
-    def current_class() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::current class", inputs={}, dropdowns={})
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
 
-    @staticmethod
-    def is_subclass(
-        subclass: INPUT_COMPATIBLE_T, superclass: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::is (SUBCLASS) a subclass of (SUPERCLASS) ?",
-            inputs={
-                "SUBCLASS": ThirdInputValue.as_input(
-                    subclass, p.SRBlockAndTextInputValue
-                ),
-                "SUPERCLASS": ThirdInputValue.as_input(
-                    superclass, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::create class at var (NAME) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.current_class()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def get_superclass(class_: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::get superclass of (CLASS)",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class create_subclass_at(ThirdBlock):
 
-    @staticmethod
-    def define_instance_method(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define instance method (NAME) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.self_value()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self,
+            name: INPUT_COMPATIBLE_T,
+            superclass: INPUT_COMPATIBLE_T,
+            substack: INPUT_COMPATIBLE_T,
+        ):
+            self.name = name
+            self.superclass = superclass
+            self.substack = substack
 
-    @staticmethod
-    def define_special_method(
-        special_method: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define ([SPECIAL_METHOD]) instance method {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "SPECIAL_METHOD": ThirdInputValue.as_input(
-                    special_method, p.SRBlockAndDropdownInputValue
-                ),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.self_value()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::create subclass at var (NAME) with superclass (SUPERCLASS) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SUPERCLASS": ThirdInputValue.as_input(
+                        self.superclass, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.current_class()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def self_value() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::self", inputs={}, dropdowns={})
+    class create_class_named(ThirdBlock):
 
-    @staticmethod
-    def call_super_method(
-        name: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::call super method (NAME) with positional args (POSARGS)",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": ThirdInputValue.as_input(
-                    posargs, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
 
-    @staticmethod
-    def call_super_init_method(posargs: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::call super init method with positional args (POSARGS)",
-            inputs={
-                "POSARGS": ThirdInputValue.as_input(posargs, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::create class named (NAME) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.current_class()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def define_getter(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define getter for (NAME) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.self_value()), p.SREmbeddedBlockInputValue
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+    class create_subclass_named(ThirdBlock):
 
-    @staticmethod
-    def define_setter(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define setter for (NAME) {:SHADOW1:} {:SHADOW2:} {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SHADOW1": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.self_value()), p.SREmbeddedBlockInputValue
-                ),
-                "SHADOW2": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.define_setter_value()),
-                    p.SREmbeddedBlockInputValue,
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self,
+            name: INPUT_COMPATIBLE_T,
+            superclass: INPUT_COMPATIBLE_T,
+            substack: INPUT_COMPATIBLE_T,
+        ):
+            self.name = name
+            self.superclass = superclass
+            self.substack = substack
 
-    @staticmethod
-    def define_operator_method(
-        operator_kind: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define operator method ([OPERATOR_KIND]) {:SHADOW:} {SUBSTACK}",
-            inputs={
-                "OPERATOR_KIND": ThirdInputValue.as_input(
-                    operator_kind, p.SRBlockAndDropdownInputValue
-                ),
-                "SHADOW": ThirdInputValue.as_input(
-                    ThirdInputValue(gceOOP.operator_operator_value()),
-                    p.SREmbeddedBlockInputValue,
-                ),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::create subclass named (NAME) with superclass (SUPERCLASS) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SUPERCLASS": ThirdInputValue.as_input(
+                        self.superclass, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.current_class()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def operator_operator_value() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::operator value {{id=gceOOP_operatorOperatorValue}}",
-            inputs={},
-            dropdowns={},
-        )
+    class on_class(ThirdBlock):
 
-    @staticmethod
-    def set_class_variable(
-        class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) set class var (NAME) to (VALUE)",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, class_: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.class_ = class_
+            self.substack = substack
 
-    @staticmethod
-    def get_class_variable(
-        name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) get class var (NAME)",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on class (CLASS) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.current_class()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def delete_class_variable(
-        class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) delete class var (NAME)",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class current_class(ThirdBlock):
 
-    @staticmethod
-    def define_static_method(
-        name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::define static method (NAME) {SUBSTACK}",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self):
+            pass
 
-    @staticmethod
-    def property_names_of_class(
-        property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::([PROPERTY]) names of class (CLASS)",
-            inputs={
-                "PROPERTY": ThirdInputValue.as_input(
-                    property, p.SRBlockAndDropdownInputValue
-                ),
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&gceOOP::current class", inputs={}, dropdowns={})
 
-    @staticmethod
-    def create_instance(
-        class_: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::create instance of class (CLASS) with positional args (POSARGS)",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-                "POSARGS": ThirdInputValue.as_input(
-                    posargs, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+    class is_subclass(ThirdBlock):
 
-    @staticmethod
-    def is_instance(
-        potential_instance: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::is (POTENTIAL_INSTANCE) an instance of (CLASS) ?",
-            inputs={
-                "POTENTIAL_INSTANCE": ThirdInputValue.as_input(
-                    potential_instance, p.SRBlockAndTextInputValue
-                ),
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self, subclass: INPUT_COMPATIBLE_T, superclass: INPUT_COMPATIBLE_T
+        ):
+            self.subclass = subclass
+            self.superclass = superclass
 
-    @staticmethod
-    def get_class_of_instance(instance: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::get class of (INSTANCE)",
-            inputs={
-                "INSTANCE": ThirdInputValue.as_input(
-                    instance, p.SRBlockAndTextInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::is (SUBCLASS) a subclass of (SUPERCLASS) ?",
+                inputs={
+                    "SUBCLASS": ThirdInputValue.as_input(
+                        self.subclass, p.SRBlockAndTextInputValue
+                    ),
+                    "SUPERCLASS": ThirdInputValue.as_input(
+                        self.superclass, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def set_attribute(
-        instance: INPUT_COMPATIBLE_T,
-        name: INPUT_COMPATIBLE_T,
-        value: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (INSTANCE) set attribute (NAME) to (VALUE)",
-            inputs={
-                "INSTANCE": ThirdInputValue.as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class get_superclass(ThirdBlock):
 
-    @staticmethod
-    def get_attribute(
-        name: INPUT_COMPATIBLE_T, instance: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (INSTANCE) get attribute (NAME)",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "INSTANCE": ThirdInputValue.as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, class_: INPUT_COMPATIBLE_T):
+            self.class_ = class_
 
-    @staticmethod
-    def get_all_attributes(instance: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::all attributes of (INSTANCE)",
-            inputs={
-                "INSTANCE": ThirdInputValue.as_input(
-                    instance, p.SRBlockAndTextInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::get superclass of (CLASS)",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def call_method(
-        instance: INPUT_COMPATIBLE_T,
-        name: INPUT_COMPATIBLE_T,
-        posargs: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (INSTANCE) call method (NAME) with positional args (POSARGS)",
-            inputs={
-                "INSTANCE": ThirdInputValue.as_input(
-                    instance, p.SRBlockAndTextInputValue
-                ),
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": ThirdInputValue.as_input(
-                    posargs, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+    class define_instance_method(ThirdBlock):
 
-    @staticmethod
-    def call_static_method(
-        class_: INPUT_COMPATIBLE_T,
-        name: INPUT_COMPATIBLE_T,
-        posargs: INPUT_COMPATIBLE_T,
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::on (CLASS) call static method (NAME) with positional args (POSARGS)",
-            inputs={
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "POSARGS": ThirdInputValue.as_input(
-                    posargs, p.SRBlockAndTextInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
 
-    @staticmethod
-    def get_static_method_func(
-        name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::get static method (NAME) of (CLASS) as function",
-            inputs={
-                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
-                "CLASS": ThirdInputValue.as_input(class_, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define instance method (NAME) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.self_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def define_setter_value() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::operator value {{id=gceOOP_defineSetterValue}}",
-            inputs={},
-            dropdowns={},
-        )
+    class define_special_method(ThirdBlock):
 
-    @staticmethod
-    def menu_class_property() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={})
+        def __init__(
+            self, special_method: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
+        ):
+            self.special_method = special_method
+            self.substack = substack
 
-    @staticmethod
-    def menu_operator_method() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&gceOOP::#menu:operatorMethod", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define ([SPECIAL_METHOD]) instance method {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "SPECIAL_METHOD": ThirdInputValue.as_input(
+                        self.special_method, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.self_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def menu_special_method() -> p.SRBlock:
-        return p.SRBlock(opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={})
+    class self_value(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&gceOOP::self", inputs={}, dropdowns={})
+
+    class call_super_method(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.posargs = posargs
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::call super method (NAME) with positional args (POSARGS)",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "POSARGS": ThirdInputValue.as_input(
+                        self.posargs, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class call_super_init_method(ThirdBlock):
+
+        def __init__(self, posargs: INPUT_COMPATIBLE_T):
+            self.posargs = posargs
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::call super init method with positional args (POSARGS)",
+                inputs={
+                    "POSARGS": ThirdInputValue.as_input(
+                        self.posargs, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class define_getter(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define getter for (NAME) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.self_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class define_setter(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define setter for (NAME) {:SHADOW1:} {:SHADOW2:} {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SHADOW1": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.self_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SHADOW2": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.define_setter_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class define_operator_method(ThirdBlock):
+
+        def __init__(
+            self, operator_kind: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
+        ):
+            self.operator_kind = operator_kind
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define operator method ([OPERATOR_KIND]) {:SHADOW:} {SUBSTACK}",
+                inputs={
+                    "OPERATOR_KIND": ThirdInputValue.as_input(
+                        self.operator_kind, p.SRBlockAndDropdownInputValue
+                    ),
+                    "SHADOW": ThirdInputValue.as_input(
+                        ThirdInputValue(gceOOP.operator_operator_value()),
+                        p.SREmbeddedBlockInputValue,
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class operator_operator_value(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::operator value {{id=gceOOP_operatorOperatorValue}}",
+                inputs={},
+                dropdowns={},
+            )
+
+    class set_class_variable(ThirdBlock):
+
+        def __init__(
+            self,
+            class_: INPUT_COMPATIBLE_T,
+            name: INPUT_COMPATIBLE_T,
+            value: INPUT_COMPATIBLE_T,
+        ):
+            self.class_ = class_
+            self.name = name
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (CLASS) set class var (NAME) to (VALUE)",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_class_variable(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.class_ = class_
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (CLASS) get class var (NAME)",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class delete_class_variable(ThirdBlock):
+
+        def __init__(self, class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
+            self.class_ = class_
+            self.name = name
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (CLASS) delete class var (NAME)",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class define_static_method(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.substack = substack
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::define static method (NAME) {SUBSTACK}",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "SUBSTACK": ThirdInputValue.as_input(
+                        self.substack, p.SRScriptInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class property_names_of_class(ThirdBlock):
+
+        def __init__(self, property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
+            self.property = property
+            self.class_ = class_
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::([PROPERTY]) names of class (CLASS)",
+                inputs={
+                    "PROPERTY": ThirdInputValue.as_input(
+                        self.property, p.SRBlockAndDropdownInputValue
+                    ),
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class create_instance(ThirdBlock):
+
+        def __init__(self, class_: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T):
+            self.class_ = class_
+            self.posargs = posargs
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::create instance of class (CLASS) with positional args (POSARGS)",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                    "POSARGS": ThirdInputValue.as_input(
+                        self.posargs, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class is_instance(ThirdBlock):
+
+        def __init__(
+            self, potential_instance: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
+        ):
+            self.potential_instance = potential_instance
+            self.class_ = class_
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::is (POTENTIAL_INSTANCE) an instance of (CLASS) ?",
+                inputs={
+                    "POTENTIAL_INSTANCE": ThirdInputValue.as_input(
+                        self.potential_instance, p.SRBlockAndTextInputValue
+                    ),
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_class_of_instance(ThirdBlock):
+
+        def __init__(self, instance: INPUT_COMPATIBLE_T):
+            self.instance = instance
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::get class of (INSTANCE)",
+                inputs={
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class set_attribute(ThirdBlock):
+
+        def __init__(
+            self,
+            instance: INPUT_COMPATIBLE_T,
+            name: INPUT_COMPATIBLE_T,
+            value: INPUT_COMPATIBLE_T,
+        ):
+            self.instance = instance
+            self.name = name
+            self.value = value
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (INSTANCE) set attribute (NAME) to (VALUE)",
+                inputs={
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockAndTextInputValue
+                    ),
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "VALUE": ThirdInputValue.as_input(
+                        self.value, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_attribute(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, instance: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.instance = instance
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (INSTANCE) get attribute (NAME)",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_all_attributes(ThirdBlock):
+
+        def __init__(self, instance: INPUT_COMPATIBLE_T):
+            self.instance = instance
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::all attributes of (INSTANCE)",
+                inputs={
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class call_method(ThirdBlock):
+
+        def __init__(
+            self,
+            instance: INPUT_COMPATIBLE_T,
+            name: INPUT_COMPATIBLE_T,
+            posargs: INPUT_COMPATIBLE_T,
+        ):
+            self.instance = instance
+            self.name = name
+            self.posargs = posargs
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (INSTANCE) call method (NAME) with positional args (POSARGS)",
+                inputs={
+                    "INSTANCE": ThirdInputValue.as_input(
+                        self.instance, p.SRBlockAndTextInputValue
+                    ),
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "POSARGS": ThirdInputValue.as_input(
+                        self.posargs, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class call_static_method(ThirdBlock):
+
+        def __init__(
+            self,
+            class_: INPUT_COMPATIBLE_T,
+            name: INPUT_COMPATIBLE_T,
+            posargs: INPUT_COMPATIBLE_T,
+        ):
+            self.class_ = class_
+            self.name = name
+            self.posargs = posargs
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::on (CLASS) call static method (NAME) with positional args (POSARGS)",
+                inputs={
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "POSARGS": ThirdInputValue.as_input(
+                        self.posargs, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class get_static_method_func(ThirdBlock):
+
+        def __init__(self, name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
+            self.name = name
+            self.class_ = class_
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::get static method (NAME) of (CLASS) as function",
+                inputs={
+                    "NAME": ThirdInputValue.as_input(
+                        self.name, p.SRBlockAndTextInputValue
+                    ),
+                    "CLASS": ThirdInputValue.as_input(
+                        self.class_, p.SRBlockAndTextInputValue
+                    ),
+                },
+                dropdowns={},
+            )
+
+    class define_setter_value(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::operator value {{id=gceOOP_defineSetterValue}}",
+                inputs={},
+                dropdowns={},
+            )
+
+    class menu_class_property(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={}
+            )
+
+    class menu_operator_method(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::#menu:operatorMethod", inputs={}, dropdowns={}
+            )
+
+    class menu_special_method(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&gceOOP::#menu:specialMethod", inputs={}, dropdowns={}
+            )

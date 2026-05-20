@@ -1,299 +1,472 @@
 from __future__ import annotations
 import pmp_manip as p
-from third import ThirdInputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class motion:
 
-    @staticmethod
-    def movesteps(steps: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::move (STEPS) steps",
-            inputs={
-                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class movesteps(ThirdBlock):
 
-    @staticmethod
-    def movebacksteps(steps: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::move back (STEPS) steps",
-            inputs={
-                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, steps: INPUT_COMPATIBLE_T):
+            self.steps = steps
 
-    @staticmethod
-    def moveupdownsteps(steps: INPUT_COMPATIBLE_T, direction: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::move [DIRECTION] (STEPS) steps",
-            inputs={
-                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={
-                "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
-            },
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::move (STEPS) steps",
+                inputs={
+                    "STEPS": ThirdInputValue.as_input(
+                        self.steps, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def turnright(degrees: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::turn clockwise (DEGREES) degrees",
-            inputs={
-                "DEGREES": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+    class movebacksteps(ThirdBlock):
 
-    @staticmethod
-    def turnleft(degrees: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::turn counterclockwise (DEGREES) degrees",
-            inputs={
-                "DEGREES": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
-            },
-            dropdowns={},
-        )
+        def __init__(self, steps: INPUT_COMPATIBLE_T):
+            self.steps = steps
 
-    @staticmethod
-    def goto(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::go to ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::move back (STEPS) steps",
+                inputs={
+                    "STEPS": ThirdInputValue.as_input(
+                        self.steps, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def gotoxy(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::go to x: (X) y: (Y)",
-            inputs={
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class moveupdownsteps(ThirdBlock):
 
-    @staticmethod
-    def changebyxy(dx: INPUT_COMPATIBLE_T, dy: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::change by x: (DX) y: (DY)",
-            inputs={
-                "DX": ThirdInputValue.as_input(dx, p.SRBlockAndTextInputValue),
-                "DY": ThirdInputValue.as_input(dy, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(self, steps: INPUT_COMPATIBLE_T, direction: str):
+            self.steps = steps
+            self.direction = direction
 
-    @staticmethod
-    def glideto(seconds: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::glide (SECONDS) secs to ([TARGET])",
-            inputs={
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                ),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::move [DIRECTION] (STEPS) steps",
+                inputs={
+                    "STEPS": ThirdInputValue.as_input(
+                        self.steps, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={
+                    "DIRECTION": p.SRDropdownValue(
+                        p.DropdownValueKind.STANDARD, self.direction
+                    )
+                },
+            )
 
-    @staticmethod
-    def glidesecstoxy(
-        seconds: INPUT_COMPATIBLE_T, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::glide (SECONDS) secs to x: (X) y: (Y)",
-            inputs={
-                "SECONDS": ThirdInputValue.as_input(
-                    seconds, p.SRBlockAndTextInputValue
-                ),
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class turnright(ThirdBlock):
 
-    @staticmethod
-    def pointindirection(direction: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::point in direction (DIRECTION)",
-            inputs={
-                "DIRECTION": ThirdInputValue.as_input(
-                    direction, p.SRBlockAndTextInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, degrees: INPUT_COMPATIBLE_T):
+            self.degrees = degrees
 
-    @staticmethod
-    def pointtowards(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::point towards ([TARGET])",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::turn clockwise (DEGREES) degrees",
+                inputs={
+                    "DEGREES": ThirdInputValue.as_input(
+                        self.degrees, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def pointtowardsxy(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::point towards x: (X) y: (Y)",
-            inputs={
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class turnleft(ThirdBlock):
 
-    @staticmethod
-    def turnaround() -> p.SRBlock:
-        return p.SRBlock(opcode="&motion::turn around", inputs={}, dropdowns={})
+        def __init__(self, degrees: INPUT_COMPATIBLE_T):
+            self.degrees = degrees
 
-    @staticmethod
-    def changexby(dx: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::change x by (DX)",
-            inputs={"DX": ThirdInputValue.as_input(dx, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::turn counterclockwise (DEGREES) degrees",
+                inputs={
+                    "DEGREES": ThirdInputValue.as_input(
+                        self.degrees, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def setx(x: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::set x to (X)",
-            inputs={"X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+    class goto(ThirdBlock):
 
-    @staticmethod
-    def changeyby(dy: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::change y by (DY)",
-            inputs={"DY": ThirdInputValue.as_input(dy, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
 
-    @staticmethod
-    def sety(y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::set y to (Y)",
-            inputs={"Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue)},
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::go to ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def ifonedgebounce() -> p.SRBlock:
-        return p.SRBlock(opcode="&motion::if on edge, bounce", inputs={}, dropdowns={})
+    class gotoxy(ThirdBlock):
 
-    @staticmethod
-    def ifonspritebounce(target: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::if touching ([TARGET]), bounce",
-            inputs={
-                "TARGET": ThirdInputValue.as_input(
-                    target, p.SRBlockAndDropdownInputValue
-                )
-            },
-            dropdowns={},
-        )
+        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
+            self.x = x
+            self.y = y
 
-    @staticmethod
-    def setrotationstyle(style: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::set rotation style [STYLE]",
-            inputs={},
-            dropdowns={"STYLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, style)},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::go to x: (X) y: (Y)",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def move_sprite_to_scene_side(zone: str) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::move to stage [ZONE]",
-            inputs={},
-            dropdowns={"ZONE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, zone)},
-        )
+    class changebyxy(ThirdBlock):
 
-    @staticmethod
-    def xposition() -> p.SRBlock:
-        return p.SRBlock(opcode="&motion::x position", inputs={}, dropdowns={})
+        def __init__(self, dx: INPUT_COMPATIBLE_T, dy: INPUT_COMPATIBLE_T):
+            self.dx = dx
+            self.dy = dy
 
-    @staticmethod
-    def yposition() -> p.SRBlock:
-        return p.SRBlock(opcode="&motion::y position", inputs={}, dropdowns={})
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::change by x: (DX) y: (DY)",
+                inputs={
+                    "DX": ThirdInputValue.as_input(self.dx, p.SRBlockAndTextInputValue),
+                    "DY": ThirdInputValue.as_input(self.dy, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def direction() -> p.SRBlock:
-        return p.SRBlock(opcode="&motion::direction", inputs={}, dropdowns={})
+    class glideto(ThirdBlock):
 
-    @staticmethod
-    def goto_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::#REACHABLE TARGET MENU (GO)", inputs={}, dropdowns={}
-        )
+        def __init__(self, seconds: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T):
+            self.seconds = seconds
+            self.target = target
 
-    @staticmethod
-    def glideto_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::#REACHABLE TARGET MENU (GLIDE)", inputs={}, dropdowns={}
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::glide (SECONDS) secs to ([TARGET])",
+                inputs={
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    ),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def pointtowards_menu() -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::#OBSERVABLE TARGET MENU", inputs={}, dropdowns={}
-        )
+    class glidesecstoxy(ThirdBlock):
 
-    @staticmethod
-    def turnrightaroundxy(
-        degrees: INPUT_COMPATIBLE_T, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::turn clockwise (DEGREES) around x: (X) y: (Y)",
-            inputs={
-                "DEGREES": ThirdInputValue.as_input(
-                    degrees, p.SRBlockAndTextInputValue
-                ),
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def __init__(
+            self,
+            seconds: INPUT_COMPATIBLE_T,
+            x: INPUT_COMPATIBLE_T,
+            y: INPUT_COMPATIBLE_T,
+        ):
+            self.seconds = seconds
+            self.x = x
+            self.y = y
 
-    @staticmethod
-    def turnleftaroundxy(
-        degrees: INPUT_COMPATIBLE_T, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T
-    ) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::turn counterclockwise (DEGREES) around x: (X) y: (Y)",
-            inputs={
-                "DEGREES": ThirdInputValue.as_input(
-                    degrees, p.SRBlockAndTextInputValue
-                ),
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::glide (SECONDS) secs to x: (X) y: (Y)",
+                inputs={
+                    "SECONDS": ThirdInputValue.as_input(
+                        self.seconds, p.SRBlockAndTextInputValue
+                    ),
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
 
-    @staticmethod
-    def ifonxybounce(x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T) -> p.SRBlock:
-        return p.SRBlock(
-            opcode="&motion::if touching x: (X) y: [Y], bounce",
-            inputs={
-                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
-                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
-            },
-            dropdowns={},
-        )
+    class pointindirection(ThirdBlock):
+
+        def __init__(self, direction: INPUT_COMPATIBLE_T):
+            self.direction = direction
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::point in direction (DIRECTION)",
+                inputs={
+                    "DIRECTION": ThirdInputValue.as_input(
+                        self.direction, p.SRBlockAndTextInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class pointtowards(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::point towards ([TARGET])",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class pointtowardsxy(ThirdBlock):
+
+        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::point towards x: (X) y: (Y)",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class turnaround(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&motion::turn around", inputs={}, dropdowns={})
+
+    class changexby(ThirdBlock):
+
+        def __init__(self, dx: INPUT_COMPATIBLE_T):
+            self.dx = dx
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::change x by (DX)",
+                inputs={
+                    "DX": ThirdInputValue.as_input(self.dx, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class setx(ThirdBlock):
+
+        def __init__(self, x: INPUT_COMPATIBLE_T):
+            self.x = x
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::set x to (X)",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class changeyby(ThirdBlock):
+
+        def __init__(self, dy: INPUT_COMPATIBLE_T):
+            self.dy = dy
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::change y by (DY)",
+                inputs={
+                    "DY": ThirdInputValue.as_input(self.dy, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class sety(ThirdBlock):
+
+        def __init__(self, y: INPUT_COMPATIBLE_T):
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::set y to (Y)",
+                inputs={
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue)
+                },
+                dropdowns={},
+            )
+
+    class ifonedgebounce(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::if on edge, bounce", inputs={}, dropdowns={}
+            )
+
+    class ifonspritebounce(ThirdBlock):
+
+        def __init__(self, target: INPUT_COMPATIBLE_T):
+            self.target = target
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::if touching ([TARGET]), bounce",
+                inputs={
+                    "TARGET": ThirdInputValue.as_input(
+                        self.target, p.SRBlockAndDropdownInputValue
+                    )
+                },
+                dropdowns={},
+            )
+
+    class setrotationstyle(ThirdBlock):
+
+        def __init__(self, style: str):
+            self.style = style
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::set rotation style [STYLE]",
+                inputs={},
+                dropdowns={
+                    "STYLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.style)
+                },
+            )
+
+    class move_sprite_to_scene_side(ThirdBlock):
+
+        def __init__(self, zone: str):
+            self.zone = zone
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::move to stage [ZONE]",
+                inputs={},
+                dropdowns={
+                    "ZONE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.zone)
+                },
+            )
+
+    class xposition(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&motion::x position", inputs={}, dropdowns={})
+
+    class yposition(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&motion::y position", inputs={}, dropdowns={})
+
+    class direction(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(opcode="&motion::direction", inputs={}, dropdowns={})
+
+    class goto_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::#REACHABLE TARGET MENU (GO)", inputs={}, dropdowns={}
+            )
+
+    class glideto_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::#REACHABLE TARGET MENU (GLIDE)",
+                inputs={},
+                dropdowns={},
+            )
+
+    class pointtowards_menu(ThirdBlock):
+
+        def __init__(self):
+            pass
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::#OBSERVABLE TARGET MENU", inputs={}, dropdowns={}
+            )
+
+    class turnrightaroundxy(ThirdBlock):
+
+        def __init__(
+            self,
+            degrees: INPUT_COMPATIBLE_T,
+            x: INPUT_COMPATIBLE_T,
+            y: INPUT_COMPATIBLE_T,
+        ):
+            self.degrees = degrees
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::turn clockwise (DEGREES) around x: (X) y: (Y)",
+                inputs={
+                    "DEGREES": ThirdInputValue.as_input(
+                        self.degrees, p.SRBlockAndTextInputValue
+                    ),
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class turnleftaroundxy(ThirdBlock):
+
+        def __init__(
+            self,
+            degrees: INPUT_COMPATIBLE_T,
+            x: INPUT_COMPATIBLE_T,
+            y: INPUT_COMPATIBLE_T,
+        ):
+            self.degrees = degrees
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::turn counterclockwise (DEGREES) around x: (X) y: (Y)",
+                inputs={
+                    "DEGREES": ThirdInputValue.as_input(
+                        self.degrees, p.SRBlockAndTextInputValue
+                    ),
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
+
+    class ifonxybounce(ThirdBlock):
+
+        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
+            self.x = x
+            self.y = y
+
+        def to_second(self) -> p.SRBlock:
+            return p.SRBlock(
+                opcode="&motion::if touching x: (X) y: [Y], bounce",
+                inputs={
+                    "X": ThirdInputValue.as_input(self.x, p.SRBlockAndTextInputValue),
+                    "Y": ThirdInputValue.as_input(self.y, p.SRBlockAndTextInputValue),
+                },
+                dropdowns={},
+            )
