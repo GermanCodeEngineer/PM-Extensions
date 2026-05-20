@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class operator:
@@ -10,10 +10,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) + (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -27,10 +27,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) - (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -44,10 +44,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) * (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -59,10 +59,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) / (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -74,10 +74,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) ^ (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -94,13 +94,13 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) * (OPERAND2) [OPERATION] (OPERAND3)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND3": InputValue.try_as_input(
+                "OPERAND3": ThirdInputValue.as_input(
                     operand3, p.SRBlockAndTextInputValue
                 ),
             },
@@ -116,10 +116,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) [OPERATION] (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -133,10 +133,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::pick random (OPERAND1) to (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -150,9 +150,9 @@ class operator:
         return p.SRBlock(
             opcode="&operators::constrain (NUM) min (MIN) max (MAX)",
             inputs={
-                "NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue),
-                "MIN": InputValue.try_as_input(min, p.SRBlockAndTextInputValue),
-                "MAX": InputValue.try_as_input(max, p.SRBlockAndTextInputValue),
+                "NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue),
+                "MIN": ThirdInputValue.as_input(min, p.SRBlockAndTextInputValue),
+                "MAX": ThirdInputValue.as_input(max, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -166,13 +166,13 @@ class operator:
         return p.SRBlock(
             opcode="&operators::interpolate (OPERAND1) to (OPERAND2) by (WEIGHT)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
-                "WEIGHT": InputValue.try_as_input(weight, p.SRBlockAndTextInputValue),
+                "WEIGHT": ThirdInputValue.as_input(weight, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -182,10 +182,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) > (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -199,10 +199,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) >= (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -214,10 +214,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) < (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -231,10 +231,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) <= (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -246,10 +246,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) = (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -263,10 +263,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) != (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -286,10 +286,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::<OPERAND1> and <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -301,10 +301,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::<OPERAND1> or <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -316,7 +316,7 @@ class operator:
         return p.SRBlock(
             opcode="&operators::not <OPERAND>",
             inputs={
-                "OPERAND": InputValue.try_as_input(operand, p.SRBlockAndBoolInputValue)
+                "OPERAND": ThirdInputValue.as_input(operand, p.SRBlockAndBoolInputValue)
             },
             dropdowns={},
         )
@@ -334,8 +334,12 @@ class operator:
         return p.SRBlock(
             opcode="&operators::join (STRING1) (STRING2)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -349,9 +353,15 @@ class operator:
         return p.SRBlock(
             opcode="&operators::join (STRING1) (STRING2) (STRING3)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -363,10 +373,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::index of (SUBSTRING) in (TEXT)",
             inputs={
-                "SUBSTRING": InputValue.try_as_input(
+                "SUBSTRING": ThirdInputValue.as_input(
                     substring, p.SRBlockAndTextInputValue
                 ),
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -378,10 +388,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::last index of (SUBSTRING) in (TEXT)",
             inputs={
-                "SUBSTRING": InputValue.try_as_input(
+                "SUBSTRING": ThirdInputValue.as_input(
                     substring, p.SRBlockAndTextInputValue
                 ),
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -391,8 +401,8 @@ class operator:
         return p.SRBlock(
             opcode="&operators::letter (LETTER) of (STRING)",
             inputs={
-                "LETTER": InputValue.try_as_input(letter, p.SRBlockAndTextInputValue),
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
+                "LETTER": ThirdInputValue.as_input(letter, p.SRBlockAndTextInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -404,9 +414,9 @@ class operator:
         return p.SRBlock(
             opcode="&operators::letters from (START) to (STOP) in (TEXT)",
             inputs={
-                "START": InputValue.try_as_input(start, p.SRBlockAndTextInputValue),
-                "STOP": InputValue.try_as_input(stop, p.SRBlockAndTextInputValue),
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "START": ThirdInputValue.as_input(start, p.SRBlockAndTextInputValue),
+                "STOP": ThirdInputValue.as_input(stop, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -415,7 +425,7 @@ class operator:
     def length(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operators::length of (TEXT)",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -424,8 +434,8 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(TEXT) contains (SUBSTRING) ?",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "SUBSTRING": InputValue.try_as_input(
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "SUBSTRING": ThirdInputValue.as_input(
                     substring, p.SRBlockAndTextInputValue
                 ),
             },
@@ -439,8 +449,8 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(TEXT) [OPERATION] with (SUBSTRING) ?",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "SUBSTRING": InputValue.try_as_input(
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "SUBSTRING": ThirdInputValue.as_input(
                     substring, p.SRBlockAndTextInputValue
                 ),
             },
@@ -458,11 +468,11 @@ class operator:
         return p.SRBlock(
             opcode="&operators::in (TEXT) replace all (OLDVALUE) with (NEWVALUE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "OLDVALUE": InputValue.try_as_input(
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "OLDVALUE": ThirdInputValue.as_input(
                     oldvalue, p.SRBlockAndTextInputValue
                 ),
-                "NEWVALUE": InputValue.try_as_input(
+                "NEWVALUE": ThirdInputValue.as_input(
                     newvalue, p.SRBlockAndTextInputValue
                 ),
             },
@@ -478,11 +488,11 @@ class operator:
         return p.SRBlock(
             opcode="&operators::in (TEXT) replace first (OLDVALUE) with (NEWVALUE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "OLDVALUE": InputValue.try_as_input(
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "OLDVALUE": ThirdInputValue.as_input(
                     oldvalue, p.SRBlockAndTextInputValue
                 ),
-                "NEWVALUE": InputValue.try_as_input(
+                "NEWVALUE": ThirdInputValue.as_input(
                     newvalue, p.SRBlockAndTextInputValue
                 ),
             },
@@ -498,9 +508,9 @@ class operator:
         return p.SRBlock(
             opcode="&operators::match (TEXT) with regex (REGEX) (MODIFIER)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockAndTextInputValue),
-                "MODIFIER": InputValue.try_as_input(
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockAndTextInputValue),
+                "MODIFIER": ThirdInputValue.as_input(
                     modifier, p.SRBlockAndTextInputValue
                 ),
             },
@@ -511,7 +521,7 @@ class operator:
     def to_upper_lower_case(text: INPUT_COMPATIBLE_T, case: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operators::(TEXT) to [CASE]",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={"CASE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, case)},
         )
 
@@ -520,10 +530,10 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(OPERAND1) mod (OPERAND2)",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndTextInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -534,7 +544,7 @@ class operator:
     def round(num: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operators::round (NUM)",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -542,7 +552,7 @@ class operator:
     def mathop(num: INPUT_COMPATIBLE_T, operation: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operators::[OPERATION] of (NUM)",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={
                 "OPERATION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, operation)
             },
@@ -553,7 +563,7 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -563,7 +573,7 @@ class operator:
         return p.SRBlock(
             opcode="&operators::(VALUE) as a boolean",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -597,10 +607,10 @@ class operator:
         return p.SRBlock(
             opcode="&operator::<OPERAND1> nand <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -612,10 +622,10 @@ class operator:
         return p.SRBlock(
             opcode="&operator::<OPERAND1> nor <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -627,10 +637,10 @@ class operator:
         return p.SRBlock(
             opcode="&operator::<OPERAND1> xor <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -642,10 +652,10 @@ class operator:
         return p.SRBlock(
             opcode="&operator::<OPERAND1> xnor <OPERAND2>",
             inputs={
-                "OPERAND1": InputValue.try_as_input(
+                "OPERAND1": ThirdInputValue.as_input(
                     operand1, p.SRBlockAndBoolInputValue
                 ),
-                "OPERAND2": InputValue.try_as_input(
+                "OPERAND2": ThirdInputValue.as_input(
                     operand2, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -663,8 +673,8 @@ class operator:
         return p.SRBlock(
             opcode="&operator::amount of times (TEXT1) appears in (TEXT2)",
             inputs={
-                "TEXT1": InputValue.try_as_input(text1, p.SRBlockAndTextInputValue),
-                "TEXT2": InputValue.try_as_input(text2, p.SRBlockAndTextInputValue),
+                "TEXT1": ThirdInputValue.as_input(text1, p.SRBlockAndTextInputValue),
+                "TEXT2": ThirdInputValue.as_input(text2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -676,8 +686,8 @@ class operator:
         return p.SRBlock(
             opcode="&operator::read line (LINE) in (TEXT)",
             inputs={
-                "LINE": InputValue.try_as_input(line, p.SRBlockAndTextInputValue),
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "LINE": ThirdInputValue.as_input(line, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -689,8 +699,8 @@ class operator:
         return p.SRBlock(
             opcode="&operator::(TEXT1) includes a letter from (TEXT2) ?",
             inputs={
-                "TEXT1": InputValue.try_as_input(text1, p.SRBlockAndTextInputValue),
-                "TEXT2": InputValue.try_as_input(text2, p.SRBlockAndTextInputValue),
+                "TEXT1": ThirdInputValue.as_input(text1, p.SRBlockAndTextInputValue),
+                "TEXT2": ThirdInputValue.as_input(text2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -699,7 +709,7 @@ class operator:
     def character_to_code(one: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operator::character (ONE) to id",
-            inputs={"ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue)},
+            inputs={"ONE": ThirdInputValue.as_input(one, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -707,6 +717,6 @@ class operator:
     def code_to_character(one: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&operator::id (ONE) to character",
-            inputs={"ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue)},
+            inputs={"ONE": ThirdInputValue.as_input(one, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class newCanvas:
@@ -22,8 +22,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set width: (width) height: (height) of [canvas]",
             inputs={
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -57,7 +57,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set line dash to (dashing) in [canvas]",
             inputs={
-                "dashing": InputValue.try_as_input(dashing, p.SRBlockAndTextInputValue)
+                "dashing": ThirdInputValue.as_input(dashing, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -85,10 +85,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::clear area at x: (x) y: (y) with width: (width) height: (height) on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -105,9 +105,9 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw text (text) at (x) (y) onto [canvas]",
             inputs={
-                "text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -125,10 +125,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw text (text) at (x) (y) with size cap (cap) onto [canvas]",
             inputs={
-                "text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "cap": InputValue.try_as_input(cap, p.SRBlockAndTextInputValue),
+                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "cap": ThirdInputValue.as_input(cap, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -145,9 +145,9 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw text outline for (text) at (x) (y) onto [canvas]",
             inputs={
-                "text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -165,10 +165,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw text outline for (text) at (x) (y) with size cap (cap) onto [canvas]",
             inputs={
-                "text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "cap": InputValue.try_as_input(cap, p.SRBlockAndTextInputValue),
+                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "cap": ThirdInputValue.as_input(cap, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -186,10 +186,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw rectangle at x: (x) y: (y) with width: (width) height: (height) on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -207,10 +207,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw rectangle outline at x: (x) y: (y) with width: (width) height: (height) on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -224,8 +224,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::preload image (URI) as (NAME)",
             inputs={
-                "URI": InputValue.try_as_input(uri, p.SRBlockAndTextInputValue),
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
+                "URI": ThirdInputValue.as_input(uri, p.SRBlockAndTextInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -234,7 +234,7 @@ class newCanvas:
     def unload_uri_image(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&newCanvas::unload image (NAME)",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -242,7 +242,7 @@ class newCanvas:
     def get_width_of_preloaded(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&newCanvas::get width of (name)",
-            inputs={"name": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"name": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -250,7 +250,7 @@ class newCanvas:
     def get_height_of_preloaded(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&newCanvas::get height of (name)",
-            inputs={"name": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"name": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -264,9 +264,9 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw image (URI) at x:[X] y:[Y] onto canvas [canvas]",
             inputs={
-                "URI": InputValue.try_as_input(uri, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "URI": ThirdInputValue.as_input(uri, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -286,12 +286,12 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw image (URI) at x:[X] y:[Y] width:[WIDTH] height:[HEIGHT] pointed at: (ROTATE) onto canvas [canvas]",
             inputs={
-                "URI": InputValue.try_as_input(uri, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "WIDTH": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "HEIGHT": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
-                "ROTATE": InputValue.try_as_input(rotate, p.SRBlockAndTextInputValue),
+                "URI": ThirdInputValue.as_input(uri, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "WIDTH": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "HEIGHT": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
+                "ROTATE": ThirdInputValue.as_input(rotate, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -315,16 +315,16 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::draw image (URI) at x:[X] y:[Y] width:[WIDTH] height:[HEIGHT] cropping from x:[CROPX] y:[CROPY] width:[CROPW] height:[CROPH] pointed at: (ROTATE) onto canvas [canvas]",
             inputs={
-                "URI": InputValue.try_as_input(uri, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "WIDTH": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "HEIGHT": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
-                "CROPX": InputValue.try_as_input(cropx, p.SRBlockAndTextInputValue),
-                "CROPY": InputValue.try_as_input(cropy, p.SRBlockAndTextInputValue),
-                "CROPW": InputValue.try_as_input(cropw, p.SRBlockAndTextInputValue),
-                "CROPH": InputValue.try_as_input(croph, p.SRBlockAndTextInputValue),
-                "ROTATE": InputValue.try_as_input(rotate, p.SRBlockAndTextInputValue),
+                "URI": ThirdInputValue.as_input(uri, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "WIDTH": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "HEIGHT": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
+                "CROPX": ThirdInputValue.as_input(cropx, p.SRBlockAndTextInputValue),
+                "CROPY": ThirdInputValue.as_input(cropy, p.SRBlockAndTextInputValue),
+                "CROPW": ThirdInputValue.as_input(cropw, p.SRBlockAndTextInputValue),
+                "CROPH": ThirdInputValue.as_input(croph, p.SRBlockAndTextInputValue),
+                "ROTATE": ThirdInputValue.as_input(rotate, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -346,8 +346,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::move pen to x:[x] y:[y] on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -359,8 +359,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::add line going to x:[x] y:[y] on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -377,12 +377,12 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::add arc going to x:[x] y:[y] on [canvas] with control points {:controlPoints:} and radius (radius)",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "controlPoints": InputValue.try_as_input(
-                    InputValue(newCanvas.param()), p.SREmbeddedBlockInputValue
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "controlPoints": ThirdInputValue.as_input(
+                    ThirdInputValue(newCanvas.param()), p.SREmbeddedBlockInputValue
                 ),
-                "radius": InputValue.try_as_input(radius, p.SRBlockAndTextInputValue),
+                "radius": ThirdInputValue.as_input(radius, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -400,10 +400,10 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::add a rectangle at x:[x] y:[y] with width:[width] height:[height] to [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -422,11 +422,11 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::add a ellipse at x:[x] y:[y] with width:[width] height:[height] pointed towards (dir) to [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
-                "dir": InputValue.try_as_input(dir, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
+                "dir": ThirdInputValue.as_input(dir, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -447,13 +447,13 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::add a ellipse with starting rotation (start) and ending rotation (end) at x:[x] y:[y] with width:[width] height:[height] pointed towards (dir) to [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
-                "width": InputValue.try_as_input(width, p.SRBlockAndTextInputValue),
-                "height": InputValue.try_as_input(height, p.SRBlockAndTextInputValue),
-                "start": InputValue.try_as_input(start, p.SRBlockAndTextInputValue),
-                "end": InputValue.try_as_input(end, p.SRBlockAndTextInputValue),
-                "dir": InputValue.try_as_input(dir, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
+                "width": ThirdInputValue.as_input(width, p.SRBlockAndTextInputValue),
+                "height": ThirdInputValue.as_input(height, p.SRBlockAndTextInputValue),
+                "start": ThirdInputValue.as_input(start, p.SRBlockAndTextInputValue),
+                "end": ThirdInputValue.as_input(end, p.SRBlockAndTextInputValue),
+                "dir": ThirdInputValue.as_input(dir, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -515,7 +515,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::turn left (degrees) in [canvas]",
             inputs={
-                "degrees": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue)
+                "degrees": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -527,7 +527,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::turn right (degrees) in [canvas]",
             inputs={
-                "degrees": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue)
+                "degrees": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -539,7 +539,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set rotation to (degrees) in [canvas]",
             inputs={
-                "degrees": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue)
+                "degrees": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -553,8 +553,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set translation X: (x) Y: (y) on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -568,8 +568,8 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change translation X: (x) Y: (y) on [canvas]",
             inputs={
-                "x": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "x": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -581,7 +581,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change X translation by (amount) on [canvas]",
             inputs={
-                "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "amount": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -593,7 +593,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set X scaler to (amount) on [canvas]",
             inputs={
-                "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "amount": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -605,7 +605,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change Y translation by (amount) on [canvas]",
             inputs={
-                "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "amount": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -617,7 +617,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set Y translation by (amount) on [canvas]",
             inputs={
-                "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "amount": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -629,7 +629,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change XY scaler by [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -641,7 +641,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set XY scaler to [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -653,7 +653,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change X scaler by [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -665,7 +665,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set X scaler to [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -677,7 +677,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::change Y scaler by [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -689,7 +689,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set Y scaler to [percent]% on [canvas]",
             inputs={
-                "percent": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue)
+                "percent": ThirdInputValue.as_input(percent, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas)
@@ -711,7 +711,7 @@ class newCanvas:
         return p.SRBlock(
             opcode="&newCanvas::set new transform (transform) on [canvas]",
             inputs={
-                "transform": InputValue.try_as_input(
+                "transform": ThirdInputValue.as_input(
                     transform, p.SRBlockAndTextInputValue
                 )
             },
@@ -776,7 +776,7 @@ class newCanvas:
     ) -> p.SRBlock:
         return p.SRBlock(
             opcode="&newCanvas::get [dimension] of text (text) when drawn to [canvas]",
-            inputs={"text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={
                 "dimension": p.SRDropdownValue(p.DropdownValueKind.STANDARD, dimension),
                 "canvas": p.SRDropdownValue(p.DropdownValueKind.STANDARD, canvas),

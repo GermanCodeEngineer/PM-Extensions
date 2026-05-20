@@ -948,10 +948,10 @@ def test_instance_methods() -> TestProject:
                                 o.return_value(h.operator.join3("Hello, ", o.get_scope_var("name"), "!")),
                             ]),
                             o.define_instance_method("getType", [
-                                o.return_value(o.typeof_value(o.self())),
+                                o.return_value(o.typeof_value(o.self_value())),
                             ]),
                             o.define_instance_method("getAttr", [
-                                o.return_value(o.get_attribute("label", o.self())),
+                                o.return_value(o.get_attribute("label", o.self_value())),
                             ]),
                         ]),
                         o.set_scope_var("g", o.create_instance("Greeter", '[]')),
@@ -990,7 +990,7 @@ def test_instance_methods() -> TestProject:
                     o.create_var_scope([
                         o.create_class_at("Box", [
                             o.define_instance_method("describe", [
-                                o.return_value(h.operator.join("Box-", o.get_attribute("id", o.self()))),
+                                o.return_value(h.operator.join("Box-", o.get_attribute("id", o.self_value()))),
                             ]),
                         ]),
                         o.set_scope_var("b1", o.create_instance("Box", '[]')),
@@ -1076,8 +1076,8 @@ def test_special_method_init() -> TestProject:
                         o.create_class_at("Point", [
                             o.configure_next_function_args('["x","y"]', '[]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "x", o.get_scope_var("x")),
-                                o.set_attribute(o.self(), "y", o.get_scope_var("y")),
+                                o.set_attribute(o.self_value(), "x", o.get_scope_var("x")),
+                                o.set_attribute(o.self_value(), "y", o.get_scope_var("y")),
                             ]),
                         ]),
                         o.set_scope_var("p", o.create_instance("Point", '["3","4"]')),
@@ -1101,9 +1101,9 @@ def test_special_method_init() -> TestProject:
                         o.create_class_at("Color", [
                             o.configure_next_function_args('["r","g","b"]', '["0","0","0"]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "r", o.get_scope_var("r")),
-                                o.set_attribute(o.self(), "g", o.get_scope_var("g")),
-                                o.set_attribute(o.self(), "b", o.get_scope_var("b")),
+                                o.set_attribute(o.self_value(), "r", o.get_scope_var("r")),
+                                o.set_attribute(o.self_value(), "g", o.get_scope_var("g")),
+                                o.set_attribute(o.self_value(), "b", o.get_scope_var("b")),
                             ]),
                         ]),
                         t.test_scope("All defaults: r=0, g=0, b=0", [
@@ -1131,14 +1131,14 @@ def test_special_method_init() -> TestProject:
                         o.create_class_at("Shape", [
                             o.configure_next_function_args('["color"]', '[]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "color", o.get_scope_var("color")),
+                                o.set_attribute(o.self_value(), "color", o.get_scope_var("color")),
                             ]),
                         ]),
                         o.create_subclass_at("Circle", "Shape", [
                             o.configure_next_function_args('["radius","color"]', '[]'),
                             o.define_special_method("init", [
                                 o.execute_expression(o.call_super_init_method('["blue"]')),
-                                o.set_attribute(o.self(), "radius", o.get_scope_var("radius")),
+                                o.set_attribute(o.self_value(), "radius", o.get_scope_var("radius")),
                             ]),
                         ]),
                         o.set_scope_var("c", o.create_instance("Circle", '["5","ignored"]')),
@@ -1281,13 +1281,13 @@ def test_getters_and_setters() -> TestProject:
                         o.create_class_at("Box", [
                             o.define_setter("size", [
                                 o.set_attribute(
-                                    o.self(), "_size",
+                                    o.self_value(), "_size",
                                     h.operator.join("set:", o.define_setter_value()),
                                 ),
                             ]),
                             o.define_getter("size", [
                                 o.return_value(
-                                    h.operator.join(o.get_attribute("_size", o.self()), ":get"),
+                                    h.operator.join(o.get_attribute("_size", o.self_value()), ":get"),
                                 ),
                             ]),
                         ]),
@@ -1316,7 +1316,7 @@ def test_getters_and_setters() -> TestProject:
                         o.create_class_at("Circle", [
                             o.define_getter("doubled", [
                                 o.return_value(h.operator.multiply(
-                                    o.get_attribute("_val", o.self()), "2",
+                                    o.get_attribute("_val", o.self_value()), "2",
                                 )),
                             ]),
                         ]),
@@ -1361,17 +1361,17 @@ def test_operator_methods() -> TestProject:
                         o.create_class_at("MyNum", [
                             o.configure_next_function_args('["val"]', '[]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "val", o.get_scope_var("val")),
+                                o.set_attribute(o.self_value(), "val", o.get_scope_var("val")),
                             ]),
                             o.define_operator_method("left add", [
                                 o.return_value(h.operator.add(
-                                    o.get_attribute("val", o.self()),
+                                    o.get_attribute("val", o.self_value()),
                                     o.operator_operator_value(),
                                 )),
                             ]),
                             o.define_operator_method("left subtract", [
                                 o.return_value(h.operator.subtract(
-                                    o.get_attribute("val", o.self()),
+                                    o.get_attribute("val", o.self_value()),
                                     o.operator_operator_value(),
                                 )),
                             ]),
@@ -1396,11 +1396,11 @@ def test_operator_methods() -> TestProject:
                         o.create_class_at("Token", [
                             o.configure_next_function_args('["id"]', '[]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "id", o.get_scope_var("id")),
+                                o.set_attribute(o.self_value(), "id", o.get_scope_var("id")),
                             ]),
                             o.define_operator_method("equals", [
                                 o.return_value(h.operator.equals(
-                                    o.get_attribute("id", o.self()),
+                                    o.get_attribute("id", o.self_value()),
                                     o.operator_operator_value(),
                                 )),
                             ]),
@@ -1444,7 +1444,7 @@ def test_operator_methods() -> TestProject:
                             o.define_operator_method("less than", [
                                 o.return_value(h.operator.lt(
                                     o.operator_operator_value(),
-                                    o.get_attribute("threshold", o.self()),
+                                    o.get_attribute("threshold", o.self_value()),
                                 )),
                             ]),
                         ]),
@@ -1756,10 +1756,10 @@ def test_class_definitions() -> TestProject:
                         o.create_class_at("Counter", [
                             o.configure_next_function_args('["start"]', '["0"]'),
                             o.define_special_method("init", [
-                                o.set_attribute(o.self(), "count", o.get_scope_var("start")),
+                                o.set_attribute(o.self_value(), "count", o.get_scope_var("start")),
                             ]),
                             o.define_instance_method("value", [
-                                o.return_value(o.get_attribute("count", o.self())),
+                                o.return_value(o.get_attribute("count", o.self_value())),
                             ]),
                         ]),
                         o.set_scope_var("c", o.create_instance("Counter", '["5"]')),
@@ -2058,10 +2058,10 @@ def test_introspection() -> TestProject:
                     o.create_class_at("Person", [
                         o.configure_next_function_args('["name"]', '[]'),
                         o.define_special_method("init", [
-                            o.set_attribute(o.self(), "name", o.get_scope_var("name")),
+                            o.set_attribute(o.self_value(), "name", o.get_scope_var("name")),
                         ]),
                         o.define_instance_method("greet", [
-                            o.return_value(h.operator.join("Hi, ", o.get_attribute("name", o.self()))),
+                            o.return_value(h.operator.join("Hi, ", o.get_attribute("name", o.self_value()))),
                         ]),
                     ]),
                     o.create_subclass_at("Employee", "Person", []),
@@ -2134,10 +2134,10 @@ def test_introspection() -> TestProject:
                             o.return_value("widget"),
                         ]),
                         o.define_getter("width", [
-                            o.return_value(o.get_attribute("_w", o.self())),
+                            o.return_value(o.get_attribute("_w", o.self_value())),
                         ]),
                         o.define_setter("height", [
-                            o.set_attribute(o.self(), "_h", o.define_setter_value()),
+                            o.set_attribute(o.self_value(), "_h", o.define_setter_value()),
                         ]),
                     ]),
                     o.set_class_variable("Widget", "version", "2"),

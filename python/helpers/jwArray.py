@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwArray:
@@ -14,7 +14,7 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::blank array of length (LENGTH)",
             inputs={
-                "LENGTH": InputValue.try_as_input(length, p.SRBlockAndTextInputValue)
+                "LENGTH": ThirdInputValue.as_input(length, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -23,7 +23,7 @@ class jwArray:
     def from_list(list: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwArray::array from list (LIST)",
-            inputs={"LIST": InputValue.try_as_input(list, p.SRBlockOnlyInputValue)},
+            inputs={"LIST": ThirdInputValue.as_input(list, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -32,7 +32,7 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::parse (INPUT) as array",
             inputs={
-                "INPUT": InputValue.try_as_input(input, p.SRBlockAndTextInputValue)
+                "INPUT": ThirdInputValue.as_input(input, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -42,8 +42,10 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::split (STRING) by (DIVIDER)",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
-                "DIVIDER": InputValue.try_as_input(divider, p.SRBlockAndTextInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
+                "DIVIDER": ThirdInputValue.as_input(
+                    divider, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -53,10 +55,11 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::array builder {:SHADOW:} {SUBSTACK}",
             inputs={
-                "SHADOW": InputValue.try_as_input(
-                    InputValue(jwArray.builder_current()), p.SREmbeddedBlockInputValue
+                "SHADOW": ThirdInputValue.as_input(
+                    ThirdInputValue(jwArray.builder_current()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -70,7 +73,7 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::append (VALUE) to builder",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -79,7 +82,7 @@ class jwArray:
     def builder_set(array: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwArray::set builder to (ARRAY)",
-            inputs={"ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue)},
+            inputs={"ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -88,8 +91,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::get (INDEX) in (ARRAY)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -101,9 +104,9 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::items (X) to (Y) in (ARRAY)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -113,8 +116,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::index of (VALUE) in (ARRAY)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -124,8 +127,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::(ARRAY) has (VALUE)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -134,7 +137,7 @@ class jwArray:
     def length(array: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwArray::length of (ARRAY)",
-            inputs={"ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue)},
+            inputs={"ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -145,9 +148,9 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::set (INDEX) in (ARRAY) to (VALUE)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -157,8 +160,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::append (VALUE) to (ARRAY)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -168,8 +171,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::merge (ONE) with (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockOnlyInputValue),
+                "ONE": ThirdInputValue.as_input(one, p.SRBlockOnlyInputValue),
+                "TWO": ThirdInputValue.as_input(two, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -179,8 +182,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::fill (ARRAY) with (VALUE)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -189,7 +192,7 @@ class jwArray:
     def reverse(array: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwArray::reverse (ARRAY)",
-            inputs={"ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue)},
+            inputs={"ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -200,9 +203,9 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::splice (ARRAY) at (INDEX) with (ITEMS) items",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "ITEMS": InputValue.try_as_input(items, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "ITEMS": ThirdInputValue.as_input(items, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -212,8 +215,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::repeat (ARRAY) (TIMES) times",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "TIMES": InputValue.try_as_input(times, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "TIMES": ThirdInputValue.as_input(times, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -223,8 +226,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::flat (ARRAY) with depth (DEPTH)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "DEPTH": InputValue.try_as_input(depth, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "DEPTH": ThirdInputValue.as_input(depth, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -234,8 +237,8 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::stringify (ARRAY) (FORMAT)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "FORMAT": InputValue.try_as_input(format, p.SRBlockOnlyInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "FORMAT": ThirdInputValue.as_input(format, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -245,8 +248,10 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::join (ARRAY) with (DIVIDER)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "DIVIDER": InputValue.try_as_input(divider, p.SRBlockAndTextInputValue),
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "DIVIDER": ThirdInputValue.as_input(
+                    divider, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -255,7 +260,7 @@ class jwArray:
     def sum(array: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwArray::sum of (ARRAY)",
-            inputs={"ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue)},
+            inputs={"ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -272,14 +277,14 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::for {:I:} {:V:} of (ARRAY) {SUBSTACK}",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "I": InputValue.try_as_input(
-                    InputValue(jwArray.for_each_i()), p.SREmbeddedBlockInputValue
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "I": ThirdInputValue.as_input(
+                    ThirdInputValue(jwArray.for_each_i()), p.SREmbeddedBlockInputValue
                 ),
-                "V": InputValue.try_as_input(
-                    InputValue(jwArray.for_each_v()), p.SREmbeddedBlockInputValue
+                "V": ThirdInputValue.as_input(
+                    ThirdInputValue(jwArray.for_each_v()), p.SREmbeddedBlockInputValue
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -289,14 +294,14 @@ class jwArray:
         return p.SRBlock(
             opcode="&jwArray::sort (ARRAY) {:I:} {:V:} > (VALUE)",
             inputs={
-                "ARRAY": InputValue.try_as_input(array, p.SRBlockOnlyInputValue),
-                "I": InputValue.try_as_input(
-                    InputValue(jwArray.for_each_i()), p.SREmbeddedBlockInputValue
+                "ARRAY": ThirdInputValue.as_input(array, p.SRBlockOnlyInputValue),
+                "I": ThirdInputValue.as_input(
+                    ThirdInputValue(jwArray.for_each_i()), p.SREmbeddedBlockInputValue
                 ),
-                "V": InputValue.try_as_input(
-                    InputValue(jwArray.for_each_v()), p.SREmbeddedBlockInputValue
+                "V": ThirdInputValue.as_input(
+                    ThirdInputValue(jwArray.for_each_v()), p.SREmbeddedBlockInputValue
                 ),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class SPjavascriptV2:
@@ -9,7 +9,7 @@ class SPjavascriptV2:
     def code_input(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::(CODE)",
-            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockOnlyInputValue)},
+            inputs={"CODE": ThirdInputValue.as_input(code, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -21,7 +21,7 @@ class SPjavascriptV2:
     def return_data(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::return (DATA)",
-            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
+            inputs={"DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -29,7 +29,7 @@ class SPjavascriptV2:
     def js_reporter(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run (CODE) {{id=SPjavascriptV2_jsReporter}}",
-            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockAndTextInputValue)},
+            inputs={"CODE": ThirdInputValue.as_input(code, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -37,7 +37,7 @@ class SPjavascriptV2:
     def js_boolean(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run (CODE) {{id=SPjavascriptV2_jsBoolean}}",
-            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockAndTextInputValue)},
+            inputs={"CODE": ThirdInputValue.as_input(code, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -46,10 +46,11 @@ class SPjavascriptV2:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsReporterBinded}}",
             inputs={
-                "CODE": InputValue.try_as_input(
-                    InputValue(SPjavascriptV2.code_input()), p.SREmbeddedBlockInputValue
+                "CODE": ThirdInputValue.as_input(
+                    ThirdInputValue(SPjavascriptV2.code_input()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "ARGS": InputValue.try_as_input(args, p.SRBlockAndTextInputValue),
+                "ARGS": ThirdInputValue.as_input(args, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -59,10 +60,11 @@ class SPjavascriptV2:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsBooleanBinded}}",
             inputs={
-                "CODE": InputValue.try_as_input(
-                    InputValue(SPjavascriptV2.code_input()), p.SREmbeddedBlockInputValue
+                "CODE": ThirdInputValue.as_input(
+                    ThirdInputValue(SPjavascriptV2.code_input()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "ARGS": InputValue.try_as_input(args, p.SRBlockAndTextInputValue),
+                "ARGS": ThirdInputValue.as_input(args, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -72,9 +74,10 @@ class SPjavascriptV2:
         return p.SRBlock(
             opcode="&SPjavascriptV2::create global function named (NAME) with code {:CODE:}",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "CODE": InputValue.try_as_input(
-                    InputValue(SPjavascriptV2.code_input()), p.SREmbeddedBlockInputValue
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "CODE": ThirdInputValue.as_input(
+                    ThirdInputValue(SPjavascriptV2.code_input()),
+                    p.SREmbeddedBlockInputValue,
                 ),
             },
             dropdowns={},
@@ -87,12 +90,12 @@ class SPjavascriptV2:
         return p.SRBlock(
             opcode="&SPjavascriptV2::create local function named (NAME) with code {:CODE:} {SUBSTACK}",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "CODE": InputValue.try_as_input(
-                    InputValue(SPjavascriptV2.argument_report()),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "CODE": ThirdInputValue.as_input(
+                    ThirdInputValue(SPjavascriptV2.argument_report()),
                     p.SREmbeddedBlockInputValue,
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -101,7 +104,7 @@ class SPjavascriptV2:
     def delete_global_func(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::delete global function (NAME)",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -110,10 +113,11 @@ class SPjavascriptV2:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsCommandBinded}}",
             inputs={
-                "CODE": InputValue.try_as_input(
-                    InputValue(SPjavascriptV2.code_input()), p.SREmbeddedBlockInputValue
+                "CODE": ThirdInputValue.as_input(
+                    ThirdInputValue(SPjavascriptV2.code_input()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "ARGS": InputValue.try_as_input(args, p.SRBlockAndTextInputValue),
+                "ARGS": ThirdInputValue.as_input(args, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -122,6 +126,6 @@ class SPjavascriptV2:
     def js_command(code: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&SPjavascriptV2::run (CODE) {{id=SPjavascriptV2_jsCommand}}",
-            inputs={"CODE": InputValue.try_as_input(code, p.SRBlockAndTextInputValue)},
+            inputs={"CODE": ThirdInputValue.as_input(code, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )

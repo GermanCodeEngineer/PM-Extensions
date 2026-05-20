@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class procedures:
@@ -36,7 +36,7 @@ class procedures:
         return p.SRBlock(
             opcode="&customblocks::return (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -46,8 +46,8 @@ class procedures:
         return p.SRBlock(
             opcode="&customblocks::set (PARAM) to (VALUE)",
             inputs={
-                "PARAM": InputValue.try_as_input(param, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "PARAM": ThirdInputValue.as_input(param, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

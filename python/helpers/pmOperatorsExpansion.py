@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class pmOperatorsExpansion:
@@ -10,8 +10,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(num1) << (num2)",
             inputs={
-                "num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue),
-                "num2": InputValue.try_as_input(num2, p.SRBlockAndTextInputValue),
+                "num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue),
+                "num2": ThirdInputValue.as_input(num2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -21,8 +21,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(num1) >> (num2)",
             inputs={
-                "num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue),
-                "num2": InputValue.try_as_input(num2, p.SRBlockAndTextInputValue),
+                "num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue),
+                "num2": ThirdInputValue.as_input(num2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -32,8 +32,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(num1) & (num2)",
             inputs={
-                "num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue),
-                "num2": InputValue.try_as_input(num2, p.SRBlockAndTextInputValue),
+                "num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue),
+                "num2": ThirdInputValue.as_input(num2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -43,8 +43,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(num1) | (num2)",
             inputs={
-                "num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue),
-                "num2": InputValue.try_as_input(num2, p.SRBlockAndTextInputValue),
+                "num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue),
+                "num2": ThirdInputValue.as_input(num2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -54,8 +54,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(num1) ^ (num2)",
             inputs={
-                "num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue),
-                "num2": InputValue.try_as_input(num2, p.SRBlockAndTextInputValue),
+                "num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue),
+                "num2": ThirdInputValue.as_input(num2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -64,7 +64,7 @@ class pmOperatorsExpansion:
     def binnary_not(num1: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::~ (num1)",
-            inputs={"num1": InputValue.try_as_input(num1, p.SRBlockAndTextInputValue)},
+            inputs={"num1": ThirdInputValue.as_input(num1, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -73,8 +73,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(ONE) or else (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
+                "ONE": ThirdInputValue.as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": ThirdInputValue.as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -84,8 +84,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::if <ONE> is true then (TWO)",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockAndBoolInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
+                "ONE": ThirdInputValue.as_input(one, p.SRBlockAndBoolInputValue),
+                "TWO": ThirdInputValue.as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -97,8 +97,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::is (NUM) multiple of [MULTIPLE]?",
             inputs={
-                "NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue),
-                "MULTIPLE": InputValue.try_as_input(
+                "NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue),
+                "MULTIPLE": ThirdInputValue.as_input(
                     multiple, p.SRBlockAndTextInputValue
                 ),
             },
@@ -109,7 +109,7 @@ class pmOperatorsExpansion:
     def is_integer(num: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::is (NUM) an integer?",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -117,7 +117,7 @@ class pmOperatorsExpansion:
     def is_prime(num: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::is (NUM) a prime number?",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -125,7 +125,7 @@ class pmOperatorsExpansion:
     def is_even(num: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::is (NUM) even?",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -136,9 +136,9 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::is (NUM) between (MIN) and [MAX]?",
             inputs={
-                "NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue),
-                "MIN": InputValue.try_as_input(min, p.SRBlockAndTextInputValue),
-                "MAX": InputValue.try_as_input(max, p.SRBlockAndTextInputValue),
+                "NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue),
+                "MIN": ThirdInputValue.as_input(min, p.SRBlockAndTextInputValue),
+                "MAX": ThirdInputValue.as_input(max, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -148,7 +148,7 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::answer to (EQUATION)",
             inputs={
-                "EQUATION": InputValue.try_as_input(
+                "EQUATION": ThirdInputValue.as_input(
                     equation, p.SRBlockAndTextInputValue
                 )
             },
@@ -160,8 +160,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::([PART]) part of ratio (RATIO)",
             inputs={
-                "PART": InputValue.try_as_input(part, p.SRBlockAndDropdownInputValue),
-                "RATIO": InputValue.try_as_input(ratio, p.SRBlockAndTextInputValue),
+                "PART": ThirdInputValue.as_input(part, p.SRBlockAndDropdownInputValue),
+                "RATIO": ThirdInputValue.as_input(ratio, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -171,7 +171,7 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::simplify ratio (RATIO)",
             inputs={
-                "RATIO": InputValue.try_as_input(ratio, p.SRBlockAndTextInputValue)
+                "RATIO": ThirdInputValue.as_input(ratio, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -192,7 +192,7 @@ class pmOperatorsExpansion:
     def truncate_number(num: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::truncate number (NUM)",
-            inputs={"NUM": InputValue.try_as_input(num, p.SRBlockAndTextInputValue)},
+            inputs={"NUM": ThirdInputValue.as_input(num, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -201,8 +201,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::atan2 of x (X) y (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -211,7 +211,7 @@ class pmOperatorsExpansion:
     def reverse_chars(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::reverse (TEXT)",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -219,7 +219,7 @@ class pmOperatorsExpansion:
     def shuffle_chars(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::shuffle (TEXT)",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -228,8 +228,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::text after (TEXT) in (BASE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "BASE": InputValue.try_as_input(base, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "BASE": ThirdInputValue.as_input(base, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -239,8 +239,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::text before (TEXT) in (BASE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "BASE": InputValue.try_as_input(base, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "BASE": ThirdInputValue.as_input(base, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -250,8 +250,8 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::(ONE) exactly equals [TWO]?",
             inputs={
-                "ONE": InputValue.try_as_input(one, p.SRBlockAndTextInputValue),
-                "TWO": InputValue.try_as_input(two, p.SRBlockAndTextInputValue),
+                "ONE": ThirdInputValue.as_input(one, p.SRBlockAndTextInputValue),
+                "TWO": ThirdInputValue.as_input(two, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -263,10 +263,10 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::set replacer (REPLACER) to (TEXT)",
             inputs={
-                "REPLACER": InputValue.try_as_input(
+                "REPLACER": ThirdInputValue.as_input(
                     replacer, p.SRBlockAndTextInputValue
                 ),
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -281,7 +281,7 @@ class pmOperatorsExpansion:
     def apply_replacers(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::apply replacers to (TEXT)",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -290,7 +290,7 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::speed (SPEED) to pitch",
             inputs={
-                "SPEED": InputValue.try_as_input(speed, p.SRBlockAndTextInputValue)
+                "SPEED": ThirdInputValue.as_input(speed, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -300,7 +300,7 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::pitch (PITCH) to speed",
             inputs={
-                "PITCH": InputValue.try_as_input(pitch, p.SRBlockAndTextInputValue)
+                "PITCH": ThirdInputValue.as_input(pitch, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -315,10 +315,18 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -334,11 +342,21 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4) (STRING5)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
-                "STRING5": InputValue.try_as_input(string5, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
+                "STRING5": ThirdInputValue.as_input(
+                    string5, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -355,12 +373,24 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4) (STRING5) (STRING6)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
-                "STRING5": InputValue.try_as_input(string5, p.SRBlockAndTextInputValue),
-                "STRING6": InputValue.try_as_input(string6, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
+                "STRING5": ThirdInputValue.as_input(
+                    string5, p.SRBlockAndTextInputValue
+                ),
+                "STRING6": ThirdInputValue.as_input(
+                    string6, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -378,13 +408,27 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4) (STRING5) (STRING6) (STRING7)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
-                "STRING5": InputValue.try_as_input(string5, p.SRBlockAndTextInputValue),
-                "STRING6": InputValue.try_as_input(string6, p.SRBlockAndTextInputValue),
-                "STRING7": InputValue.try_as_input(string7, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
+                "STRING5": ThirdInputValue.as_input(
+                    string5, p.SRBlockAndTextInputValue
+                ),
+                "STRING6": ThirdInputValue.as_input(
+                    string6, p.SRBlockAndTextInputValue
+                ),
+                "STRING7": ThirdInputValue.as_input(
+                    string7, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -403,14 +447,30 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4) (STRING5) (STRING6) (STRING7) (STRING8)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
-                "STRING5": InputValue.try_as_input(string5, p.SRBlockAndTextInputValue),
-                "STRING6": InputValue.try_as_input(string6, p.SRBlockAndTextInputValue),
-                "STRING7": InputValue.try_as_input(string7, p.SRBlockAndTextInputValue),
-                "STRING8": InputValue.try_as_input(string8, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
+                "STRING5": ThirdInputValue.as_input(
+                    string5, p.SRBlockAndTextInputValue
+                ),
+                "STRING6": ThirdInputValue.as_input(
+                    string6, p.SRBlockAndTextInputValue
+                ),
+                "STRING7": ThirdInputValue.as_input(
+                    string7, p.SRBlockAndTextInputValue
+                ),
+                "STRING8": ThirdInputValue.as_input(
+                    string8, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -430,15 +490,33 @@ class pmOperatorsExpansion:
         return p.SRBlock(
             opcode="&pmOperatorsExpansion::join (STRING1) (STRING2) (STRING3) (STRING4) (STRING5) (STRING6) (STRING7) (STRING8) (STRING9)",
             inputs={
-                "STRING1": InputValue.try_as_input(string1, p.SRBlockAndTextInputValue),
-                "STRING2": InputValue.try_as_input(string2, p.SRBlockAndTextInputValue),
-                "STRING3": InputValue.try_as_input(string3, p.SRBlockAndTextInputValue),
-                "STRING4": InputValue.try_as_input(string4, p.SRBlockAndTextInputValue),
-                "STRING5": InputValue.try_as_input(string5, p.SRBlockAndTextInputValue),
-                "STRING6": InputValue.try_as_input(string6, p.SRBlockAndTextInputValue),
-                "STRING7": InputValue.try_as_input(string7, p.SRBlockAndTextInputValue),
-                "STRING8": InputValue.try_as_input(string8, p.SRBlockAndTextInputValue),
-                "STRING9": InputValue.try_as_input(string9, p.SRBlockAndTextInputValue),
+                "STRING1": ThirdInputValue.as_input(
+                    string1, p.SRBlockAndTextInputValue
+                ),
+                "STRING2": ThirdInputValue.as_input(
+                    string2, p.SRBlockAndTextInputValue
+                ),
+                "STRING3": ThirdInputValue.as_input(
+                    string3, p.SRBlockAndTextInputValue
+                ),
+                "STRING4": ThirdInputValue.as_input(
+                    string4, p.SRBlockAndTextInputValue
+                ),
+                "STRING5": ThirdInputValue.as_input(
+                    string5, p.SRBlockAndTextInputValue
+                ),
+                "STRING6": ThirdInputValue.as_input(
+                    string6, p.SRBlockAndTextInputValue
+                ),
+                "STRING7": ThirdInputValue.as_input(
+                    string7, p.SRBlockAndTextInputValue
+                ),
+                "STRING8": ThirdInputValue.as_input(
+                    string8, p.SRBlockAndTextInputValue
+                ),
+                "STRING9": ThirdInputValue.as_input(
+                    string9, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )

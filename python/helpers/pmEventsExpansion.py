@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class pmEventsExpansion:
@@ -32,10 +32,10 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::broadcast (BROADCAST) with data (DATA)",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 ),
-                "DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue),
+                "DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -55,7 +55,7 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::is message (BROADCAST) received?",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 )
             },
@@ -73,7 +73,7 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::broadcast (BROADCAST) to [SPRITE]",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 )
             },
@@ -87,7 +87,7 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::broadcast (BROADCAST) and wait",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 )
             },
@@ -99,7 +99,7 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::return (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -109,7 +109,7 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::broadcast (BROADCAST) and get # of blocks started",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 )
             },
@@ -123,10 +123,10 @@ class pmEventsExpansion:
         return p.SRBlock(
             opcode="&pmEventsExpansion::broadcast (BROADCAST) with data (ARGS) and wait",
             inputs={
-                "BROADCAST": InputValue.try_as_input(
+                "BROADCAST": ThirdInputValue.as_input(
                     broadcast, p.SRBlockAndTextInputValue
                 ),
-                "ARGS": InputValue.try_as_input(args, p.SRBlockAndTextInputValue),
+                "ARGS": ThirdInputValue.as_input(args, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class sensing:
@@ -10,7 +10,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::touching ([OBJECT]) ?",
             inputs={
-                "OBJECT": InputValue.try_as_input(
+                "OBJECT": ThirdInputValue.as_input(
                     object, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -24,10 +24,10 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::([OBJECT]) touching ([SPRITE]) ?",
             inputs={
-                "OBJECT": InputValue.try_as_input(
+                "OBJECT": ThirdInputValue.as_input(
                     object, p.SRBlockAndDropdownInputValue
                 ),
-                "SPRITE": InputValue.try_as_input(
+                "SPRITE": ThirdInputValue.as_input(
                     sprite, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -41,10 +41,10 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::([OBJECT]) touching clone of ([SPRITE]) ?",
             inputs={
-                "OBJECT": InputValue.try_as_input(
+                "OBJECT": ThirdInputValue.as_input(
                     object, p.SRBlockAndDropdownInputValue
                 ),
-                "SPRITE": InputValue.try_as_input(
+                "SPRITE": ThirdInputValue.as_input(
                     sprite, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -56,7 +56,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::touching color (COLOR) ?",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -68,8 +68,8 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::color (COLOR1) is touching color (COLOR2) ?",
             inputs={
-                "COLOR1": InputValue.try_as_input(color1, p.SRBlockAndTextInputValue),
-                "COLOR2": InputValue.try_as_input(color2, p.SRBlockAndTextInputValue),
+                "COLOR1": ThirdInputValue.as_input(color1, p.SRBlockAndTextInputValue),
+                "COLOR2": ThirdInputValue.as_input(color2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -79,7 +79,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::[COORDINATE] of touching ([OBJECT]) point",
             inputs={
-                "OBJECT": InputValue.try_as_input(
+                "OBJECT": ThirdInputValue.as_input(
                     object, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -95,7 +95,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::distance to ([OBJECT])",
             inputs={
-                "OBJECT": InputValue.try_as_input(
+                "OBJECT": ThirdInputValue.as_input(
                     object, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -112,10 +112,10 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::distance from (X1) (Y1) to (X2) (Y2)",
             inputs={
-                "X1": InputValue.try_as_input(x1, p.SRBlockAndTextInputValue),
-                "Y1": InputValue.try_as_input(y1, p.SRBlockAndTextInputValue),
-                "X2": InputValue.try_as_input(x2, p.SRBlockAndTextInputValue),
-                "Y2": InputValue.try_as_input(y2, p.SRBlockAndTextInputValue),
+                "X1": ThirdInputValue.as_input(x1, p.SRBlockAndTextInputValue),
+                "Y1": ThirdInputValue.as_input(y1, p.SRBlockAndTextInputValue),
+                "X2": ThirdInputValue.as_input(x2, p.SRBlockAndTextInputValue),
+                "Y2": ThirdInputValue.as_input(y2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -130,10 +130,10 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::direction to (X1) (Y1) from (X2) (Y2)",
             inputs={
-                "X1": InputValue.try_as_input(x1, p.SRBlockAndTextInputValue),
-                "Y1": InputValue.try_as_input(y1, p.SRBlockAndTextInputValue),
-                "X2": InputValue.try_as_input(x2, p.SRBlockAndTextInputValue),
-                "Y2": InputValue.try_as_input(y2, p.SRBlockAndTextInputValue),
+                "X1": ThirdInputValue.as_input(x1, p.SRBlockAndTextInputValue),
+                "Y1": ThirdInputValue.as_input(y1, p.SRBlockAndTextInputValue),
+                "X2": ThirdInputValue.as_input(x2, p.SRBlockAndTextInputValue),
+                "Y2": ThirdInputValue.as_input(y2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -143,7 +143,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::ask (QUESTION) and wait",
             inputs={
-                "QUESTION": InputValue.try_as_input(
+                "QUESTION": ThirdInputValue.as_input(
                     question, p.SRBlockAndTextInputValue
                 )
             },
@@ -159,7 +159,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::(STRING) is text?",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue)
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -169,7 +169,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::(STRING) is number?",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue)
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -179,7 +179,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::key ([KEY]) pressed?",
             inputs={
-                "KEY": InputValue.try_as_input(key, p.SRBlockAndDropdownInputValue)
+                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -189,7 +189,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::key ([KEY]) hit?",
             inputs={
-                "KEY": InputValue.try_as_input(key, p.SRBlockAndDropdownInputValue)
+                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -199,7 +199,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::is mouse scrolling ([DIRECTION]) ?",
             inputs={
-                "DIRECTION": InputValue.try_as_input(
+                "DIRECTION": ThirdInputValue.as_input(
                     direction, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -226,7 +226,7 @@ class sensing:
     def setclipboard(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&sensing::add (TEXT) to clipboard",
-            inputs={"TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -269,8 +269,8 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::set [PROPERTY] of ([TARGET]) to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "TARGET": InputValue.try_as_input(
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -284,7 +284,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::[PROPERTY] of ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -316,7 +316,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::finger ([INDEX]) down?",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndDropdownInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -326,7 +326,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::finger ([INDEX]) tapped?",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndDropdownInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -336,7 +336,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::finger ([INDEX]) x",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndDropdownInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -346,7 +346,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::finger ([INDEX]) y",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndDropdownInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -406,7 +406,7 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::(TEXT1) has number?",
             inputs={
-                "TEXT1": InputValue.try_as_input(text1, p.SRBlockAndTextInputValue)
+                "TEXT1": ThirdInputValue.as_input(text1, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -415,7 +415,7 @@ class sensing:
     def is_upper_case(text: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&sensing::is character (text) uppercase?",
-            inputs={"text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue)},
+            inputs={"text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -426,9 +426,11 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::test regex (reg) (regrule) with text (text)",
             inputs={
-                "text": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "reg": InputValue.try_as_input(reg, p.SRBlockAndTextInputValue),
-                "regrule": InputValue.try_as_input(regrule, p.SRBlockAndTextInputValue),
+                "text": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "reg": ThirdInputValue.as_input(reg, p.SRBlockAndTextInputValue),
+                "regrule": ThirdInputValue.as_input(
+                    regrule, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -440,8 +442,8 @@ class sensing:
         return p.SRBlock(
             opcode="&sensing::get sprite with (var) set to (val)",
             inputs={
-                "var": InputValue.try_as_input(var, p.SRBlockAndTextInputValue),
-                "val": InputValue.try_as_input(val, p.SRBlockAndTextInputValue),
+                "var": ThirdInputValue.as_input(var, p.SRBlockAndTextInputValue),
+                "val": ThirdInputValue.as_input(val, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

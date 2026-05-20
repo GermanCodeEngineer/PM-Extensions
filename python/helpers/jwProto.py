@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwProto:
@@ -12,8 +12,8 @@ class jwProto:
         return p.SRBlock(
             opcode="&jwProto::// (LABEL) {SUBSTACK}",
             inputs={
-                "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "LABEL": ThirdInputValue.as_input(label, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -23,7 +23,7 @@ class jwProto:
         return p.SRBlock(
             opcode="&jwProto::// (LABEL) {{id=jwProto_labelCommand}}",
             inputs={
-                "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue)
+                "LABEL": ThirdInputValue.as_input(label, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -35,8 +35,8 @@ class jwProto:
         return p.SRBlock(
             opcode="&jwProto::(VALUE) // (LABEL)",
             inputs={
-                "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "LABEL": ThirdInputValue.as_input(label, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -48,8 +48,8 @@ class jwProto:
         return p.SRBlock(
             opcode="&jwProto::<VALUE> // (LABEL)",
             inputs={
-                "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndBoolInputValue),
+                "LABEL": ThirdInputValue.as_input(label, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -75,7 +75,7 @@ class jwProto:
         return p.SRBlock(
             opcode="&jwProto::// (LABEL) {{id=jwProto_labelHat}}",
             inputs={
-                "LABEL": InputValue.try_as_input(label, p.SRBlockAndTextInputValue)
+                "LABEL": ThirdInputValue.as_input(label, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )

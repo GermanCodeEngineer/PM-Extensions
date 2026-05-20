@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class data:
@@ -10,7 +10,7 @@ class data:
         return p.SRBlock(
             opcode="&variables::set [VARIABLE] to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
@@ -22,7 +22,7 @@ class data:
         return p.SRBlock(
             opcode="&variables::change [VARIABLE] by (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
@@ -63,7 +63,7 @@ class data:
     def addtolist(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&lists::add (ITEM) to [LIST]",
-            inputs={"ITEM": InputValue.try_as_input(item, p.SRBlockAndTextInputValue)},
+            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
 
@@ -72,7 +72,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::delete (INDEX) of [LIST]",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -90,7 +90,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::shift [LIST] by (INDEX)",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -102,8 +102,8 @@ class data:
         return p.SRBlock(
             opcode="&lists::insert (ITEM) at (INDEX) of [LIST]",
             inputs={
-                "ITEM": InputValue.try_as_input(item, p.SRBlockAndTextInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
+                "ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -115,8 +115,8 @@ class data:
         return p.SRBlock(
             opcode="&lists::replace item (INDEX) of [LIST] with (ITEM)",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "ITEM": InputValue.try_as_input(item, p.SRBlockAndTextInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue),
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -127,7 +127,7 @@ class data:
     ) -> p.SRBlock:
         return p.SRBlock(
             opcode="&lists::For each item [VARIABLE] in [LIST] {BODY}",
-            inputs={"BODY": InputValue.try_as_input(body, p.SRScriptInputValue)},
+            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
             dropdowns={
                 "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable),
                 "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list),
@@ -138,7 +138,7 @@ class data:
     def listforeachnum(body: INPUT_COMPATIBLE_T, variable: str, list: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&lists::For each item # [VARIABLE] in [LIST] {BODY}}",
-            inputs={"BODY": InputValue.try_as_input(body, p.SRScriptInputValue)},
+            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
             dropdowns={
                 "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable),
                 "LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list),
@@ -150,7 +150,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::item (INDEX) of [LIST]",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -159,7 +159,7 @@ class data:
     def itemnumoflist(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&lists::item # of (ITEM) in [LIST]",
-            inputs={"ITEM": InputValue.try_as_input(item, p.SRBlockAndTextInputValue)},
+            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
 
@@ -168,7 +168,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::amount of (VALUE) of [LIST]",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -185,7 +185,7 @@ class data:
     def listcontainsitem(item: INPUT_COMPATIBLE_T, list: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&lists::[LIST] contains (ITEM) ?",
-            inputs={"ITEM": InputValue.try_as_input(item, p.SRBlockAndTextInputValue)},
+            inputs={"ITEM": ThirdInputValue.as_input(item, p.SRBlockAndTextInputValue)},
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
 
@@ -194,7 +194,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::item (INDEX) exists in [LIST] ?",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue)
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -220,13 +220,13 @@ class data:
         return p.SRBlock(
             opcode="&lists::filter [LIST] by (INDEX) (ITEM) <KEEP>",
             inputs={
-                "INDEX": InputValue.try_as_input(
-                    InputValue(data.filterlistindex()), p.SREmbeddedBlockInputValue
+                "INDEX": ThirdInputValue.as_input(
+                    ThirdInputValue(data.filterlistindex()), p.SREmbeddedBlockInputValue
                 ),
-                "ITEM": InputValue.try_as_input(
-                    InputValue(data.filterlistitem()), p.SREmbeddedBlockInputValue
+                "ITEM": ThirdInputValue.as_input(
+                    ThirdInputValue(data.filterlistitem()), p.SREmbeddedBlockInputValue
                 ),
-                "KEEP": InputValue.try_as_input(keep, p.SRBlockAndBoolInputValue),
+                "KEEP": ThirdInputValue.as_input(keep, p.SRBlockAndBoolInputValue),
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )
@@ -236,7 +236,7 @@ class data:
         return p.SRBlock(
             opcode="&lists::set [LIST] to array (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={"LIST": p.SRDropdownValue(p.DropdownValueKind.STANDARD, list)},
         )

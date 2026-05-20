@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class steve0greatnesstimers:
@@ -76,7 +76,7 @@ class steve0greatnesstimers:
     def add(time: INPUT_COMPATIBLE_T, units: str, timer: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&steve0greatnesstimers::add (TIME) [UNITS] to [TIMER]",
-            inputs={"TIME": InputValue.try_as_input(time, p.SRBlockAndTextInputValue)},
+            inputs={"TIME": ThirdInputValue.as_input(time, p.SRBlockAndTextInputValue)},
             dropdowns={
                 "UNITS": p.SRDropdownValue(p.DropdownValueKind.STANDARD, units),
                 "TIMER": p.SRDropdownValue(p.DropdownValueKind.STANDARD, timer),
@@ -87,7 +87,7 @@ class steve0greatnesstimers:
     def whengt(time: INPUT_COMPATIBLE_T, timer: str, units: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&steve0greatnesstimers::when [TIMER] > (TIME) [UNITS]",
-            inputs={"TIME": InputValue.try_as_input(time, p.SRBlockAndTextInputValue)},
+            inputs={"TIME": ThirdInputValue.as_input(time, p.SRBlockAndTextInputValue)},
             dropdowns={
                 "TIMER": p.SRDropdownValue(p.DropdownValueKind.STANDARD, timer),
                 "UNITS": p.SRDropdownValue(p.DropdownValueKind.STANDARD, units),

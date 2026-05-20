@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwDate:
@@ -17,6 +17,6 @@ class jwDate:
     def parse(input: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwDate::parse (INPUT)",
-            inputs={"INPUT": InputValue.try_as_input(input, p.SRBlockOnlyInputValue)},
+            inputs={"INPUT": ThirdInputValue.as_input(input, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )

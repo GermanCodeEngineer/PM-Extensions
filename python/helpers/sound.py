@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class sound:
@@ -10,7 +10,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::play sound ([SOUND]) until done",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue)
+                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -22,8 +22,12 @@ class sound:
         return p.SRBlock(
             opcode="&sound::play sound ([SOUND]) starting at (SECONDS) seconds until done",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue),
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
+                "SOUND": ThirdInputValue.as_input(
+                    sound, p.SRBlockAndDropdownInputValue
+                ),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -33,7 +37,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::start sound ([SOUND])",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue)
+                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -45,8 +49,12 @@ class sound:
         return p.SRBlock(
             opcode="&sound::start sound ([SOUND]) at (SECONDS) seconds",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue),
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
+                "SOUND": ThirdInputValue.as_input(
+                    sound, p.SRBlockAndDropdownInputValue
+                ),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -56,7 +64,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::stop sound ([SOUND])",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue)
+                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -76,8 +84,12 @@ class sound:
         return p.SRBlock(
             opcode="&sound::set fadeout to (SECONDS) seconds on ([SOUND])",
             inputs={
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
+                "SOUND": ThirdInputValue.as_input(
+                    sound, p.SRBlockAndDropdownInputValue
+                ),
             },
             dropdowns={},
         )
@@ -87,7 +99,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::is ([SOUND]) playing?",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue)
+                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -97,7 +109,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::length of ([SOUND])?",
             inputs={
-                "SOUND": InputValue.try_as_input(sound, p.SRBlockAndDropdownInputValue)
+                "SOUND": ThirdInputValue.as_input(sound, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -107,7 +119,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::change [EFFECT] sound effect by (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
@@ -119,7 +131,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::set [EFFECT] sound effect to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
@@ -145,7 +157,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::change volume by (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -155,7 +167,7 @@ class sound:
         return p.SRBlock(
             opcode="&sound::set volume to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )

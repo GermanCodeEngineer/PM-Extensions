@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class pmMotionExpansion:
@@ -24,9 +24,9 @@ class pmMotionExpansion:
         return p.SRBlock(
             opcode="&pmMotionExpansion::move (STEPS) steps towards x: (X) y: (Y)",
             inputs={
-                "STEPS": InputValue.try_as_input(steps, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -38,9 +38,11 @@ class pmMotionExpansion:
         return p.SRBlock(
             opcode="&pmMotionExpansion::move [PERCENT]% of the way to x: (X) y: (Y)",
             inputs={
-                "PERCENT": InputValue.try_as_input(percent, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "PERCENT": ThirdInputValue.as_input(
+                    percent, p.SRBlockAndTextInputValue
+                ),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -50,8 +52,8 @@ class pmMotionExpansion:
         return p.SRBlock(
             opcode="&pmMotionExpansion::touching x: (X) y: [Y]?",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -66,10 +68,10 @@ class pmMotionExpansion:
         return p.SRBlock(
             opcode="&pmMotionExpansion::touching rectangle x1: (X1) y1: (Y1) x2: (X2) y2: [Y2]?",
             inputs={
-                "X1": InputValue.try_as_input(x1, p.SRBlockAndTextInputValue),
-                "Y1": InputValue.try_as_input(y1, p.SRBlockAndTextInputValue),
-                "X2": InputValue.try_as_input(x2, p.SRBlockAndTextInputValue),
-                "Y2": InputValue.try_as_input(y2, p.SRBlockAndTextInputValue),
+                "X1": ThirdInputValue.as_input(x1, p.SRBlockAndTextInputValue),
+                "Y1": ThirdInputValue.as_input(y1, p.SRBlockAndTextInputValue),
+                "X2": ThirdInputValue.as_input(x2, p.SRBlockAndTextInputValue),
+                "Y2": ThirdInputValue.as_input(y2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwColor:
@@ -10,7 +10,7 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::new color (COLOR)",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -22,9 +22,9 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::from RGB (R) (G) (B)",
             inputs={
-                "R": InputValue.try_as_input(r, p.SRBlockAndTextInputValue),
-                "G": InputValue.try_as_input(g, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "R": ThirdInputValue.as_input(r, p.SRBlockAndTextInputValue),
+                "G": ThirdInputValue.as_input(g, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -36,9 +36,9 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::from HSV (H) (S) (V)",
             inputs={
-                "H": InputValue.try_as_input(h, p.SRBlockAndTextInputValue),
-                "S": InputValue.try_as_input(s, p.SRBlockAndTextInputValue),
-                "V": InputValue.try_as_input(v, p.SRBlockAndTextInputValue),
+                "H": ThirdInputValue.as_input(h, p.SRBlockAndTextInputValue),
+                "S": ThirdInputValue.as_input(s, p.SRBlockAndTextInputValue),
+                "V": ThirdInputValue.as_input(v, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -47,7 +47,7 @@ class jwColor:
     def from_hex(hex: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwColor::from hex (HEX)",
-            inputs={"HEX": InputValue.try_as_input(hex, p.SRBlockAndTextInputValue)},
+            inputs={"HEX": ThirdInputValue.as_input(hex, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -56,8 +56,8 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::(A) + (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -67,8 +67,8 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::(A) - (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -78,8 +78,8 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::(A) * (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -94,10 +94,10 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::interpolate (A) to (B) by (I) using (OPTION)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
-                "I": InputValue.try_as_input(i, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
+                "I": ThirdInputValue.as_input(i, p.SRBlockAndTextInputValue),
+                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -107,8 +107,8 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::get (OPTION) (COLOR)",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue),
+                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -120,9 +120,9 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::set (OPTION) (COLOR) to (VALUE)",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "OPTION": InputValue.try_as_input(option, p.SRBlockOnlyInputValue),
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "OPTION": ThirdInputValue.as_input(option, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -132,7 +132,7 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::(COLOR) to decimal",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -142,7 +142,7 @@ class jwColor:
         return p.SRBlock(
             opcode="&jwColor::(COLOR) to hexadecimal",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )

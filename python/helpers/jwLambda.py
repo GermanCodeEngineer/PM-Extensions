@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwLambda:
@@ -14,10 +14,10 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::new lambda {:ARG:} {SUBSTACK}",
             inputs={
-                "ARG": InputValue.try_as_input(
-                    InputValue(jwLambda.arg()), p.SREmbeddedBlockInputValue
+                "ARG": ThirdInputValue.as_input(
+                    ThirdInputValue(jwLambda.arg()), p.SREmbeddedBlockInputValue
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -26,7 +26,7 @@ class jwLambda:
     def raw_lambda_input(field: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwLambda::(FIELD)",
-            inputs={"FIELD": InputValue.try_as_input(field, p.SRBlockOnlyInputValue)},
+            inputs={"FIELD": ThirdInputValue.as_input(field, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -35,8 +35,9 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::new lambda {:RAW:}",
             inputs={
-                "RAW": InputValue.try_as_input(
-                    InputValue(jwLambda.raw_lambda_input()), p.SREmbeddedBlockInputValue
+                "RAW": ThirdInputValue.as_input(
+                    ThirdInputValue(jwLambda.raw_lambda_input()),
+                    p.SREmbeddedBlockInputValue,
                 )
             },
             dropdowns={},
@@ -47,8 +48,8 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::execute (LAMBDA) with (ARG) {{id=jwLambda_executeR}}",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue),
-                "ARG": InputValue.try_as_input(arg, p.SRBlockAndTextInputValue),
+                "LAMBDA": ThirdInputValue.as_input(lambda_, p.SRBlockOnlyInputValue),
+                "ARG": ThirdInputValue.as_input(arg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -62,7 +63,7 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::times (LAMBDA) executed",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue)
+                "LAMBDA": ThirdInputValue.as_input(lambda_, p.SRBlockOnlyInputValue)
             },
             dropdowns={},
         )
@@ -72,8 +73,8 @@ class jwLambda:
         return p.SRBlock(
             opcode="&jwLambda::execute (LAMBDA) with (ARG) {{id=jwLambda_execute}}",
             inputs={
-                "LAMBDA": InputValue.try_as_input(lambda_, p.SRBlockOnlyInputValue),
-                "ARG": InputValue.try_as_input(arg, p.SRBlockAndTextInputValue),
+                "LAMBDA": ThirdInputValue.as_input(lambda_, p.SRBlockOnlyInputValue),
+                "ARG": ThirdInputValue.as_input(arg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

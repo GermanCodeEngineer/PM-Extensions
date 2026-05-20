@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class agBuffer:
@@ -10,7 +10,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::create new array buffer of size (LENGTH)",
             inputs={
-                "LENGTH": InputValue.try_as_input(length, p.SRBlockAndTextInputValue)
+                "LENGTH": ThirdInputValue.as_input(length, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -20,7 +20,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::parse (VALUE) as array buffer",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -29,7 +29,7 @@ class agBuffer:
     def from_url(url: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::get array buffer from url (URL)",
-            inputs={"URL": InputValue.try_as_input(url, p.SRBlockAndTextInputValue)},
+            inputs={"URL": ThirdInputValue.as_input(url, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -38,7 +38,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::array buffer from base64 (BASE64)",
             inputs={
-                "BASE64": InputValue.try_as_input(base64, p.SRBlockAndTextInputValue)
+                "BASE64": ThirdInputValue.as_input(base64, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -48,7 +48,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::array buffer from string (STRING)",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue)
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -62,10 +62,11 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::array buffer builder {:CURRENT:} {SUBSTACK}",
             inputs={
-                "CURRENT": InputValue.try_as_input(
-                    InputValue(agBuffer.builder_current()), p.SREmbeddedBlockInputValue
+                "CURRENT": ThirdInputValue.as_input(
+                    ThirdInputValue(agBuffer.builder_current()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -77,9 +78,9 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::append ([TYPE]) value (VALUE) <ENDIAN> to builder",
             inputs={
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -88,7 +89,7 @@ class agBuffer:
     def builder_append_buffer(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::append buffer (VALUE) to builder",
-            inputs={"VALUE": InputValue.try_as_input(value, p.SRBlockOnlyInputValue)},
+            inputs={"VALUE": ThirdInputValue.as_input(value, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -96,7 +97,9 @@ class agBuffer:
     def builder_set(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::set builder to (BUFFER)",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -111,11 +114,11 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::read ([TYPE]) value of (BUFFER) at (INDEX) <ENDIAN>",
             inputs={
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -131,11 +134,11 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::write ([TYPE]) value (VALUE) to (BUFFER) at (INDEX) <ENDIAN>",
             inputs={
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -149,11 +152,11 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::write sub-buffer (SUBBUFFER) to (BUFFER) at (INDEX)",
             inputs={
-                "SUBBUFFER": InputValue.try_as_input(
+                "SUBBUFFER": ThirdInputValue.as_input(
                     subbuffer, p.SRBlockOnlyInputValue
                 ),
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -162,7 +165,7 @@ class agBuffer:
     def is_buffer(value: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::(VALUE) is array buffer?",
-            inputs={"VALUE": InputValue.try_as_input(value, p.SRBlockOnlyInputValue)},
+            inputs={"VALUE": ThirdInputValue.as_input(value, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -170,7 +173,9 @@ class agBuffer:
     def get_size(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::byte length of buffer (BUFFER)",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -178,7 +183,22 @@ class agBuffer:
     def to_array(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::convert (BUFFER) to array",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def to_typed_array(
+        buffer: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T
+    ) -> p.SRBlock:
+        return p.SRBlock(
+            opcode="&agBuffer::convert (BUFFER) to ([TYPE]) typed array",
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+            },
             dropdowns={},
         )
 
@@ -186,7 +206,9 @@ class agBuffer:
     def buffer_to_string(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::array buffer (BUFFER) to string",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -194,7 +216,9 @@ class agBuffer:
     def to_base64(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::array buffer (BUFFER) to base64",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -202,7 +226,9 @@ class agBuffer:
     def to_data_url(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::array buffer (BUFFER) to data:url",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -213,8 +239,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::read string at (INDEX) of (BUFFER)",
             inputs={
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -228,9 +254,9 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::write string (STRING) at (INDEX) of (BUFFER)",
             inputs={
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -242,9 +268,9 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::get bytes (MIN) to (MAX) from (BUFFER) as new buffer",
             inputs={
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "MIN": InputValue.try_as_input(min, p.SRBlockAndTextInputValue),
-                "MAX": InputValue.try_as_input(max, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "MIN": ThirdInputValue.as_input(min, p.SRBlockAndTextInputValue),
+                "MAX": ThirdInputValue.as_input(max, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -252,10 +278,21 @@ class agBuffer:
     @staticmethod
     def resize(buffer: INPUT_COMPATIBLE_T, size: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
+            opcode="&agBuffer::resize (BUFFER) to (SIZE) bytes as new",
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "SIZE": ThirdInputValue.as_input(size, p.SRBlockAndTextInputValue),
+            },
+            dropdowns={},
+        )
+
+    @staticmethod
+    def resize_inst(buffer: INPUT_COMPATIBLE_T, size: INPUT_COMPATIBLE_T) -> p.SRBlock:
+        return p.SRBlock(
             opcode="&agBuffer::resize (BUFFER) to (SIZE) bytes",
             inputs={
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "SIZE": InputValue.try_as_input(size, p.SRBlockAndTextInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "SIZE": ThirdInputValue.as_input(size, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -264,7 +301,9 @@ class agBuffer:
     def copy(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::copy (BUFFER)",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -272,7 +311,9 @@ class agBuffer:
     def reverse(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::reverse (BUFFER)",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -280,7 +321,9 @@ class agBuffer:
     def reverse_r(buffer: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::reverse (BUFFER) as new",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={},
         )
 
@@ -288,7 +331,9 @@ class agBuffer:
     def stringify(buffer: INPUT_COMPATIBLE_T, mode: str) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::stringify (BUFFER) [MODE]",
-            inputs={"BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue)},
+            inputs={
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue)
+            },
             dropdowns={"MODE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, mode)},
         )
 
@@ -305,14 +350,14 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::for each [INDEX], {:BYTE:} of (BUFFER) {SUBSTACK}",
             inputs={
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(
-                    InputValue(agBuffer.for_each_i()), p.SREmbeddedBlockInputValue
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(
+                    ThirdInputValue(agBuffer.for_each_i()), p.SREmbeddedBlockInputValue
                 ),
-                "BYTE": InputValue.try_as_input(
-                    InputValue(agBuffer.for_each_v()), p.SREmbeddedBlockInputValue
+                "BYTE": ThirdInputValue.as_input(
+                    ThirdInputValue(agBuffer.for_each_v()), p.SREmbeddedBlockInputValue
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -322,7 +367,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::size of ([TYPE])",
             inputs={
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue)
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -332,8 +377,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::cast (VALUE) to ([TYPE])",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -348,10 +393,10 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::create ([TYPE]) pointer for (BUFFER) at (INDEX) <ENDIAN>",
             inputs={
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
-                "BUFFER": InputValue.try_as_input(buffer, p.SRBlockOnlyInputValue),
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
+                "BUFFER": ThirdInputValue.as_input(buffer, p.SRBlockOnlyInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -361,8 +406,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set value of pointer (PTR) to (VALUE)",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -374,8 +419,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set address of pointer (PTR) to (VALUE)",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -387,8 +432,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set endian of pointer (PTR) to <VALUE>",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndBoolInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -400,8 +445,10 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set type of pointer (PTR) to ([VALUE])",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndDropdownInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(
+                    value, p.SRBlockAndDropdownInputValue
+                ),
             },
             dropdowns={},
         )
@@ -413,8 +460,8 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set buffer of pointer (PTR) to (VALUE)",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockOnlyInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -423,7 +470,7 @@ class agBuffer:
     def get_pointer(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::get value of pointer (PTR)",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -431,7 +478,7 @@ class agBuffer:
     def get_pointer_index(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::get address of pointer (PTR)",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -439,7 +486,7 @@ class agBuffer:
     def get_pointer_type(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::get type of pointer (PTR)",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -447,7 +494,7 @@ class agBuffer:
     def get_pointer_endian(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::is pointer (PTR) little-endian?",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -455,15 +502,15 @@ class agBuffer:
     def get_pointer_buffer(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&agBuffer::get array buffer of pointer (PTR)",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
     @staticmethod
     def is_pointer(ptr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
-            opcode="&agBuffer::is pointer [VALUE]?",
-            inputs={"PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue)},
+            opcode="&agBuffer::is pointer [PTR]?",
+            inputs={"PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -474,9 +521,9 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::copy pointer (PTR)",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -488,9 +535,9 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::(PTR) as ([TYPE]) pointer <ENDIAN>",
             inputs={
-                "PTR": InputValue.try_as_input(ptr, p.SRBlockOnlyInputValue),
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
-                "ENDIAN": InputValue.try_as_input(endian, p.SRBlockAndBoolInputValue),
+                "PTR": ThirdInputValue.as_input(ptr, p.SRBlockOnlyInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
+                "ENDIAN": ThirdInputValue.as_input(endian, p.SRBlockAndBoolInputValue),
             },
             dropdowns={},
         )
@@ -500,7 +547,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::(only visual) set max lines shown in reporter output to (LINES)",
             inputs={
-                "LINES": InputValue.try_as_input(lines, p.SRBlockAndTextInputValue)
+                "LINES": ThirdInputValue.as_input(lines, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -510,7 +557,7 @@ class agBuffer:
         return p.SRBlock(
             opcode="&agBuffer::set disable error prevention to <VALUE>",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndBoolInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndBoolInputValue)
             },
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class event:
@@ -24,7 +24,7 @@ class event:
         return p.SRBlock(
             opcode="&events::when <CONDITION>",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 )
             },
@@ -82,7 +82,7 @@ class event:
         return p.SRBlock(
             opcode="&events::when [OPTION] > (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "OPTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, option)
@@ -104,7 +104,7 @@ class event:
         return p.SRBlock(
             opcode="&events::broadcast ([MESSAGE])",
             inputs={
-                "MESSAGE": InputValue.try_as_input(
+                "MESSAGE": ThirdInputValue.as_input(
                     message, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -116,7 +116,7 @@ class event:
         return p.SRBlock(
             opcode="&events::broadcast ([MESSAGE]) and wait",
             inputs={
-                "MESSAGE": InputValue.try_as_input(
+                "MESSAGE": ThirdInputValue.as_input(
                     message, p.SRBlockAndDropdownInputValue
                 )
             },

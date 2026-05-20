@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class pmSensingExpansion:
@@ -32,7 +32,7 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::url ([OPTIONS])",
             inputs={
-                "OPTIONS": InputValue.try_as_input(
+                "OPTIONS": ThirdInputValue.as_input(
                     options, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -46,10 +46,10 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::([OPTIONS]) of url (URL)",
             inputs={
-                "OPTIONS": InputValue.try_as_input(
+                "OPTIONS": ThirdInputValue.as_input(
                     options, p.SRBlockAndDropdownInputValue
                 ),
-                "URL": InputValue.try_as_input(url, p.SRBlockAndTextInputValue),
+                "URL": ThirdInputValue.as_input(url, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -58,7 +58,7 @@ class pmSensingExpansion:
     def set_username(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmSensingExpansion::set username to (NAME)",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -66,7 +66,7 @@ class pmSensingExpansion:
     def set_url_end(path: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmSensingExpansion::set url path to (PATH)",
-            inputs={"PATH": InputValue.try_as_input(path, p.SRBlockAndTextInputValue)},
+            inputs={"PATH": ThirdInputValue.as_input(path, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -77,8 +77,8 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::query parameter (PARAM) of url (URL)",
             inputs={
-                "PARAM": InputValue.try_as_input(param, p.SRBlockAndTextInputValue),
-                "URL": InputValue.try_as_input(url, p.SRBlockAndTextInputValue),
+                "PARAM": ThirdInputValue.as_input(param, p.SRBlockAndTextInputValue),
+                "URL": ThirdInputValue.as_input(url, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -118,8 +118,8 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::grab color at x: (X) y: (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -147,7 +147,7 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::set scrolling distance to (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -157,7 +157,7 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::change scrolling distance by (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -179,7 +179,7 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::([MOUSE_BUTTON]) mouse button down?",
             inputs={
-                "MOUSE_BUTTON": InputValue.try_as_input(
+                "MOUSE_BUTTON": ThirdInputValue.as_input(
                     mouse_button, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -190,7 +190,7 @@ class pmSensingExpansion:
     def changed(one: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&pmSensingExpansion::(ONE) changed?",
-            inputs={"ONE": InputValue.try_as_input(one, p.SRBlockOnlyInputValue)},
+            inputs={"ONE": ThirdInputValue.as_input(one, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -199,7 +199,7 @@ class pmSensingExpansion:
         return p.SRBlock(
             opcode="&pmSensingExpansion::seconds since holding ([KEY])",
             inputs={
-                "KEY": InputValue.try_as_input(key, p.SRBlockAndDropdownInputValue)
+                "KEY": ThirdInputValue.as_input(key, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class gceFuncsScopes:
@@ -10,8 +10,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::set var (NAME) to (VALUE) in current scope",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -20,7 +20,7 @@ class gceFuncsScopes:
     def get_scope_var(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceFuncsScopes::get var (NAME)",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -31,8 +31,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::var (NAME) exists in [KIND]?",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "KIND": ThirdInputValue.as_input(kind, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -41,7 +41,7 @@ class gceFuncsScopes:
     def delete_scope_var(name: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceFuncsScopes::delete var (NAME) in current scope",
-            inputs={"NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue)},
+            inputs={"NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -50,7 +50,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::all variables in ([KIND])",
             inputs={
-                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue)
+                "KIND": ThirdInputValue.as_input(kind, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -60,7 +60,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::create local variable scope {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -70,7 +70,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::run with separate globals {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -82,8 +82,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::bind ([KIND]) variable (NAME) to current scope",
             inputs={
-                "KIND": InputValue.try_as_input(kind, p.SRBlockAndDropdownInputValue),
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
+                "KIND": ThirdInputValue.as_input(kind, p.SRBlockAndDropdownInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -95,10 +95,10 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::configure next function: argument names (ARGNAMES) defaults (ARGDEFAULTS)",
             inputs={
-                "ARGNAMES": InputValue.try_as_input(
+                "ARGNAMES": ThirdInputValue.as_input(
                     argnames, p.SRBlockAndTextInputValue
                 ),
-                "ARGDEFAULTS": InputValue.try_as_input(
+                "ARGDEFAULTS": ThirdInputValue.as_input(
                     argdefaults, p.SRBlockAndTextInputValue
                 ),
             },
@@ -112,8 +112,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::create function at var (NAME) {SUBSTACK}",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -125,8 +125,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::create function named (NAME) {SUBSTACK}",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -136,7 +136,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::return (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -148,8 +148,10 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::call function (FUNC) with positional args (POSARGS)",
             inputs={
-                "FUNC": InputValue.try_as_input(func, p.SRBlockAndTextInputValue),
-                "POSARGS": InputValue.try_as_input(posargs, p.SRBlockAndTextInputValue),
+                "FUNC": ThirdInputValue.as_input(func, p.SRBlockAndTextInputValue),
+                "POSARGS": ThirdInputValue.as_input(
+                    posargs, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -159,7 +161,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::(VALUE) as string",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -169,7 +171,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::typeof (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -181,8 +183,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::typeof (VALUE) is ([TYPE]) ?",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -192,7 +194,7 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::([TYPE])",
             inputs={
-                "TYPE": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue)
+                "TYPE": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue)
             },
             dropdowns={},
         )
@@ -204,8 +206,8 @@ class gceFuncsScopes:
         return p.SRBlock(
             opcode="&gceFuncsScopes::(VALUE1) is (VALUE2) ?",
             inputs={
-                "VALUE1": InputValue.try_as_input(value1, p.SRBlockAndTextInputValue),
-                "VALUE2": InputValue.try_as_input(value2, p.SRBlockAndTextInputValue),
+                "VALUE1": ThirdInputValue.as_input(value1, p.SRBlockAndTextInputValue),
+                "VALUE2": ThirdInputValue.as_input(value2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -218,7 +220,7 @@ class gceFuncsScopes:
     def execute_expression(expr: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceFuncsScopes::execute expression (EXPR)",
-            inputs={"EXPR": InputValue.try_as_input(expr, p.SRBlockAndTextInputValue)},
+            inputs={"EXPR": ThirdInputValue.as_input(expr, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class divAlgEffects:
@@ -10,8 +10,8 @@ class divAlgEffects:
         return p.SRBlock(
             opcode="&divAlgEffects::perform (EFF) with (DATA) {{id=divAlgEffects_effPerformRet}}",
             inputs={
-                "EFF": InputValue.try_as_input(eff, p.SRBlockAndTextInputValue),
-                "DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue),
+                "EFF": ThirdInputValue.as_input(eff, p.SRBlockAndTextInputValue),
+                "DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -23,8 +23,8 @@ class divAlgEffects:
         return p.SRBlock(
             opcode="&divAlgEffects::handle in {SUBSTACK} effects {SUBSTACK2}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-                "SUBSTACK2": InputValue.try_as_input(substack2, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK2": ThirdInputValue.as_input(substack2, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -36,11 +36,12 @@ class divAlgEffects:
         return p.SRBlock(
             opcode="&divAlgEffects::effect (EFF) with {:DATA:} {SUBSTACK}",
             inputs={
-                "EFF": InputValue.try_as_input(eff, p.SRBlockAndTextInputValue),
-                "DATA": InputValue.try_as_input(
-                    InputValue(divAlgEffects.eff_data()), p.SREmbeddedBlockInputValue
+                "EFF": ThirdInputValue.as_input(eff, p.SRBlockAndTextInputValue),
+                "DATA": ThirdInputValue.as_input(
+                    ThirdInputValue(divAlgEffects.eff_data()),
+                    p.SREmbeddedBlockInputValue,
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -50,7 +51,7 @@ class divAlgEffects:
         return p.SRBlock(
             opcode="&divAlgEffects::recursively handle {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -59,7 +60,7 @@ class divAlgEffects:
     def eff_resume_ret(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divAlgEffects::resume with (DATA) {{id=divAlgEffects_effResumeRet}}",
-            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
+            inputs={"DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -67,7 +68,7 @@ class divAlgEffects:
     def eff_resume_tail(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divAlgEffects::resume with (DATA) {{id=divAlgEffects_effResumeTail}}",
-            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
+            inputs={"DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -83,7 +84,7 @@ class divAlgEffects:
     def eff_cont_has_resumed(cont: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divAlgEffects::has (CONT) resumed?",
-            inputs={"CONT": InputValue.try_as_input(cont, p.SRBlockAndTextInputValue)},
+            inputs={"CONT": ThirdInputValue.as_input(cont, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -92,8 +93,8 @@ class divAlgEffects:
         return p.SRBlock(
             opcode="&divAlgEffects::perform (EFF) with (DATA) {{id=divAlgEffects_effPerform}}",
             inputs={
-                "EFF": InputValue.try_as_input(eff, p.SRBlockAndTextInputValue),
-                "DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue),
+                "EFF": ThirdInputValue.as_input(eff, p.SRBlockAndTextInputValue),
+                "DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -102,6 +103,6 @@ class divAlgEffects:
     def eff_resume(data: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&divAlgEffects::resume with (DATA) {{id=divAlgEffects_effResume}}",
-            inputs={"DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue)},
+            inputs={"DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class fruitsPaintUtils:
@@ -14,10 +14,10 @@ class fruitsPaintUtils:
         return p.SRBlock(
             opcode="&fruitsPaintUtils::mix colours (COLOUR_NAME1) and (COLOUR_NAME2) and return the [MIX_OPTIONS]",
             inputs={
-                "COLOUR_NAME1": InputValue.try_as_input(
+                "COLOUR_NAME1": ThirdInputValue.as_input(
                     colour_name1, p.SRBlockAndTextInputValue
                 ),
-                "COLOUR_NAME2": InputValue.try_as_input(
+                "COLOUR_NAME2": ThirdInputValue.as_input(
                     colour_name2, p.SRBlockAndTextInputValue
                 ),
             },
@@ -33,7 +33,7 @@ class fruitsPaintUtils:
         return p.SRBlock(
             opcode="&fruitsPaintUtils::get colour from colour name (COLOUR_NAME)",
             inputs={
-                "COLOUR_NAME": InputValue.try_as_input(
+                "COLOUR_NAME": ThirdInputValue.as_input(
                     colour_name, p.SRBlockAndTextInputValue
                 )
             },

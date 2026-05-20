@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class looks:
@@ -12,8 +12,12 @@ class looks:
         return p.SRBlock(
             opcode="&looks::say (MESSAGE) for (SECONDS) seconds",
             inputs={
-                "MESSAGE": InputValue.try_as_input(message, p.SRBlockAndTextInputValue),
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
+                "MESSAGE": ThirdInputValue.as_input(
+                    message, p.SRBlockAndTextInputValue
+                ),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -23,7 +27,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::say (MESSAGE)",
             inputs={
-                "MESSAGE": InputValue.try_as_input(message, p.SRBlockAndTextInputValue)
+                "MESSAGE": ThirdInputValue.as_input(message, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -35,8 +39,12 @@ class looks:
         return p.SRBlock(
             opcode="&looks::think (MESSAGE) for (SECONDS) seconds",
             inputs={
-                "MESSAGE": InputValue.try_as_input(message, p.SRBlockAndTextInputValue),
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
+                "MESSAGE": ThirdInputValue.as_input(
+                    message, p.SRBlockAndTextInputValue
+                ),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
             },
             dropdowns={},
         )
@@ -46,7 +54,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::think (MESSAGE)",
             inputs={
-                "MESSAGE": InputValue.try_as_input(message, p.SRBlockAndTextInputValue)
+                "MESSAGE": ThirdInputValue.as_input(message, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -60,8 +68,8 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set font to (FONT) with font size (FONT-SIZE)",
             inputs={
-                "FONT": InputValue.try_as_input(font, p.SRBlockAndTextInputValue),
-                "FONT-SIZE": InputValue.try_as_input(
+                "FONT": ThirdInputValue.as_input(font, p.SRBlockAndTextInputValue),
+                "FONT-SIZE": ThirdInputValue.as_input(
                     font_size, p.SRBlockAndTextInputValue
                 ),
             },
@@ -73,7 +81,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set [PROPERTY] color to (COLOR)",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
@@ -85,7 +93,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set text bubble [PROPERTY] to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "PROPERTY": p.SRDropdownValue(p.DropdownValueKind.STANDARD, property)
@@ -105,7 +113,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::switch costume to ([COSTUME])",
             inputs={
-                "COSTUME": InputValue.try_as_input(
+                "COSTUME": ThirdInputValue.as_input(
                     costume, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -123,10 +131,10 @@ class looks:
         return p.SRBlock(
             opcode="&looks::([PROPERTY]) of ([COSTUME])",
             inputs={
-                "PROPERTY": InputValue.try_as_input(
+                "PROPERTY": ThirdInputValue.as_input(
                     property, p.SRBlockAndDropdownInputValue
                 ),
-                "COSTUME": InputValue.try_as_input(
+                "COSTUME": ThirdInputValue.as_input(
                     costume, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -138,7 +146,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::switch backdrop to ([BACKDROP])",
             inputs={
-                "BACKDROP": InputValue.try_as_input(
+                "BACKDROP": ThirdInputValue.as_input(
                     backdrop, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -154,7 +162,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::change size by (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -163,7 +171,7 @@ class looks:
     def setsizeto(size: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&looks::set size to (SIZE)",
-            inputs={"SIZE": InputValue.try_as_input(size, p.SRBlockAndTextInputValue)},
+            inputs={"SIZE": ThirdInputValue.as_input(size, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -172,8 +180,8 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set stretch to x: (X) y: (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -183,8 +191,8 @@ class looks:
         return p.SRBlock(
             opcode="&looks:: change stretch by x: (X) y: (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -202,7 +210,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::change [EFFECT] effect by (AMOUNT)",
             inputs={
-                "AMOUNT": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue)
+                "AMOUNT": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
@@ -214,7 +222,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set [EFFECT] effect to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "EFFECT": p.SRDropdownValue(p.DropdownValueKind.STANDARD, effect)
@@ -226,7 +234,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::set tint color to (COLOR)",
             inputs={
-                "COLOR": InputValue.try_as_input(color, p.SRBlockAndTextInputValue)
+                "COLOR": ThirdInputValue.as_input(color, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -268,7 +276,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::show ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -280,7 +288,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::hide ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -292,7 +300,7 @@ class looks:
         return p.SRBlock(
             opcode="&sounds::is ([TARGET]) visible?",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -314,7 +322,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::go [DIRECTION] (LAYERS) layers",
             inputs={
-                "LAYERS": InputValue.try_as_input(layers, p.SRBlockAndTextInputValue)
+                "LAYERS": ThirdInputValue.as_input(layers, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
@@ -326,7 +334,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::go to layer (LAYER)",
             inputs={
-                "LAYER": InputValue.try_as_input(layer, p.SRBlockAndTextInputValue)
+                "LAYER": ThirdInputValue.as_input(layer, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -336,7 +344,7 @@ class looks:
         return p.SRBlock(
             opcode="&looks::go [DIRECTION] ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },

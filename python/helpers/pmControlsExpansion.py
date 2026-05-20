@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class pmControlsExpansion:
@@ -10,7 +10,7 @@ class pmControlsExpansion:
         return p.SRBlock(
             opcode="&pmControlsExpansion::new thread {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -28,8 +28,8 @@ class pmControlsExpansion:
         return p.SRBlock(
             opcode="&pmControlsExpansion::new thread with data (DATA) {SUBSTACK}",
             inputs={
-                "DATA": InputValue.try_as_input(data, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "DATA": ThirdInputValue.as_input(data, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -50,14 +50,14 @@ class pmControlsExpansion:
         return p.SRBlock(
             opcode="&pmControlsExpansion::if <CONDITION1> then {SUBSTACK} else if <CONDITION2> then {SUBSTACK2}",
             inputs={
-                "CONDITION1": InputValue.try_as_input(
+                "CONDITION1": ThirdInputValue.as_input(
                     condition1, p.SRBlockAndBoolInputValue
                 ),
-                "CONDITION2": InputValue.try_as_input(
+                "CONDITION2": ThirdInputValue.as_input(
                     condition2, p.SRBlockAndBoolInputValue
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-                "SUBSTACK2": InputValue.try_as_input(substack2, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK2": ThirdInputValue.as_input(substack2, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -73,15 +73,15 @@ class pmControlsExpansion:
         return p.SRBlock(
             opcode="&pmControlsExpansion::if <CONDITION1> then {SUBSTACK} else if <CONDITION2> then {SUBSTACK2} else {SUBSTACK3}",
             inputs={
-                "CONDITION1": InputValue.try_as_input(
+                "CONDITION1": ThirdInputValue.as_input(
                     condition1, p.SRBlockAndBoolInputValue
                 ),
-                "CONDITION2": InputValue.try_as_input(
+                "CONDITION2": ThirdInputValue.as_input(
                     condition2, p.SRBlockAndBoolInputValue
                 ),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
-                "SUBSTACK2": InputValue.try_as_input(substack2, p.SRScriptInputValue),
-                "SUBSTACK3": InputValue.try_as_input(substack3, p.SRScriptInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
+                "SUBSTACK2": ThirdInputValue.as_input(substack2, p.SRScriptInputValue),
+                "SUBSTACK3": ThirdInputValue.as_input(substack3, p.SRScriptInputValue),
             },
             dropdowns={},
         )

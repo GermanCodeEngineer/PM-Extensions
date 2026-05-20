@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class dogeiscutRegularExpressions:
@@ -10,8 +10,10 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::regular expression (PATTERN) (FLAGS)",
             inputs={
-                "PATTERN": InputValue.try_as_input(pattern, p.SRBlockAndTextInputValue),
-                "FLAGS": InputValue.try_as_input(flags, p.SRBlockAndTextInputValue),
+                "PATTERN": ThirdInputValue.as_input(
+                    pattern, p.SRBlockAndTextInputValue
+                ),
+                "FLAGS": ThirdInputValue.as_input(flags, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -21,7 +23,7 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::escape (STRING) for regex",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue)
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -30,7 +32,7 @@ class dogeiscutRegularExpressions:
     def source_of(regex: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::source of (REGEX)",
-            inputs={"REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue)},
+            inputs={"REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -38,7 +40,7 @@ class dogeiscutRegularExpressions:
     def flags_of(regex: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::flags of (REGEX)",
-            inputs={"REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue)},
+            inputs={"REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -47,8 +49,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::test (STRING) for (REGEX)",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -58,8 +60,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::search (STRING) with (REGEX)",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -71,9 +73,9 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::replace (REGEX) in (A) with (B)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -85,9 +87,9 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::replace all (REGEX) in (A) with (B)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -97,8 +99,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::split (STRING) by (REGEX)",
             inputs={
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
             },
             dropdowns={},
         )
@@ -108,8 +110,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::match (REGEX) with (STRING)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -119,8 +121,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::match all (REGEX) with (STRING)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -130,8 +132,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::execute (REGEX) on (STRING)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "STRING": InputValue.try_as_input(string, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "STRING": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -140,7 +142,7 @@ class dogeiscutRegularExpressions:
     def get_last_index(regex: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::get last index of (REGEX)",
-            inputs={"REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue)},
+            inputs={"REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue)},
             dropdowns={},
         )
 
@@ -151,8 +153,8 @@ class dogeiscutRegularExpressions:
         return p.SRBlock(
             opcode="&dogeiscutRegularExpressions::set last index of (REGEX) to (INDEX)",
             inputs={
-                "REGEX": InputValue.try_as_input(regex, p.SRBlockOnlyInputValue),
-                "INDEX": InputValue.try_as_input(index, p.SRBlockAndTextInputValue),
+                "REGEX": ThirdInputValue.as_input(regex, p.SRBlockOnlyInputValue),
+                "INDEX": ThirdInputValue.as_input(index, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

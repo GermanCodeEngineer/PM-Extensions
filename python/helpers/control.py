@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class control:
@@ -10,7 +10,7 @@ class control:
         return p.SRBlock(
             opcode="&control::wait (SECONDS) seconds",
             inputs={
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue)
+                "SECONDS": ThirdInputValue.as_input(seconds, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -22,8 +22,10 @@ class control:
         return p.SRBlock(
             opcode="&control::wait (SECONDS) seconds or until <CONDITION>",
             inputs={
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
-                "CONDITION": InputValue.try_as_input(
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
             },
@@ -35,8 +37,8 @@ class control:
         return p.SRBlock(
             opcode="&control::repeat (TIMES) {BODY}",
             inputs={
-                "TIMES": InputValue.try_as_input(times, p.SRBlockAndTextInputValue),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "TIMES": ThirdInputValue.as_input(times, p.SRBlockAndTextInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -45,7 +47,7 @@ class control:
     def forever(body: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&control::forever {BODY}",
-            inputs={"BODY": InputValue.try_as_input(body, p.SRScriptInputValue)},
+            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
             dropdowns={},
         )
 
@@ -56,8 +58,8 @@ class control:
         return p.SRBlock(
             opcode="&control::for each [VARIABLE] in (RANGE) {BODY}",
             inputs={
-                "RANGE": InputValue.try_as_input(range, p.SRBlockAndTextInputValue),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "RANGE": ThirdInputValue.as_input(range, p.SRBlockAndTextInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={
                 "VARIABLE": p.SRDropdownValue(p.DropdownValueKind.STANDARD, variable)
@@ -77,10 +79,10 @@ class control:
         return p.SRBlock(
             opcode="&control::switch (CONDITION) {CASES}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockOnlyInputValue
                 ),
-                "CASES": InputValue.try_as_input(cases, p.SRScriptInputValue),
+                "CASES": ThirdInputValue.as_input(cases, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -94,11 +96,11 @@ class control:
         return p.SRBlock(
             opcode="&control::switch (CONDITION) {CASES} default {DEFAULT}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockOnlyInputValue
                 ),
-                "CASES": InputValue.try_as_input(cases, p.SRScriptInputValue),
-                "DEFAULT": InputValue.try_as_input(default, p.SRScriptInputValue),
+                "CASES": ThirdInputValue.as_input(cases, p.SRScriptInputValue),
+                "DEFAULT": ThirdInputValue.as_input(default, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -112,7 +114,7 @@ class control:
         return p.SRBlock(
             opcode="&control::run next case when (CONDITION)",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndTextInputValue
                 )
             },
@@ -124,10 +126,10 @@ class control:
         return p.SRBlock(
             opcode="&control::case (CONDITION) {BODY}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndTextInputValue
                 ),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -137,10 +139,10 @@ class control:
         return p.SRBlock(
             opcode="&control::if <CONDITION> then {THEN}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "THEN": InputValue.try_as_input(then, p.SRScriptInputValue),
+                "THEN": ThirdInputValue.as_input(then, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -154,11 +156,11 @@ class control:
         return p.SRBlock(
             opcode="&control::if <CONDITION> then {THEN} else {ELSE}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "THEN": InputValue.try_as_input(then, p.SRScriptInputValue),
-                "ELSE": InputValue.try_as_input(else_, p.SRScriptInputValue),
+                "THEN": ThirdInputValue.as_input(then, p.SRScriptInputValue),
+                "ELSE": ThirdInputValue.as_input(else_, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -172,13 +174,13 @@ class control:
         return p.SRBlock(
             opcode="&control::if <CONDITION> then (TRUEVALUE) else (FALSEVALUE)",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "TRUEVALUE": InputValue.try_as_input(
+                "TRUEVALUE": ThirdInputValue.as_input(
                     truevalue, p.SRBlockAndTextInputValue
                 ),
-                "FALSEVALUE": InputValue.try_as_input(
+                "FALSEVALUE": ThirdInputValue.as_input(
                     falsevalue, p.SRBlockAndTextInputValue
                 ),
             },
@@ -190,7 +192,7 @@ class control:
         return p.SRBlock(
             opcode="&control::wait until <CONDITION>",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 )
             },
@@ -204,10 +206,10 @@ class control:
         return p.SRBlock(
             opcode="&control::repeat until <CONDITION> {BODY}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -217,10 +219,10 @@ class control:
         return p.SRBlock(
             opcode="&control::while <CONDITION> {BODY}",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -229,7 +231,7 @@ class control:
     def all_at_once(body: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&control::all at once {BODY}",
-            inputs={"BODY": InputValue.try_as_input(body, p.SRScriptInputValue)},
+            inputs={"BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue)},
             dropdowns={},
         )
 
@@ -240,10 +242,10 @@ class control:
         return p.SRBlock(
             opcode="&control::as ([TARGET]) {BODY}",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 ),
-                "BODY": InputValue.try_as_input(body, p.SRScriptInputValue),
+                "BODY": ThirdInputValue.as_input(body, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -253,8 +255,8 @@ class control:
         return p.SRBlock(
             opcode="&control::try to do {TRY} if a block errors {IFERROR}",
             inputs={
-                "TRY": InputValue.try_as_input(try_, p.SRScriptInputValue),
-                "IFERROR": InputValue.try_as_input(iferror, p.SRScriptInputValue),
+                "TRY": ThirdInputValue.as_input(try_, p.SRScriptInputValue),
+                "IFERROR": ThirdInputValue.as_input(iferror, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -264,7 +266,7 @@ class control:
         return p.SRBlock(
             opcode="&control::throw error (ERROR)",
             inputs={
-                "ERROR": InputValue.try_as_input(error, p.SRBlockAndTextInputValue)
+                "ERROR": ThirdInputValue.as_input(error, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -282,7 +284,7 @@ class control:
         return p.SRBlock(
             opcode="&control::stop sprite ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -310,7 +312,7 @@ class control:
         return p.SRBlock(
             opcode="&control::create clone of ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -322,7 +324,7 @@ class control:
         return p.SRBlock(
             opcode="&control::delete clones of ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -364,8 +366,8 @@ class control:
         return p.SRBlock(
             opcode="&control::repeat for (TIMES) seconds {SUBSTACK}",
             inputs={
-                "TIMES": InputValue.try_as_input(times, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "TIMES": ThirdInputValue.as_input(times, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -375,7 +377,7 @@ class control:
         return p.SRBlock(
             opcode="&control::inline block {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -403,7 +405,7 @@ class control:
         return p.SRBlock(
             opcode="&control::set counter to (VALUE)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue)
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )

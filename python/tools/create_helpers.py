@@ -14,7 +14,7 @@ from pmp_manip.opcode_info import api as info
 
 
 PMP_MANIP_NAME = d.Name(id="p", ctx=d.Load())
-INPUT_VALUE_NAME = d.Name(id="InputValue", ctx=d.Load())
+INPUT_VALUE_NAME = d.Name(id="ThirdInputValue", ctx=d.Load())
 INPUT_COMPATIBLE_T_NAME = d.Name(id="INPUT_COMPATIBLE_T", ctx=d.Load())
 DROPDOWN_VALUE_NAME = d.Name(id="SRDropdownValue", ctx=d.Load())
 DROPDOWN_VALUE_KIND_NAME = d.Name(id="DropdownValueKind", ctx=d.Load())
@@ -62,7 +62,7 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
             ],
         ),
         d.ImportFrom(
-            module="utils",
+            module="third",
             names=[
                 d.alias(name=INPUT_VALUE_NAME.id, asname=None),
                 d.alias(name=INPUT_COMPATIBLE_T_NAME.id, asname=None),
@@ -98,7 +98,7 @@ def create_input_value_call(input_id: str, input_info: info.InputInfo, class_nam
     return d.Call(
         func=d.Attribute(
             value=INPUT_VALUE_NAME,
-            attr="try_as_input",
+            attr="as_input",
             ctx=d.Load(),
         ),
         args=[

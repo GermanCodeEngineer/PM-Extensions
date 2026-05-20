@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class gceTestRunner:
@@ -10,8 +10,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::test scope named (NAME) {SUBSTACK}",
             inputs={
-                "NAME": InputValue.try_as_input(name, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "NAME": ThirdInputValue.as_input(name, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -21,7 +21,7 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert <CONDITION>",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 )
             },
@@ -33,7 +33,7 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert not <CONDITION>",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 )
             },
@@ -45,10 +45,10 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert <CONDITION> message (MSG)",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue),
+                "MSG": ThirdInputValue.as_input(msg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -60,10 +60,10 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert not <CONDITION> message (MSG)",
             inputs={
-                "CONDITION": InputValue.try_as_input(
+                "CONDITION": ThirdInputValue.as_input(
                     condition, p.SRBlockAndBoolInputValue
                 ),
-                "MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue),
+                "MSG": ThirdInputValue.as_input(msg, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -73,8 +73,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert typed equality (A) = (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -86,8 +86,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert typed inequality (A) != (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -99,8 +99,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert string equality (A) = (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -112,8 +112,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert string inequality (A) != (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -125,8 +125,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert text (TEXT) in value (VALUE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -138,8 +138,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert text (TEXT) not in value (VALUE)",
             inputs={
-                "TEXT": InputValue.try_as_input(text, p.SRBlockAndTextInputValue),
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
+                "TEXT": ThirdInputValue.as_input(text, p.SRBlockAndTextInputValue),
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -151,8 +151,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert type of (VALUE) is ([EXPECTED])",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "EXPECTED": InputValue.try_as_input(
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "EXPECTED": ThirdInputValue.as_input(
                     expected, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -166,8 +166,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert custom id of (VALUE) is (EXPECTED)",
             inputs={
-                "VALUE": InputValue.try_as_input(value, p.SRBlockAndTextInputValue),
-                "EXPECTED": InputValue.try_as_input(
+                "VALUE": ThirdInputValue.as_input(value, p.SRBlockAndTextInputValue),
+                "EXPECTED": ThirdInputValue.as_input(
                     expected, p.SRBlockAndTextInputValue
                 ),
             },
@@ -179,7 +179,7 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert throws error {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -191,8 +191,8 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert throws error containing (MSG) {SUBSTACK}",
             inputs={
-                "MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue),
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue),
+                "MSG": ThirdInputValue.as_input(msg, p.SRBlockAndTextInputValue),
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue),
             },
             dropdowns={},
         )
@@ -202,7 +202,7 @@ class gceTestRunner:
         return p.SRBlock(
             opcode="&gceTestRunner::assert does not throw error {SUBSTACK}",
             inputs={
-                "SUBSTACK": InputValue.try_as_input(substack, p.SRScriptInputValue)
+                "SUBSTACK": ThirdInputValue.as_input(substack, p.SRScriptInputValue)
             },
             dropdowns={},
         )
@@ -211,7 +211,7 @@ class gceTestRunner:
     def fail_test(msg: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&gceTestRunner::fail test with message (MSG)",
-            inputs={"MSG": InputValue.try_as_input(msg, p.SRBlockAndTextInputValue)},
+            inputs={"MSG": ThirdInputValue.as_input(msg, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 

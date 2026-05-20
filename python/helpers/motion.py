@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class motion:
@@ -10,7 +10,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::move (STEPS) steps",
             inputs={
-                "STEPS": InputValue.try_as_input(steps, p.SRBlockAndTextInputValue)
+                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -20,7 +20,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::move back (STEPS) steps",
             inputs={
-                "STEPS": InputValue.try_as_input(steps, p.SRBlockAndTextInputValue)
+                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -30,7 +30,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::move [DIRECTION] (STEPS) steps",
             inputs={
-                "STEPS": InputValue.try_as_input(steps, p.SRBlockAndTextInputValue)
+                "STEPS": ThirdInputValue.as_input(steps, p.SRBlockAndTextInputValue)
             },
             dropdowns={
                 "DIRECTION": p.SRDropdownValue(p.DropdownValueKind.STANDARD, direction)
@@ -42,7 +42,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::turn clockwise (DEGREES) degrees",
             inputs={
-                "DEGREES": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue)
+                "DEGREES": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -52,7 +52,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::turn counterclockwise (DEGREES) degrees",
             inputs={
-                "DEGREES": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue)
+                "DEGREES": ThirdInputValue.as_input(degrees, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -62,7 +62,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::go to ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -74,8 +74,8 @@ class motion:
         return p.SRBlock(
             opcode="&motion::go to x: (X) y: (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -85,8 +85,8 @@ class motion:
         return p.SRBlock(
             opcode="&motion::change by x: (DX) y: (DY)",
             inputs={
-                "DX": InputValue.try_as_input(dx, p.SRBlockAndTextInputValue),
-                "DY": InputValue.try_as_input(dy, p.SRBlockAndTextInputValue),
+                "DX": ThirdInputValue.as_input(dx, p.SRBlockAndTextInputValue),
+                "DY": ThirdInputValue.as_input(dy, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -96,8 +96,10 @@ class motion:
         return p.SRBlock(
             opcode="&motion::glide (SECONDS) secs to ([TARGET])",
             inputs={
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
-                "TARGET": InputValue.try_as_input(
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 ),
             },
@@ -111,9 +113,11 @@ class motion:
         return p.SRBlock(
             opcode="&motion::glide (SECONDS) secs to x: (X) y: (Y)",
             inputs={
-                "SECONDS": InputValue.try_as_input(seconds, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "SECONDS": ThirdInputValue.as_input(
+                    seconds, p.SRBlockAndTextInputValue
+                ),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -123,7 +127,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::point in direction (DIRECTION)",
             inputs={
-                "DIRECTION": InputValue.try_as_input(
+                "DIRECTION": ThirdInputValue.as_input(
                     direction, p.SRBlockAndTextInputValue
                 )
             },
@@ -135,7 +139,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::point towards ([TARGET])",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -147,8 +151,8 @@ class motion:
         return p.SRBlock(
             opcode="&motion::point towards x: (X) y: (Y)",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -161,7 +165,7 @@ class motion:
     def changexby(dx: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&motion::change x by (DX)",
-            inputs={"DX": InputValue.try_as_input(dx, p.SRBlockAndTextInputValue)},
+            inputs={"DX": ThirdInputValue.as_input(dx, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -169,7 +173,7 @@ class motion:
     def setx(x: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&motion::set x to (X)",
-            inputs={"X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue)},
+            inputs={"X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -177,7 +181,7 @@ class motion:
     def changeyby(dy: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&motion::change y by (DY)",
-            inputs={"DY": InputValue.try_as_input(dy, p.SRBlockAndTextInputValue)},
+            inputs={"DY": ThirdInputValue.as_input(dy, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -185,7 +189,7 @@ class motion:
     def sety(y: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&motion::set y to (Y)",
-            inputs={"Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue)},
+            inputs={"Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -198,7 +202,7 @@ class motion:
         return p.SRBlock(
             opcode="&motion::if touching ([TARGET]), bounce",
             inputs={
-                "TARGET": InputValue.try_as_input(
+                "TARGET": ThirdInputValue.as_input(
                     target, p.SRBlockAndDropdownInputValue
                 )
             },
@@ -258,9 +262,11 @@ class motion:
         return p.SRBlock(
             opcode="&motion::turn clockwise (DEGREES) around x: (X) y: (Y)",
             inputs={
-                "DEGREES": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "DEGREES": ThirdInputValue.as_input(
+                    degrees, p.SRBlockAndTextInputValue
+                ),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -272,9 +278,11 @@ class motion:
         return p.SRBlock(
             opcode="&motion::turn counterclockwise (DEGREES) around x: (X) y: (Y)",
             inputs={
-                "DEGREES": InputValue.try_as_input(degrees, p.SRBlockAndTextInputValue),
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "DEGREES": ThirdInputValue.as_input(
+                    degrees, p.SRBlockAndTextInputValue
+                ),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -284,8 +292,8 @@ class motion:
         return p.SRBlock(
             opcode="&motion::if touching x: (X) y: [Y], bounce",
             inputs={
-                "X": InputValue.try_as_input(x, p.SRBlockAndTextInputValue),
-                "Y": InputValue.try_as_input(y, p.SRBlockAndTextInputValue),
+                "X": ThirdInputValue.as_input(x, p.SRBlockAndTextInputValue),
+                "Y": ThirdInputValue.as_input(y, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )

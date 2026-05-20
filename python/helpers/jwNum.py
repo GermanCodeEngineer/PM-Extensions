@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class jwNum:
@@ -10,8 +10,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) + (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -21,8 +21,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) - (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -32,8 +32,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) * (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -43,8 +43,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) / (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -54,8 +54,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) ^ (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -64,7 +64,7 @@ class jwNum:
     def fact(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwNum::[A]!",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
+            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -73,8 +73,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) = (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -84,8 +84,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) > (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -95,8 +95,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) >= (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -106,8 +106,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) < (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -117,8 +117,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) <= (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -128,8 +128,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::root (A) (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -138,7 +138,7 @@ class jwNum:
     def ssqrt(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwNum::square super-root (A)",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
+            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -147,8 +147,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::log (A) (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -158,8 +158,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::super log (A) (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -169,8 +169,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) % (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -180,8 +180,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::([A]) (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndDropdownInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndDropdownInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -190,7 +190,7 @@ class jwNum:
     def is_integer(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwNum::is (A) an integer?",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
+            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -201,9 +201,9 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) hyper (B) (C)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
-                "C": InputValue.try_as_input(c, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
+                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -215,9 +215,9 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) arrow (B) (C)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
-                "C": InputValue.try_as_input(c, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
+                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -229,9 +229,9 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(C) reverse arrow (B) (A)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
-                "C": InputValue.try_as_input(c, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
+                "C": ThirdInputValue.as_input(c, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -241,8 +241,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) expansion (B)",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -251,7 +251,7 @@ class jwNum:
     def to_string(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwNum::(A) to string",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
+            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -260,8 +260,8 @@ class jwNum:
         return p.SRBlock(
             opcode="&jwNum::(A) to string with (B) decimal places",
             inputs={
-                "A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue),
-                "B": InputValue.try_as_input(b, p.SRBlockAndTextInputValue),
+                "A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue),
+                "B": ThirdInputValue.as_input(b, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -270,7 +270,7 @@ class jwNum:
     def to_hyper_e(a: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&jwNum::(A) to hyper E",
-            inputs={"A": InputValue.try_as_input(a, p.SRBlockAndTextInputValue)},
+            inputs={"A": ThirdInputValue.as_input(a, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 

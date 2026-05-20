@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pmp_manip as p
-from utils import InputValue, INPUT_COMPATIBLE_T
+from third import ThirdInputValue, INPUT_COMPATIBLE_T
 
 
 class ddeDateFormat:
@@ -14,7 +14,7 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::new date from (string)",
             inputs={
-                "string": InputValue.try_as_input(string, p.SRBlockAndTextInputValue)
+                "string": ThirdInputValue.as_input(string, p.SRBlockAndTextInputValue)
             },
             dropdowns={},
         )
@@ -24,8 +24,8 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::format date (date) as (format)",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
-                "format": InputValue.try_as_input(format, p.SRBlockAndTextInputValue),
+                "date": ThirdInputValue.as_input(date, p.SRBlockAndTextInputValue),
+                "format": ThirdInputValue.as_input(format, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -37,8 +37,8 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::format date (date) to ([type]) locale",
             inputs={
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
-                "type": InputValue.try_as_input(type, p.SRBlockAndDropdownInputValue),
+                "date": ThirdInputValue.as_input(date, p.SRBlockAndTextInputValue),
+                "type": ThirdInputValue.as_input(type, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
@@ -52,11 +52,11 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::is date (date1) ([operation]) date [date2]?",
             inputs={
-                "date1": InputValue.try_as_input(date1, p.SRBlockAndTextInputValue),
-                "operation": InputValue.try_as_input(
+                "date1": ThirdInputValue.as_input(date1, p.SRBlockAndTextInputValue),
+                "operation": ThirdInputValue.as_input(
                     operation, p.SRBlockAndDropdownInputValue
                 ),
-                "date2": InputValue.try_as_input(date2, p.SRBlockAndTextInputValue),
+                "date2": ThirdInputValue.as_input(date2, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -65,7 +65,7 @@ class ddeDateFormat:
     def is_valid(date: INPUT_COMPATIBLE_T) -> p.SRBlock:
         return p.SRBlock(
             opcode="&ddeDateFormat::is date (date) valid?",
-            inputs={"date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue)},
+            inputs={"date": ThirdInputValue.as_input(date, p.SRBlockAndTextInputValue)},
             dropdowns={},
         )
 
@@ -74,8 +74,8 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::get ([part]) of (date)",
             inputs={
-                "part": InputValue.try_as_input(part, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "part": ThirdInputValue.as_input(part, p.SRBlockAndDropdownInputValue),
+                "date": ThirdInputValue.as_input(date, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -87,9 +87,9 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::add (amount) ([unit]) to (date)",
             inputs={
-                "amount": InputValue.try_as_input(amount, p.SRBlockAndTextInputValue),
-                "unit": InputValue.try_as_input(unit, p.SRBlockAndDropdownInputValue),
-                "date": InputValue.try_as_input(date, p.SRBlockAndTextInputValue),
+                "amount": ThirdInputValue.as_input(amount, p.SRBlockAndTextInputValue),
+                "unit": ThirdInputValue.as_input(unit, p.SRBlockAndDropdownInputValue),
+                "date": ThirdInputValue.as_input(date, p.SRBlockAndTextInputValue),
             },
             dropdowns={},
         )
@@ -101,9 +101,9 @@ class ddeDateFormat:
         return p.SRBlock(
             opcode="&ddeDateFormat::difference between (date1) and (date2) in ([unit])",
             inputs={
-                "date1": InputValue.try_as_input(date1, p.SRBlockAndTextInputValue),
-                "date2": InputValue.try_as_input(date2, p.SRBlockAndTextInputValue),
-                "unit": InputValue.try_as_input(unit, p.SRBlockAndDropdownInputValue),
+                "date1": ThirdInputValue.as_input(date1, p.SRBlockAndTextInputValue),
+                "date2": ThirdInputValue.as_input(date2, p.SRBlockAndTextInputValue),
+                "unit": ThirdInputValue.as_input(unit, p.SRBlockAndDropdownInputValue),
             },
             dropdowns={},
         )
