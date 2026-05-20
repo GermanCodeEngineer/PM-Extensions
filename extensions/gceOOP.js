@@ -4041,6 +4041,9 @@ if (!isRuntimeEnv) {
  * + - ~ add get error type block
  * 
  * + QUICK TASKS
+ *
+ * + UNSORTED YET
+ * + - maybe: [+] and [-] buttons for the configure args and call blocks so you can easily put more values without an array builder
  * 
  * + TEST RUNNER EXTENSION
  * + - ~ more assert equal blocks e.g. assert array content equal (array of primitives)
