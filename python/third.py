@@ -112,16 +112,14 @@ class ThirdBlock(ABC):
     def to_second(self) -> p.SRBlock:
         ...
 
-INPUT_COMPATIBLE_T = list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None
-
 # TODO: properly convert the following to actual classes not just conversion helpr
 p.SRInputValue
 @grepr_dataclass()
 class ThirdInputValue:
-    value: INPUT_COMPATIBLE_T
+    value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None
 
     @enforce_argument_types
-    def __init__(self, value: INPUT_COMPATIBLE_T | ThirdInputValue | Any) -> None:
+    def __init__(self, value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None) -> None:
         self.value = value
     
     def to_second[_T: p.SRInputValue](self, input_type: type[_T]) -> _T:
@@ -172,7 +170,7 @@ class ThirdInputValue:
 
     @enforce_argument_types
     @staticmethod
-    def as_input[_T: p.SRInputValue](value: INPUT_COMPATIBLE_T | ThirdInputValue | Any, input_type: type[_T]) -> _T:
+    def as_input[_T: p.SRInputValue](value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue | Any, input_type: type[_T]) -> _T:
         if isinstance(value, (list, ThirdBlock, str, bool, ThirdDropdownValue, type(None))):
             return ThirdInputValue(value).to_second(input_type)
         elif isinstance(value, ThirdInputValue):
@@ -184,6 +182,7 @@ p.SRDropdownValue
 @grepr_dataclass()
 class ThirdDropdownValue:
     value: str
+    kind: p.DropdownValueKind = p.DropdownValueKind.STANDARD
 
     def to_second(self) -> p.SRDropdownValue:
-        return p.SRDropdownValue(p.DropdownValueKind.STANDARD, self.value)
+        return p.SRDropdownValue(self.kind, self.value)
