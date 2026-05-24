@@ -4,7 +4,7 @@ import copy
 from gceutils import field, grepr_dataclass, enforce_argument_types
 import pmp_manip as p
 from uuid import UUID, uuid4
-from typing import Any, Callable
+from typing import Any, Callable, Self
 
 # TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
@@ -22,7 +22,7 @@ class ThirdProject:
     extensions: list[p.SRBuiltinExtension | p.SRCustomExtension]
 
     @classmethod
-    def create_empty(cls) -> ThirdProject:
+    def create_empty(cls) -> Self:
         return cls(
             stage=ThirdStage.create_empty(),
             sprites=[],
@@ -57,6 +57,17 @@ class ThirdTarget:
     sounds: list[p.SRSound]
     costume_index: int
     volume: int | float
+
+    @classmethod
+    def create_empty(cls) -> Self:
+        return cls(
+            scripts=[],
+            comments=[],
+            costumes=[p.SRVectorCostume.create_empty()],
+            sounds=[],
+            costume_index=0,
+            volume=100,
+        )
 
     @staticmethod
     def _default_map_position(row: int | None, col: int | None) -> tuple[int | float, int | float]:
@@ -98,7 +109,7 @@ class ThirdSprite(ThirdTarget):
     uuid: UUID = field(default_factory=uuid4, init=False, compare=False)
 
     @classmethod
-    def create_empty(cls, name: str) -> ThirdSprite:
+    def create_empty(cls, name: str) -> Self:
         return cls(
             scripts=[],
             comments=[],
@@ -150,17 +161,6 @@ class ThirdStage(ThirdTarget):
     LAYOUT_STACK_PADDING = 72
     LAYOUT_SCRIPT_WIDTH = 260
     LAYOUT_NESTED_BLOCK_HEIGHT_FACTOR = 0.9
-
-    @classmethod
-    def create_empty(cls) -> ThirdStage:
-        return cls(
-            scripts=[],
-            comments=[],
-            costumes=[p.SRVectorCostume.create_empty()],
-            sounds=[],
-            costume_index=0,
-            volume=100,
-        )
 
     def _group_script_columns(self) -> list[list[ThirdScript]]:
         columns: dict[int, list[ThirdScript]] = {}
@@ -275,7 +275,7 @@ class ThirdStage(ThirdTarget):
             costume_index=self.costume_index,
             volume=self.volume,
         )
-    
+
 p.SRScript
 @grepr_dataclass()
 class ThirdScript:
@@ -354,13 +354,11 @@ class ThirdInputValue:
 
     @enforce_argument_types
     @staticmethod
-    def as_input[_T: p.SRInputValue](value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue | Any, input_type: type[_T]) -> _T:
+    def as_input[_T: p.SRInputValue](value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue, input_type: type[_T]) -> _T:
         if isinstance(value, (list, ThirdBlock, str, bool, ThirdDropdownValue, type(None))):
             return ThirdInputValue(value).to_second(input_type)
         elif isinstance(value, ThirdInputValue):
             return value.to_second(input_type)
-        else:
-            raise ValueError("Value is not compatible with any input type", value)
 
 p.SRDropdownValue
 @grepr_dataclass()
@@ -370,3 +368,5 @@ class ThirdDropdownValue:
 
     def to_second(self) -> p.SRDropdownValue:
         return p.SRDropdownValue(self.kind, self.value)
+
+INPUT_COMPATIBLE_T = list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue
