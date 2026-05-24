@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwVector:
 
+    @grepr_dataclass()
     class new_vector(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class new_vector_from_magnitude(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,10 +36,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class vector_x(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,10 +51,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class vector_y(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -69,11 +66,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -85,11 +81,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class subtract(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -101,11 +96,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class multiply_b(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -117,11 +111,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class divide_b(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -133,10 +126,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class magnitude(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -149,10 +141,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class angle(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -165,10 +156,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class normalize(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -181,10 +171,9 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class absolute(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -197,11 +186,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class rotate(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T, angle: INPUT_COMPATIBLE_T):
-            self.vector = vector
-            self.angle = angle
+        vector: INPUT_COMPATIBLE_T
+        angle: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -217,11 +205,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class round(ThirdBlock):
-
-        def __init__(self, rounding: INPUT_COMPATIBLE_T, vector: INPUT_COMPATIBLE_T):
-            self.rounding = rounding
-            self.vector = vector
+        rounding: INPUT_COMPATIBLE_T
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -237,18 +224,15 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pos(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwVector::position", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class set_pos(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -261,18 +245,15 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_stretch(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwVector::stretch", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class set_stretch(ThirdBlock):
-
-        def __init__(self, vector: INPUT_COMPATIBLE_T):
-            self.vector = vector
+        vector: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -285,21 +266,18 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_mouse(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&jwVector::mouse position", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class divide_a(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -311,11 +289,10 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class multiply_a(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -327,10 +304,8 @@ class jwVector:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_rounding_functions(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

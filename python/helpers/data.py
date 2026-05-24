@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class data:
 
+    @grepr_dataclass()
     class setvariableto(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, variable: str):
-            self.value = value
-            self.variable = variable
+        value: INPUT_COMPATIBLE_T
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -26,11 +26,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class changevariableby(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, variable: str):
-            self.value = value
-            self.variable = variable
+        value: INPUT_COMPATIBLE_T
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -47,10 +46,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class showvariable(ThirdBlock):
-
-        def __init__(self, variable: str):
-            self.variable = variable
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -63,10 +61,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class hidevariable(ThirdBlock):
-
-        def __init__(self, variable: str):
-            self.variable = variable
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -79,10 +76,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class variable(ThirdBlock):
-
-        def __init__(self, variable: str):
-            self.variable = variable
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -95,11 +91,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class addtolist(ThirdBlock):
-
-        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
-            self.item = item
-            self.list = list
+        item: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -114,11 +109,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class deleteoflist(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
-            self.index = index
-            self.list = list
+        index: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -133,10 +127,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class deletealloflist(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -147,11 +140,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class shiftlist(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
-            self.index = index
-            self.list = list
+        index: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -166,14 +158,11 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class insertatlist(ThirdBlock):
-
-        def __init__(
-            self, item: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T, list: str
-        ):
-            self.item = item
-            self.index = index
-            self.list = list
+        item: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -191,14 +180,11 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class replaceitemoflist(ThirdBlock):
-
-        def __init__(
-            self, index: INPUT_COMPATIBLE_T, item: INPUT_COMPATIBLE_T, list: str
-        ):
-            self.index = index
-            self.item = item
-            self.list = list
+        index: INPUT_COMPATIBLE_T
+        item: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -216,12 +202,11 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listforeachitem(ThirdBlock):
-
-        def __init__(self, body: INPUT_COMPATIBLE_T, variable: str, list: str):
-            self.body = body
-            self.variable = variable
-            self.list = list
+        body: INPUT_COMPATIBLE_T
+        variable: str
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -237,12 +222,11 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listforeachnum(ThirdBlock):
-
-        def __init__(self, body: INPUT_COMPATIBLE_T, variable: str, list: str):
-            self.body = body
-            self.variable = variable
-            self.list = list
+        body: INPUT_COMPATIBLE_T
+        variable: str
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -258,11 +242,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class itemoflist(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
-            self.index = index
-            self.list = list
+        index: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -277,11 +260,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class itemnumoflist(ThirdBlock):
-
-        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
-            self.item = item
-            self.list = list
+        item: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -296,11 +278,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class amountinlist(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, list: str):
-            self.value = value
-            self.list = list
+        value: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -315,10 +296,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class lengthoflist(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -329,11 +309,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listcontainsitem(ThirdBlock):
-
-        def __init__(self, item: INPUT_COMPATIBLE_T, list: str):
-            self.item = item
-            self.list = list
+        item: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -348,11 +327,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class itemexistslist(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T, list: str):
-            self.index = index
-            self.list = list
+        index: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -367,10 +345,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listisempty(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -381,10 +358,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class reverselist(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -395,11 +371,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class filterlist(ThirdBlock):
-
-        def __init__(self, keep: INPUT_COMPATIBLE_T, list: str):
-            self.keep = keep
-            self.list = list
+        keep: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -422,11 +397,10 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class arraylist(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, list: str):
-            self.value = value
-            self.list = list
+        value: INPUT_COMPATIBLE_T
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -441,10 +415,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listarray(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -455,10 +428,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class showlist(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -469,10 +441,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class hidelist(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -483,10 +454,9 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class listcontents(ThirdBlock):
-
-        def __init__(self, list: str):
-            self.list = list
+        list: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -497,18 +467,14 @@ class data:
                 },
             )
 
+    @grepr_dataclass()
     class filterlistindex(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&lists::{{FILTER INDEX}}", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class filterlistitem(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&lists::{{FILTER ITEM}}", inputs={}, dropdowns={})

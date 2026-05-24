@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwColor:
 
+    @grepr_dataclass()
     class new_color(ThirdBlock):
-
-        def __init__(self, color: INPUT_COMPATIBLE_T):
-            self.color = color
+        color: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,14 +21,11 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_rgb(ThirdBlock):
-
-        def __init__(
-            self, r: INPUT_COMPATIBLE_T, g: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T
-        ):
-            self.r = r
-            self.g = g
-            self.b = b
+        r: INPUT_COMPATIBLE_T
+        g: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,14 +38,11 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_hsv(ThirdBlock):
-
-        def __init__(
-            self, h: INPUT_COMPATIBLE_T, s: INPUT_COMPATIBLE_T, v: INPUT_COMPATIBLE_T
-        ):
-            self.h = h
-            self.s = s
-            self.v = v
+        h: INPUT_COMPATIBLE_T
+        s: INPUT_COMPATIBLE_T
+        v: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,10 +55,9 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_hex(ThirdBlock):
-
-        def __init__(self, hex: INPUT_COMPATIBLE_T):
-            self.hex = hex
+        hex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,11 +70,10 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,11 +85,10 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class sub(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -109,11 +100,10 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mul(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -125,19 +115,12 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class interpolate(ThirdBlock):
-
-        def __init__(
-            self,
-            a: INPUT_COMPATIBLE_T,
-            b: INPUT_COMPATIBLE_T,
-            i: INPUT_COMPATIBLE_T,
-            option: INPUT_COMPATIBLE_T,
-        ):
-            self.a = a
-            self.b = b
-            self.i = i
-            self.option = option
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
+        i: INPUT_COMPATIBLE_T
+        option: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -153,11 +136,10 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get(ThirdBlock):
-
-        def __init__(self, color: INPUT_COMPATIBLE_T, option: INPUT_COMPATIBLE_T):
-            self.color = color
-            self.option = option
+        color: INPUT_COMPATIBLE_T
+        option: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -173,17 +155,11 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set(ThirdBlock):
-
-        def __init__(
-            self,
-            color: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-            option: INPUT_COMPATIBLE_T,
-        ):
-            self.color = color
-            self.value = value
-            self.option = option
+        color: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
+        option: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -202,10 +178,9 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_decimal(ThirdBlock):
-
-        def __init__(self, color: INPUT_COMPATIBLE_T):
-            self.color = color
+        color: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -218,10 +193,9 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_hex(ThirdBlock):
-
-        def __init__(self, color: INPUT_COMPATIBLE_T):
-            self.color = color
+        color: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -234,20 +208,16 @@ class jwColor:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_interpolate_option(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&jwColor::#menu:interpolateOption", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_prop_option(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

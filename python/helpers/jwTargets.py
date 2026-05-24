@@ -1,30 +1,26 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwTargets:
 
+    @grepr_dataclass()
     class this(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwTargets::this target", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class stage(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwTargets::stage target", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class from_name(ThirdBlock):
-
-        def __init__(self, sprite: INPUT_COMPATIBLE_T):
-            self.sprite = sprite
+        sprite: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,10 +33,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class clone_origin(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,11 +48,10 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T, menu: INPUT_COMPATIBLE_T):
-            self.target = target
-            self.menu = menu
+        target: INPUT_COMPATIBLE_T
+        menu: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -73,17 +67,11 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set(ThirdBlock):
-
-        def __init__(
-            self,
-            target: INPUT_COMPATIBLE_T,
-            menu: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.target = target
-            self.menu = menu
-            self.value = value
+        target: INPUT_COMPATIBLE_T
+        menu: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -102,10 +90,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_clone(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -118,11 +105,10 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_touching_object(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -134,11 +120,10 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_var(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
-            self.target = target
-            self.name = name
+        target: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -154,17 +139,11 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_var(ThirdBlock):
-
-        def __init__(
-            self,
-            target: INPUT_COMPATIBLE_T,
-            name: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.target = target
-            self.name = name
-            self.value = value
+        target: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,10 +162,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class clone_r(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -199,10 +177,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_clone(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -215,18 +192,15 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class all(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwTargets::all targets", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class touching(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -239,10 +213,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class clones(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -255,11 +228,10 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class array_has_target(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.target = target
+        array: INPUT_COMPATIBLE_T
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -275,11 +247,10 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_touching(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -291,10 +262,9 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class clone(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -307,38 +277,30 @@ class jwTargets:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_sprite(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwTargets::#menu:sprite", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class menu_target_property(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&jwTargets::#menu:targetProperty", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_target_property_set(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&jwTargets::#menu:targetPropertySet", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_touching_object(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

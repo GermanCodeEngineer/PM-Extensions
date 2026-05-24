@@ -1,34 +1,30 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class pmEventsExpansion:
 
+    @grepr_dataclass()
     class every_other_frame(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmEventsExpansion::every other frame", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class neverr(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmEventsExpansion::never", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class when_sprite_clicked(ThirdBlock):
-
-        def __init__(self, sprite: str):
-            self.sprite = sprite
+        sprite: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,11 +37,10 @@ class pmEventsExpansion:
                 },
             )
 
+    @grepr_dataclass()
     class send_with_data(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T, data: INPUT_COMPATIBLE_T):
-            self.broadcast = broadcast
-            self.data = data
+        broadcast: INPUT_COMPATIBLE_T
+        data: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,10 +56,9 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class received_data(ThirdBlock):
-
-        def __init__(self, broadcast: str):
-            self.broadcast = broadcast
+        broadcast: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,10 +71,9 @@ class pmEventsExpansion:
                 },
             )
 
+    @grepr_dataclass()
     class is_broadcast_received(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T):
-            self.broadcast = broadcast
+        broadcast: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,21 +86,18 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class recieved_data_reporter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmEventsExpansion::recieved data", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class broadcast_to_sprite(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T, sprite: str):
-            self.broadcast = broadcast
-            self.sprite = sprite
+        broadcast: INPUT_COMPATIBLE_T
+        sprite: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -124,10 +114,9 @@ class pmEventsExpansion:
                 },
             )
 
+    @grepr_dataclass()
     class broadcast_function(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T):
-            self.broadcast = broadcast
+        broadcast: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -140,10 +129,9 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class return_from_broadcast_func(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -156,10 +144,9 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class broadcast_thread_count(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T):
-            self.broadcast = broadcast
+        broadcast: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -172,11 +159,10 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class broadcast_function_args(ThirdBlock):
-
-        def __init__(self, broadcast: INPUT_COMPATIBLE_T, args: INPUT_COMPATIBLE_T):
-            self.broadcast = broadcast
-            self.args = args
+        broadcast: INPUT_COMPATIBLE_T
+        args: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -192,20 +178,16 @@ class pmEventsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_sprite_name(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmEventsExpansion::#menu:spriteName", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_broadcast_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

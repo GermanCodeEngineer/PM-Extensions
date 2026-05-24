@@ -13,7 +13,9 @@ import pmp_manip as p
 from pmp_manip.opcode_info import api as info
 
 
+GCEUTILS_NAME = d.Name(id="gceutils", ctx=d.Load())
 PMP_MANIP_NAME = d.Name(id="p", ctx=d.Load())
+GREPR_DATACLASS_NAME = d.Name(id="grepr_dataclass", ctx=d.Load())
 INPUT_VALUE_NAME = d.Name(id="ThirdInputValue", ctx=d.Load())
 THIRD_BLOCK_NAME = d.Name(id="ThirdBlock", ctx=d.Load())
 INPUT_COMPATIBLE_T_NAME = d.Name(id="INPUT_COMPATIBLE_T", ctx=d.Load())
@@ -55,6 +57,12 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
                 d.alias(name="annotations", asname=None),
             ],
             level=0,
+        ),
+        d.ImportFrom(
+            module=GCEUTILS_NAME.id,
+            names=[
+                d.alias(name=GREPR_DATACLASS_NAME.id, asname=None),
+            ],
         ),
         d.Import(
             names=[
@@ -146,11 +154,11 @@ def create_dropdown_value_call(dropdown_id: str) -> d.Call:
     )
 
 def create_srblock_call(
-        old_opcode: str, class_name: str,
+        info_api: info.OpcodeInfoAPI, old_opcode: str, class_name: str,
         input_infos: dict[str, info.InputInfo],
         dropdown_infos: dict[str, info.DropdownInfo],
     ) -> d.Call:
-    new_opcode = p.info_api.get_new_by_old(old_opcode)
+    new_opcode = info_api.get_new_by_old(old_opcode)
 
     input_keys = []
     input_values = []
@@ -203,63 +211,43 @@ def get_new_input_ids_infos(opcode_info: info.OpcodeInfo) -> dict[str, info.Inpu
         return None
     
 
-def create_block_helper(old_opcode: str, opcode_info: info.OpcodeInfo, class_name: str) -> d.FunctionDef:
+def create_block_helper(info_api: info.OpcodeInfoAPI, old_opcode: str, opcode_info: info.OpcodeInfo, class_name: str) -> d.FunctionDef:
     block_id = get_method_name(old_opcode)
     input_infos = get_new_input_ids_infos(opcode_info)
     dropdown_infos = opcode_info.get_new_dropdown_ids_infos()
 
-    init_args = [d.arg(arg="self", annotation=None, type_comment=None)]
-    init_body = []
+    field_ann_assignments = []
     if input_infos is not None:
         for input_id, input_info in input_infos.items():
             # Skip shadow blocks (not needed as inputs)
             if input_info.type.mode is info.InputMode.FORCED_EMBEDDED_BLOCK:
                 continue
             legal_name = pick_legal_name(to_snake_case(input_id))
-            arg = d.arg(
-                arg=legal_name,
-                annotation=INPUT_COMPATIBLE_T_NAME,
-                type_comment=None,
-            )
-            init_args.append(arg)
-            init_body.append(
-                d.Assign(
-                    targets=[d.Attribute(
-                        value=d.Name(id="self", ctx=d.Load()),
-                        attr=legal_name,
-                        ctx=d.Store(),
-                    )],
-                    value=d.Name(id=legal_name, ctx=d.Load()),
+            field_ann_assignments.append(
+                d.AnnAssign(
+                    target=d.Name(id=legal_name, ctx=d.Store()),
+                    annotation=INPUT_COMPATIBLE_T_NAME,
+                    value=None,
+                    simple=1,
                 )
             )
 
         for dropdown_id, dropdown_info in dropdown_infos.items():
             legal_name = pick_legal_name(to_snake_case(dropdown_id))
-            arg = d.arg(
-                arg=legal_name,
-                annotation=STR_NAME,
-                type_comment=None,
-            )
-            init_args.append(arg)
-            init_body.append(
-                d.Assign(
-                    targets=[d.Attribute(
-                        value=d.Name(id="self", ctx=d.Load()),
-                        attr=legal_name,
-                        ctx=d.Store(),
-                    )],
-                    value=d.Name(id=legal_name, ctx=d.Load()),
+            field_ann_assignments.append(
+                d.AnnAssign(
+                    target=d.Name(id=legal_name, ctx=d.Store()),
+                    annotation=STR_NAME,
+                    value=None,
+                    simple=1,
                 )
             )
-        
-        if len(init_body) == 0:
-            init_body.append(d.Pass())
-        
+
         conversion_body = [d.Return(
-            value=create_srblock_call(old_opcode, class_name, input_infos, dropdown_infos)
+            value=create_srblock_call(info_api, old_opcode, class_name, input_infos, dropdown_infos)
         )]
     else:
-        init_body = conversion_body = [d.Raise(
+        conversion_body = [d.Raise(
             exc=d.Call(
                 func=NOT_IMPLEMENTED_ERROR_NAME,
                 args=[
@@ -269,24 +257,6 @@ def create_block_helper(old_opcode: str, opcode_info: info.OpcodeInfo, class_nam
                 ]
             )
         )]
-
-    init_method = d.FunctionDef(
-        name="__init__",
-        args=d.arguments(
-            posonlyargs=[],
-            args=init_args,
-            vararg=None,
-            kwonlyargs=[],
-            kw_defaults=[],
-            kwarg=None,
-            defaults=[],
-        ),
-        body=init_body,
-        decorator_list=[],
-        returns=None,
-        type_comment=None,
-        type_params=[],
-    )
 
     conversion_method = d.FunctionDef(
         name="to_second",
@@ -315,24 +285,31 @@ def create_block_helper(old_opcode: str, opcode_info: info.OpcodeInfo, class_nam
         bases=[THIRD_BLOCK_NAME],
         keywords=[],
         body=[
-            init_method,
+            *field_ann_assignments,
             conversion_method,
         ],
-        decorator_list=[],
+        decorator_list=[
+            d.Call(
+                func=GREPR_DATACLASS_NAME,
+                args=[],
+                keywords=[],
+            ),
+        ],
         type_params=[],
     )
 
-def create_module(extension_id: str) -> d.Module | None:
+def create_module(info_api: info.OpcodeInfoAPI, extension_id: str) -> d.Module | None:
     opcode_prefix = extension_id + "_"
     class_name = pick_legal_name(extension_id)
     body = []
-    for old_opcode in p.info_api.all_old:
+    for old_opcode in info_api.all_old:
         if not old_opcode.startswith(opcode_prefix):
             continue
 
         body.append(create_block_helper(
+            info_api=info_api,
             old_opcode=old_opcode,
-            opcode_info=p.info_api.get_info_by_old(old_opcode),
+            opcode_info=info_api.get_info_by_old(old_opcode),
             class_name=class_name,
         ))
 
@@ -354,15 +331,15 @@ def create_module(extension_id: str) -> d.Module | None:
         type_ignores=[],
     )
 
-def create_category_file(output_path: Path, category_id: str, category_source: str | None = None, skip_generation: bool = False) -> None:
+def create_category_file(info_api: info.OpcodeInfoAPI, output_path: Path, category_id: str, category_source: str | None = None, skip_generation: bool = False) -> None:
     if not skip_generation:
-        p.info_api.generate_and_add_extension(
+        info_api.generate_and_add_extension(
             extension_id=category_id,
             extension_source=category_source,
         )
     
 
-    module = create_module(category_id)
+    module = create_module(info_api, category_id)
     if module is None:
         return
     code = d.unparse(module)
@@ -425,7 +402,7 @@ EXTENSIONS = GCE_EXTENSIONS | {
 
 
 
-def create_helpers() -> None:
+def create_helpers(info_api: info.OpcodeInfoAPI) -> None:
     cfg = p.get_default_config()
     handler = lambda url: url.startswith("https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/")
     cfg.ext_info_gen.is_trusted_extension_origin_handler = handler
@@ -433,11 +410,12 @@ def create_helpers() -> None:
     p.init_config(cfg)
 
     added_categories = set()
-    for old_opcode in p.info_api.all_old:
+    for old_opcode in info_api.all_old:
         opcode_category = old_opcode.split("_")[0]
         if opcode_category not in added_categories:
             added_categories.add(opcode_category)
             create_category_file(
+                info_api=info_api,
                 output_path=Path(f"python/helpers/{opcode_category}.py"),
                 category_id=opcode_category,
                 skip_generation=True,
@@ -445,6 +423,7 @@ def create_helpers() -> None:
     
     for extension_id, extension_source in EXTENSIONS.items():
         create_category_file(
+            info_api=info_api,
             output_path=Path(f"python/helpers/{extension_id}.py"),
             category_id=extension_id,
             category_source=extension_source,
@@ -454,7 +433,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
 
-    create_helpers()
+    opcode_info_copy = p.info_api.opcode_info.copy()
+    info_api_copy = info.OpcodeInfoAPI(opcode_info_copy)
+    create_helpers(info_api_copy)
 
 if __name__ == "__main__":
     main()

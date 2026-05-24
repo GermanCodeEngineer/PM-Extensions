@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class gceFuncsScopes:
 
+    @grepr_dataclass()
     class set_scope_var(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.value = value
+        name: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -25,10 +25,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_scope_var(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,11 +40,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class scope_var_exists(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, kind: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.kind = kind
+        name: INPUT_COMPATIBLE_T
+        kind: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,10 +59,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_scope_var(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,10 +74,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class all_variables(ThirdBlock):
-
-        def __init__(self, kind: INPUT_COMPATIBLE_T):
-            self.kind = kind
+        kind: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,10 +89,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_var_scope(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -109,10 +104,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class run_with_separate_globals(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -125,11 +119,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class bind_var_to_scope(ThirdBlock):
-
-        def __init__(self, kind: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
-            self.kind = kind
-            self.name = name
+        kind: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -145,13 +138,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class configure_next_function_args(ThirdBlock):
-
-        def __init__(
-            self, argnames: INPUT_COMPATIBLE_T, argdefaults: INPUT_COMPATIBLE_T
-        ):
-            self.argnames = argnames
-            self.argdefaults = argdefaults
+        argnames: INPUT_COMPATIBLE_T
+        argdefaults: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -167,11 +157,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_function_at(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -187,11 +176,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_function_named(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -207,10 +195,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class return_value(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -223,11 +210,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class call_function(ThirdBlock):
-
-        def __init__(self, func: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T):
-            self.func = func
-            self.posargs = posargs
+        func: INPUT_COMPATIBLE_T
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -243,10 +229,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class object_as_string(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -259,10 +244,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class typeof_value(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -275,11 +259,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class typeof_value_is_menu(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T):
-            self.value = value
-            self.type = type
+        value: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -295,10 +278,9 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class typeof_value_selection(ThirdBlock):
-
-        def __init__(self, type: INPUT_COMPATIBLE_T):
-            self.type = type
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -311,11 +293,10 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class check_identity(ThirdBlock):
-
-        def __init__(self, value1: INPUT_COMPATIBLE_T, value2: INPUT_COMPATIBLE_T):
-            self.value1 = value1
-            self.value2 = value2
+        value1: INPUT_COMPATIBLE_T
+        value2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -331,18 +312,15 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class nothing(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&gceFuncsScopes::Nothing", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class execute_expression(ThirdBlock):
-
-        def __init__(self, expr: INPUT_COMPATIBLE_T):
-            self.expr = expr
+        expr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -355,10 +333,8 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_variable_available_kind(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -367,10 +343,8 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_bind_var_origin_kind(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -379,10 +353,8 @@ class gceFuncsScopes:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_typeof_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

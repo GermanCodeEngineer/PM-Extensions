@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class dogeiscutRegularExpressions:
 
+    @grepr_dataclass()
     class regex(ThirdBlock):
-
-        def __init__(self, pattern: INPUT_COMPATIBLE_T, flags: INPUT_COMPATIBLE_T):
-            self.pattern = pattern
-            self.flags = flags
+        pattern: INPUT_COMPATIBLE_T
+        flags: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -25,10 +25,9 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class escape(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T):
-            self.string = string
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,10 +40,9 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class source_of(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T):
-            self.regex = regex
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -57,10 +55,9 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class flags_of(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T):
-            self.regex = regex
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -73,11 +70,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class test(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T, regex: INPUT_COMPATIBLE_T):
-            self.string = string
-            self.regex = regex
+        string: INPUT_COMPATIBLE_T
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,11 +89,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class search(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T, regex: INPUT_COMPATIBLE_T):
-            self.string = string
-            self.regex = regex
+        string: INPUT_COMPATIBLE_T
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -113,17 +108,11 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class replace(ThirdBlock):
-
-        def __init__(
-            self,
-            regex: INPUT_COMPATIBLE_T,
-            a: INPUT_COMPATIBLE_T,
-            b: INPUT_COMPATIBLE_T,
-        ):
-            self.regex = regex
-            self.a = a
-            self.b = b
+        regex: INPUT_COMPATIBLE_T
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -138,17 +127,11 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class replace_all(ThirdBlock):
-
-        def __init__(
-            self,
-            regex: INPUT_COMPATIBLE_T,
-            a: INPUT_COMPATIBLE_T,
-            b: INPUT_COMPATIBLE_T,
-        ):
-            self.regex = regex
-            self.a = a
-            self.b = b
+        regex: INPUT_COMPATIBLE_T
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -163,11 +146,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class split(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T, regex: INPUT_COMPATIBLE_T):
-            self.string = string
-            self.regex = regex
+        string: INPUT_COMPATIBLE_T
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,11 +165,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class match(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T, string: INPUT_COMPATIBLE_T):
-            self.regex = regex
-            self.string = string
+        regex: INPUT_COMPATIBLE_T
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -203,11 +184,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class match_all(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T, string: INPUT_COMPATIBLE_T):
-            self.regex = regex
-            self.string = string
+        regex: INPUT_COMPATIBLE_T
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -223,11 +203,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class exec(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T, string: INPUT_COMPATIBLE_T):
-            self.regex = regex
-            self.string = string
+        regex: INPUT_COMPATIBLE_T
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -243,10 +222,9 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_last_index(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T):
-            self.regex = regex
+        regex: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -259,11 +237,10 @@ class dogeiscutRegularExpressions:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_last_index(ThirdBlock):
-
-        def __init__(self, regex: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T):
-            self.regex = regex
-            self.index = index
+        regex: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

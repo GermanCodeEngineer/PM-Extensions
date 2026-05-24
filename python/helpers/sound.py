@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class sound:
 
+    @grepr_dataclass()
     class playuntildone(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T):
-            self.sound = sound
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class play_at_seconds_until_done(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
-            self.sound = sound
-            self.seconds = seconds
+        sound: INPUT_COMPATIBLE_T
+        seconds: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,10 +40,9 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class play(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T):
-            self.sound = sound
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -57,11 +55,10 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class play_at_seconds(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T, seconds: INPUT_COMPATIBLE_T):
-            self.sound = sound
-            self.seconds = seconds
+        sound: INPUT_COMPATIBLE_T
+        seconds: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,10 +74,9 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class stop(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T):
-            self.sound = sound
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,27 +89,22 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class playallsounds(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sound::play all sounds", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class stopallsounds(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sound::stop all sounds", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class set_stop_fadeout_to(ThirdBlock):
-
-        def __init__(self, seconds: INPUT_COMPATIBLE_T, sound: INPUT_COMPATIBLE_T):
-            self.seconds = seconds
-            self.sound = sound
+        seconds: INPUT_COMPATIBLE_T
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -129,10 +120,9 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_sound_playing(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T):
-            self.sound = sound
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -145,10 +135,9 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_length(ThirdBlock):
-
-        def __init__(self, sound: INPUT_COMPATIBLE_T):
-            self.sound = sound
+        sound: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -161,11 +150,10 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class changeeffectby(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T, effect: str):
-            self.amount = amount
-            self.effect = effect
+        amount: INPUT_COMPATIBLE_T
+        effect: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -182,11 +170,10 @@ class sound:
                 },
             )
 
+    @grepr_dataclass()
     class seteffectto(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, effect: str):
-            self.value = value
-            self.effect = effect
+        value: INPUT_COMPATIBLE_T
+        effect: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -203,20 +190,17 @@ class sound:
                 },
             )
 
+    @grepr_dataclass()
     class cleareffects(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sound::clear sound effects", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class get_effect_value(ThirdBlock):
-
-        def __init__(self, effect: str):
-            self.effect = effect
+        effect: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -229,10 +213,9 @@ class sound:
                 },
             )
 
+    @grepr_dataclass()
     class changevolumeby(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T):
-            self.amount = amount
+        amount: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -245,10 +228,9 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class setvolumeto(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -261,18 +243,14 @@ class sound:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class volume(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sound::volume", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class sounds_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sound::#SOUND MENU", inputs={}, dropdowns={})

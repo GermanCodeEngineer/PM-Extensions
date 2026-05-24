@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class agBuffer:
 
+    @grepr_dataclass()
     class new_buffer(ThirdBlock):
-
-        def __init__(self, length: INPUT_COMPATIBLE_T):
-            self.length = length
+        length: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,10 +21,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class buffer_of(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,10 +36,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_url(ThirdBlock):
-
-        def __init__(self, url: INPUT_COMPATIBLE_T):
-            self.url = url
+        url: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,10 +51,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_base64(ThirdBlock):
-
-        def __init__(self, base64: INPUT_COMPATIBLE_T):
-            self.base64 = base64
+        base64: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -69,10 +66,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_string(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T):
-            self.string = string
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -85,20 +81,17 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_current(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&agBuffer::current buffer", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class builder(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -115,17 +108,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_append(ThirdBlock):
-
-        def __init__(
-            self,
-            type: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-        ):
-            self.type = type
-            self.value = value
-            self.endian = endian
+        type: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -144,10 +131,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_append_buffer(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -160,10 +146,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_set(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -176,21 +161,13 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_value(ThirdBlock):
-
-        def __init__(
-            self,
-            type: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-            buffer: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-        ):
-            self.type = type
-            self.value = value
-            self.buffer = buffer
-            self.index = index
-            self.endian = endian
+        type: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
+        buffer: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -215,21 +192,13 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_value(ThirdBlock):
-
-        def __init__(
-            self,
-            type: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-            buffer: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-        ):
-            self.type = type
-            self.value = value
-            self.buffer = buffer
-            self.index = index
-            self.endian = endian
+        type: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
+        buffer: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -254,17 +223,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class write_sub_buffer(ThirdBlock):
-
-        def __init__(
-            self,
-            subbuffer: INPUT_COMPATIBLE_T,
-            buffer: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-        ):
-            self.subbuffer = subbuffer
-            self.buffer = buffer
-            self.index = index
+        subbuffer: INPUT_COMPATIBLE_T
+        buffer: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -283,10 +246,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_buffer(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -299,10 +261,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_size(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -315,10 +276,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_array(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -331,11 +291,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_typed_array(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
-            self.type = type
+        buffer: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -351,10 +310,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class buffer_to_string(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -367,10 +325,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_base64(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -383,10 +340,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_data_url(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -399,11 +355,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class read_null_terminated_string(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
-            self.index = index
+        buffer: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -419,17 +374,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class write_null_terminated_string(ThirdBlock):
-
-        def __init__(
-            self,
-            buffer: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-            string: INPUT_COMPATIBLE_T,
-        ):
-            self.buffer = buffer
-            self.index = index
-            self.string = string
+        buffer: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -448,17 +397,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class items_of(ThirdBlock):
-
-        def __init__(
-            self,
-            buffer: INPUT_COMPATIBLE_T,
-            min: INPUT_COMPATIBLE_T,
-            max: INPUT_COMPATIBLE_T,
-        ):
-            self.buffer = buffer
-            self.min = min
-            self.max = max
+        buffer: INPUT_COMPATIBLE_T
+        min: INPUT_COMPATIBLE_T
+        max: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -477,11 +420,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class resize(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, size: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
-            self.size = size
+        buffer: INPUT_COMPATIBLE_T
+        size: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -497,11 +439,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class resize_inst(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, size: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
-            self.size = size
+        buffer: INPUT_COMPATIBLE_T
+        size: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -517,10 +458,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class copy(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -533,10 +473,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class reverse(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -549,10 +488,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class reverse_r(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
+        buffer: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -565,11 +503,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class stringify(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, mode: str):
-            self.buffer = buffer
-            self.mode = mode
+        buffer: INPUT_COMPATIBLE_T
+        mode: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -584,27 +521,22 @@ class agBuffer:
                 },
             )
 
+    @grepr_dataclass()
     class for_each_v(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&agBuffer::byte", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class for_each_i(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&agBuffer::index", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class for_each(ThirdBlock):
-
-        def __init__(self, buffer: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.buffer = buffer
-            self.substack = substack
+        buffer: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -628,10 +560,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class size_of_type(ThirdBlock):
-
-        def __init__(self, type: INPUT_COMPATIBLE_T):
-            self.type = type
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -644,11 +575,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class cast(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T):
-            self.value = value
-            self.type = type
+        value: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -664,19 +594,12 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_pointer(ThirdBlock):
-
-        def __init__(
-            self,
-            index: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-            buffer: INPUT_COMPATIBLE_T,
-            type: INPUT_COMPATIBLE_T,
-        ):
-            self.index = index
-            self.endian = endian
-            self.buffer = buffer
-            self.type = type
+        index: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
+        buffer: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -698,11 +621,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_pointer(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
-            self.value = value
+        ptr: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -716,11 +638,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_pointer_index(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
-            self.value = value
+        ptr: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -734,11 +655,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_pointer_endian(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
-            self.value = value
+        ptr: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -752,11 +672,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_pointer_type(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
-            self.value = value
+        ptr: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -770,11 +689,10 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_pointer_buffer(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
-            self.value = value
+        ptr: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -788,10 +706,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pointer(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -802,10 +719,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pointer_index(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -816,10 +732,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pointer_type(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -830,10 +745,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pointer_endian(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -844,10 +758,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_pointer_buffer(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -858,10 +771,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_pointer(ThirdBlock):
-
-        def __init__(self, ptr: INPUT_COMPATIBLE_T):
-            self.ptr = ptr
+        ptr: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -872,17 +784,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class copy_pointer(ThirdBlock):
-
-        def __init__(
-            self,
-            ptr: INPUT_COMPATIBLE_T,
-            type: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-        ):
-            self.ptr = ptr
-            self.type = type
-            self.endian = endian
+        ptr: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -899,17 +805,11 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pointer_as_type(ThirdBlock):
-
-        def __init__(
-            self,
-            ptr: INPUT_COMPATIBLE_T,
-            type: INPUT_COMPATIBLE_T,
-            endian: INPUT_COMPATIBLE_T,
-        ):
-            self.ptr = ptr
-            self.type = type
-            self.endian = endian
+        ptr: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
+        endian: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -926,10 +826,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class max_reporter_lines(ThirdBlock):
-
-        def __init__(self, lines: INPUT_COMPATIBLE_T):
-            self.lines = lines
+        lines: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -942,10 +841,9 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class error_handling(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -958,30 +856,24 @@ class agBuffer:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_datatypes(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&agBuffer::#menu:DATATYPES", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_pointer_types(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&agBuffer::#menu:POINTER_TYPES", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_stringifymode(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwProto:
 
+    @grepr_dataclass()
     class label_function(ThirdBlock):
-
-        def __init__(self, label: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.label = label
-            self.substack = substack
+        label: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -25,10 +25,9 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class label_command(ThirdBlock):
-
-        def __init__(self, label: INPUT_COMPATIBLE_T):
-            self.label = label
+        label: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,11 +40,10 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class label_reporter(ThirdBlock):
-
-        def __init__(self, label: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.label = label
-            self.value = value
+        label: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,11 +59,10 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class label_boolean(ThirdBlock):
-
-        def __init__(self, label: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.label = label
-            self.value = value
+        label: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -81,10 +78,8 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class placeholder_reporter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,10 +88,8 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class placeholder_boolean(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -105,10 +98,9 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class label_hat(ThirdBlock):
-
-        def __init__(self, label: INPUT_COMPATIBLE_T):
-            self.label = label
+        label: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -121,10 +113,8 @@ class jwProto:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class placeholder_command(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

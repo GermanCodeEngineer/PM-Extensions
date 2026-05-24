@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class pmControlsExpansion:
 
+    @grepr_dataclass()
     class as_new_broadcast(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,10 +21,8 @@ class pmControlsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class restart_from_the_top(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -33,11 +31,10 @@ class pmControlsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class as_new_broadcast_args(ThirdBlock):
-
-        def __init__(self, data: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.data = data
-            self.substack = substack
+        data: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,29 +50,20 @@ class pmControlsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class as_new_broadcast_arg_block(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmControlsExpansion::thread data", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class if_else_if(ThirdBlock):
-
-        def __init__(
-            self,
-            condition1: INPUT_COMPATIBLE_T,
-            condition2: INPUT_COMPATIBLE_T,
-            substack: INPUT_COMPATIBLE_T,
-            substack2: INPUT_COMPATIBLE_T,
-        ):
-            self.condition1 = condition1
-            self.condition2 = condition2
-            self.substack = substack
-            self.substack2 = substack2
+        condition1: INPUT_COMPATIBLE_T
+        condition2: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
+        substack2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -97,21 +85,13 @@ class pmControlsExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class if_else_if_else(ThirdBlock):
-
-        def __init__(
-            self,
-            condition1: INPUT_COMPATIBLE_T,
-            condition2: INPUT_COMPATIBLE_T,
-            substack: INPUT_COMPATIBLE_T,
-            substack2: INPUT_COMPATIBLE_T,
-            substack3: INPUT_COMPATIBLE_T,
-        ):
-            self.condition1 = condition1
-            self.condition2 = condition2
-            self.substack = substack
-            self.substack2 = substack2
-            self.substack3 = substack3
+        condition1: INPUT_COMPATIBLE_T
+        condition2: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
+        substack2: INPUT_COMPATIBLE_T
+        substack3: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

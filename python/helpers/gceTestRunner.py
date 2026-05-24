@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class gceTestRunner:
 
+    @grepr_dataclass()
     class test_scope(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -25,10 +25,9 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T):
-            self.condition = condition
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,10 +40,9 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_not(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T):
-            self.condition = condition
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -57,11 +55,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_msg(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, msg: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.msg = msg
+        condition: INPUT_COMPATIBLE_T
+        msg: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,11 +74,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_not_msg(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, msg: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.msg = msg
+        condition: INPUT_COMPATIBLE_T
+        msg: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -97,11 +93,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_strict_equal(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -113,11 +108,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_strict_not_equal(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -129,11 +123,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_unstrict_equal(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -145,11 +138,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_unstrict_not_equal(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -161,11 +153,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_text_in_value(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.text = text
-            self.value = value
+        text: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -181,11 +172,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_text_not_in_value(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.text = text
-            self.value = value
+        text: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -201,11 +191,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_type(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, expected: INPUT_COMPATIBLE_T):
-            self.value = value
-            self.expected = expected
+        value: INPUT_COMPATIBLE_T
+        expected: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -221,11 +210,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_custom_id_type(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, expected: INPUT_COMPATIBLE_T):
-            self.value = value
-            self.expected = expected
+        value: INPUT_COMPATIBLE_T
+        expected: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -241,10 +229,9 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_throws(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -257,11 +244,10 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_throws_contains(ThirdBlock):
-
-        def __init__(self, msg: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.msg = msg
-            self.substack = substack
+        msg: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -277,10 +263,9 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class assert_does_not_throw(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -293,10 +278,9 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fail_test(ThirdBlock):
-
-        def __init__(self, msg: INPUT_COMPATIBLE_T):
-            self.msg = msg
+        msg: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -309,10 +293,8 @@ class gceTestRunner:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_expected_type(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

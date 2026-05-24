@@ -1,22 +1,20 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class dogeiscutSet:
 
+    @grepr_dataclass()
     class blank(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&dogeiscutSet::blank set", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class from_list(ThirdBlock):
-
-        def __init__(self, list: INPUT_COMPATIBLE_T):
-            self.list = list
+        list: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -27,10 +25,9 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class parse(ThirdBlock):
-
-        def __init__(self, input: INPUT_COMPATIBLE_T):
-            self.input = input
+        input: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -43,20 +40,17 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_current(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&dogeiscutSet::current set", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class builder(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -73,10 +67,9 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_append(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -89,10 +82,9 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_set(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T):
-            self.set = set
+        set: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -103,11 +95,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class has(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.value = value
+        set: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -121,11 +112,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_subset_of(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -137,11 +127,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_superset_of(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -153,11 +142,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_disjoint_from(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -169,10 +157,9 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class size(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T):
-            self.set = set
+        set: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,11 +170,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.value = value
+        set: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -201,11 +187,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.value = value
+        set: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -219,11 +204,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class union(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -235,11 +219,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class intersect(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -251,11 +234,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class difference(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -267,11 +249,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class symmetric_difference(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -283,11 +264,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class flat(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, depth: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.depth = depth
+        set: INPUT_COMPATIBLE_T
+        depth: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -301,11 +281,10 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.format = format
+        set: INPUT_COMPATIBLE_T
+        format: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -319,19 +298,16 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class for_each_v(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&dogeiscutSet::value", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class for_each(ThirdBlock):
-
-        def __init__(self, set: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.set = set
-            self.substack = substack
+        set: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -349,20 +325,16 @@ class dogeiscutSet:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_list(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&dogeiscutSet::#menu:list", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_stringify_format(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

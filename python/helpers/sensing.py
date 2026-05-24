@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class sensing:
 
+    @grepr_dataclass()
     class touchingobject(ThirdBlock):
-
-        def __init__(self, object: INPUT_COMPATIBLE_T):
-            self.object = object
+        object: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class objecttouchingobject(ThirdBlock):
-
-        def __init__(self, object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T):
-            self.object = object
-            self.sprite = sprite
+        object: INPUT_COMPATIBLE_T
+        sprite: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,11 +40,10 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class objecttouchingclonesprite(ThirdBlock):
-
-        def __init__(self, object: INPUT_COMPATIBLE_T, sprite: INPUT_COMPATIBLE_T):
-            self.object = object
-            self.sprite = sprite
+        object: INPUT_COMPATIBLE_T
+        sprite: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,10 +59,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class touchingcolor(ThirdBlock):
-
-        def __init__(self, color: INPUT_COMPATIBLE_T):
-            self.color = color
+        color: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,11 +74,10 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class coloristouchingcolor(ThirdBlock):
-
-        def __init__(self, color1: INPUT_COMPATIBLE_T, color2: INPUT_COMPATIBLE_T):
-            self.color1 = color1
-            self.color2 = color2
+        color1: INPUT_COMPATIBLE_T
+        color2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -97,11 +93,10 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class getxyoftouchingsprite(ThirdBlock):
-
-        def __init__(self, object: INPUT_COMPATIBLE_T, coordinate: str):
-            self.object = object
-            self.coordinate = coordinate
+        object: INPUT_COMPATIBLE_T
+        coordinate: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -118,10 +113,9 @@ class sensing:
                 },
             )
 
+    @grepr_dataclass()
     class distanceto(ThirdBlock):
-
-        def __init__(self, object: INPUT_COMPATIBLE_T):
-            self.object = object
+        object: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -134,19 +128,12 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class distance_to(ThirdBlock):
-
-        def __init__(
-            self,
-            x1: INPUT_COMPATIBLE_T,
-            y1: INPUT_COMPATIBLE_T,
-            x2: INPUT_COMPATIBLE_T,
-            y2: INPUT_COMPATIBLE_T,
-        ):
-            self.x1 = x1
-            self.y1 = y1
-            self.x2 = x2
-            self.y2 = y2
+        x1: INPUT_COMPATIBLE_T
+        y1: INPUT_COMPATIBLE_T
+        x2: INPUT_COMPATIBLE_T
+        y2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -160,19 +147,12 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class direction_to(ThirdBlock):
-
-        def __init__(
-            self,
-            x1: INPUT_COMPATIBLE_T,
-            y1: INPUT_COMPATIBLE_T,
-            x2: INPUT_COMPATIBLE_T,
-            y2: INPUT_COMPATIBLE_T,
-        ):
-            self.x1 = x1
-            self.y1 = y1
-            self.x2 = x2
-            self.y2 = y2
+        x1: INPUT_COMPATIBLE_T
+        y1: INPUT_COMPATIBLE_T
+        x2: INPUT_COMPATIBLE_T
+        y2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -186,10 +166,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class askandwait(ThirdBlock):
-
-        def __init__(self, question: INPUT_COMPATIBLE_T):
-            self.question = question
+        question: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -202,18 +181,15 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class answer(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::answer", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class thing_is_text(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T):
-            self.string = string
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -226,10 +202,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class thing_is_number(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T):
-            self.string = string
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -242,10 +217,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class keypressed(ThirdBlock):
-
-        def __init__(self, key: INPUT_COMPATIBLE_T):
-            self.key = key
+        key: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -258,10 +232,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class keyhit(ThirdBlock):
-
-        def __init__(self, key: INPUT_COMPATIBLE_T):
-            self.key = key
+        key: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -274,10 +247,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mousescrolling(ThirdBlock):
-
-        def __init__(self, direction: INPUT_COMPATIBLE_T):
-            self.direction = direction
+        direction: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -290,42 +262,33 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mousedown(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::mouse down?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class mouseclicked(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::mouse clicked?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class mousex(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::mouse x", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class mousey(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::mouse y", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class setclipboard(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T):
-            self.text = text
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -338,18 +301,15 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class getclipboard(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::clipboard item", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class setdragmode(ThirdBlock):
-
-        def __init__(self, mode: str):
-            self.mode = mode
+        mode: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -360,54 +320,41 @@ class sensing:
                 },
             )
 
+    @grepr_dataclass()
     class getdragmode(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::draggable?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class loudness(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::loudness", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class loud(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::loud?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class resettimer(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::reset timer", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class timer(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::timer", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class set_of(ThirdBlock):
-
-        def __init__(
-            self, value: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T, property: str
-        ):
-            self.value = value
-            self.target = target
-            self.property = property
+        value: INPUT_COMPATIBLE_T
+        target: INPUT_COMPATIBLE_T
+        property: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -427,11 +374,10 @@ class sensing:
                 },
             )
 
+    @grepr_dataclass()
     class of(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T, property: str):
-            self.target = target
-            self.property = property
+        target: INPUT_COMPATIBLE_T
+        property: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -448,10 +394,9 @@ class sensing:
                 },
             )
 
+    @grepr_dataclass()
     class current(ThirdBlock):
-
-        def __init__(self, property: str):
-            self.property = property
+        property: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -464,28 +409,23 @@ class sensing:
                 },
             )
 
+    @grepr_dataclass()
     class dayssince2000(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::days since 2000", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class mobile(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::mobile?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class fingerdown(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T):
-            self.index = index
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -498,10 +438,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fingertapped(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T):
-            self.index = index
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -514,10 +453,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fingerx(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T):
-            self.index = index
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -530,10 +468,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fingery(ThirdBlock):
-
-        def __init__(self, index: INPUT_COMPATIBLE_T):
-            self.index = index
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -546,46 +483,36 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class username(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::username", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class loggedin(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::logged in?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class touchingobjectmenu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#TOUCHING OBJECT MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class fulltouchingobjectmenu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#FULL TOUCHING OBJECT MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class touchingobjectmenusprites(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -594,58 +521,47 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class distancetomenu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#DISTANCE TO MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class keyoptions(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::#KEY MENU", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class scrolldirections(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#SCROLL DIRECTION MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class of_object_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#OJBECT PROPERTY MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class fingeroptions(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::#FINGER INDEX MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class thing_has_number(ThirdBlock):
-
-        def __init__(self, text1: INPUT_COMPATIBLE_T):
-            self.text1 = text1
+        text1: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -658,10 +574,9 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_upper_case(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T):
-            self.text = text
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -674,17 +589,11 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class regextest(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            reg: INPUT_COMPATIBLE_T,
-            regrule: INPUT_COMPATIBLE_T,
-        ):
-            self.text = text
-            self.reg = reg
-            self.regrule = regrule
+        text: INPUT_COMPATIBLE_T
+        reg: INPUT_COMPATIBLE_T
+        regrule: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -703,11 +612,10 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class getspritewithattrib(ThirdBlock):
-
-        def __init__(self, var: INPUT_COMPATIBLE_T, val: INPUT_COMPATIBLE_T):
-            self.var = var
-            self.val = val
+        var: INPUT_COMPATIBLE_T
+        val: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -723,28 +631,22 @@ class sensing:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class getoperatingsystem(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&sensing::operating system", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class getbrowser(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::browser", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class geturl(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&sensing::url", inputs={}, dropdowns={})

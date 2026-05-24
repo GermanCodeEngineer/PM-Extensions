@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class steve0greatnesstimers:
 
+    @grepr_dataclass()
     class getter(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -19,11 +19,10 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class elapsed(ThirdBlock):
-
-        def __init__(self, timer: str, units: str):
-            self.timer = timer
-            self.units = units
+        timer: str
+        units: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -39,10 +38,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class pause(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,10 +51,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class toggle(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -67,10 +64,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class unpause(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -81,10 +77,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class is_paused(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -95,10 +90,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class restart(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -109,10 +103,9 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class stop(ThirdBlock):
-
-        def __init__(self, timer: str):
-            self.timer = timer
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -123,12 +116,11 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, time: INPUT_COMPATIBLE_T, units: str, timer: str):
-            self.time = time
-            self.units = units
-            self.timer = timer
+        time: INPUT_COMPATIBLE_T
+        units: str
+        timer: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -148,12 +140,11 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class whengt(ThirdBlock):
-
-        def __init__(self, time: INPUT_COMPATIBLE_T, timer: str, units: str):
-            self.time = time
-            self.timer = timer
-            self.units = units
+        time: INPUT_COMPATIBLE_T
+        timer: str
+        units: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -173,20 +164,16 @@ class steve0greatnesstimers:
                 },
             )
 
+    @grepr_dataclass()
     class menu_timers(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&steve0greatnesstimers::#menu:TIMERS", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_units_get(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -195,10 +182,8 @@ class steve0greatnesstimers:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_units_set(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

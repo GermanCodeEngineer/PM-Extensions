@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class gceOOP:
 
+    @grepr_dataclass()
     class temp_block(ThirdBlock):
-
-        def __init__(self, instance: INPUT_COMPATIBLE_T):
-            self.instance = instance
+        instance: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class temp_block2(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,11 +36,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_class_at(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -61,17 +59,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_subclass_at(ThirdBlock):
-
-        def __init__(
-            self,
-            name: INPUT_COMPATIBLE_T,
-            superclass: INPUT_COMPATIBLE_T,
-            substack: INPUT_COMPATIBLE_T,
-        ):
-            self.name = name
-            self.superclass = superclass
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        superclass: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -94,11 +86,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_class_named(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -118,17 +109,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_subclass_named(ThirdBlock):
-
-        def __init__(
-            self,
-            name: INPUT_COMPATIBLE_T,
-            superclass: INPUT_COMPATIBLE_T,
-            substack: INPUT_COMPATIBLE_T,
-        ):
-            self.name = name
-            self.superclass = superclass
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        superclass: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -151,11 +136,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class on_class(ThirdBlock):
-
-        def __init__(self, class_: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.class_ = class_
-            self.substack = substack
+        class_: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -175,21 +159,16 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class current_class(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&gceOOP::current class", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class is_subclass(ThirdBlock):
-
-        def __init__(
-            self, subclass: INPUT_COMPATIBLE_T, superclass: INPUT_COMPATIBLE_T
-        ):
-            self.subclass = subclass
-            self.superclass = superclass
+        subclass: INPUT_COMPATIBLE_T
+        superclass: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -205,10 +184,9 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_superclass(ThirdBlock):
-
-        def __init__(self, class_: INPUT_COMPATIBLE_T):
-            self.class_ = class_
+        class_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -221,11 +199,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_instance_method(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -245,13 +222,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_special_method(ThirdBlock):
-
-        def __init__(
-            self, special_method: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-        ):
-            self.special_method = special_method
-            self.substack = substack
+        special_method: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -271,19 +245,16 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class self_value(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&gceOOP::self", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class call_super_method(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.posargs = posargs
+        name: INPUT_COMPATIBLE_T
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -299,10 +270,9 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class call_super_init_method(ThirdBlock):
-
-        def __init__(self, posargs: INPUT_COMPATIBLE_T):
-            self.posargs = posargs
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -315,11 +285,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_getter(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -339,11 +308,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_setter(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -367,13 +335,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_operator_method(ThirdBlock):
-
-        def __init__(
-            self, operator_kind: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T
-        ):
-            self.operator_kind = operator_kind
-            self.substack = substack
+        operator_kind: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -393,10 +358,8 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class operator_operator_value(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -405,17 +368,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_class_variable(ThirdBlock):
-
-        def __init__(
-            self,
-            class_: INPUT_COMPATIBLE_T,
-            name: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.class_ = class_
-            self.name = name
-            self.value = value
+        class_: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -434,11 +391,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_class_variable(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.class_ = class_
+        name: INPUT_COMPATIBLE_T
+        class_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -454,11 +410,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_class_variable(ThirdBlock):
-
-        def __init__(self, class_: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
-            self.class_ = class_
-            self.name = name
+        class_: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -474,11 +429,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_static_method(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -494,11 +448,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class property_names_of_class(ThirdBlock):
-
-        def __init__(self, property: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
-            self.property = property
-            self.class_ = class_
+        property: INPUT_COMPATIBLE_T
+        class_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -514,11 +467,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class create_instance(ThirdBlock):
-
-        def __init__(self, class_: INPUT_COMPATIBLE_T, posargs: INPUT_COMPATIBLE_T):
-            self.class_ = class_
-            self.posargs = posargs
+        class_: INPUT_COMPATIBLE_T
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -534,13 +486,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_instance(ThirdBlock):
-
-        def __init__(
-            self, potential_instance: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T
-        ):
-            self.potential_instance = potential_instance
-            self.class_ = class_
+        potential_instance: INPUT_COMPATIBLE_T
+        class_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -556,10 +505,9 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_class_of_instance(ThirdBlock):
-
-        def __init__(self, instance: INPUT_COMPATIBLE_T):
-            self.instance = instance
+        instance: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -572,17 +520,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_attribute(ThirdBlock):
-
-        def __init__(
-            self,
-            instance: INPUT_COMPATIBLE_T,
-            name: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.instance = instance
-            self.name = name
-            self.value = value
+        instance: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -601,11 +543,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_attribute(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, instance: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.instance = instance
+        name: INPUT_COMPATIBLE_T
+        instance: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -621,10 +562,9 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_all_attributes(ThirdBlock):
-
-        def __init__(self, instance: INPUT_COMPATIBLE_T):
-            self.instance = instance
+        instance: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -637,17 +577,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class call_method(ThirdBlock):
-
-        def __init__(
-            self,
-            instance: INPUT_COMPATIBLE_T,
-            name: INPUT_COMPATIBLE_T,
-            posargs: INPUT_COMPATIBLE_T,
-        ):
-            self.instance = instance
-            self.name = name
-            self.posargs = posargs
+        instance: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -666,17 +600,11 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class call_static_method(ThirdBlock):
-
-        def __init__(
-            self,
-            class_: INPUT_COMPATIBLE_T,
-            name: INPUT_COMPATIBLE_T,
-            posargs: INPUT_COMPATIBLE_T,
-        ):
-            self.class_ = class_
-            self.name = name
-            self.posargs = posargs
+        class_: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
+        posargs: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -695,11 +623,10 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_static_method_func(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, class_: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.class_ = class_
+        name: INPUT_COMPATIBLE_T
+        class_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -715,10 +642,8 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_setter_value(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -727,30 +652,24 @@ class gceOOP:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_class_property(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&gceOOP::#menu:classProperty", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_operator_method(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&gceOOP::#menu:operatorMethod", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_special_method(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

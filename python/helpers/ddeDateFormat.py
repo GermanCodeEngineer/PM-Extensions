@@ -1,24 +1,22 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class ddeDateFormat:
 
+    @grepr_dataclass()
     class current_date(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&ddeDateFormat::current date", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class create_date(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T):
-            self.string = string
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -31,11 +29,10 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class format_date(ThirdBlock):
-
-        def __init__(self, date: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T):
-            self.date = date
-            self.format = format
+        date: INPUT_COMPATIBLE_T
+        format: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -51,11 +48,10 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class locale_format_date(ThirdBlock):
-
-        def __init__(self, date: INPUT_COMPATIBLE_T, type: INPUT_COMPATIBLE_T):
-            self.date = date
-            self.type = type
+        date: INPUT_COMPATIBLE_T
+        type: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -71,17 +67,11 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class compare_date(ThirdBlock):
-
-        def __init__(
-            self,
-            date1: INPUT_COMPATIBLE_T,
-            operation: INPUT_COMPATIBLE_T,
-            date2: INPUT_COMPATIBLE_T,
-        ):
-            self.date1 = date1
-            self.operation = operation
-            self.date2 = date2
+        date1: INPUT_COMPATIBLE_T
+        operation: INPUT_COMPATIBLE_T
+        date2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -100,10 +90,9 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_valid(ThirdBlock):
-
-        def __init__(self, date: INPUT_COMPATIBLE_T):
-            self.date = date
+        date: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -116,11 +105,10 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_date_part(ThirdBlock):
-
-        def __init__(self, part: INPUT_COMPATIBLE_T, date: INPUT_COMPATIBLE_T):
-            self.part = part
-            self.date = date
+        part: INPUT_COMPATIBLE_T
+        date: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -136,17 +124,11 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class add_time(ThirdBlock):
-
-        def __init__(
-            self,
-            amount: INPUT_COMPATIBLE_T,
-            unit: INPUT_COMPATIBLE_T,
-            date: INPUT_COMPATIBLE_T,
-        ):
-            self.amount = amount
-            self.unit = unit
-            self.date = date
+        amount: INPUT_COMPATIBLE_T
+        unit: INPUT_COMPATIBLE_T
+        date: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -165,17 +147,11 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class diff_date(ThirdBlock):
-
-        def __init__(
-            self,
-            date1: INPUT_COMPATIBLE_T,
-            date2: INPUT_COMPATIBLE_T,
-            unit: INPUT_COMPATIBLE_T,
-        ):
-            self.date1 = date1
-            self.date2 = date2
-            self.unit = unit
+        date1: INPUT_COMPATIBLE_T
+        date2: INPUT_COMPATIBLE_T
+        unit: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -194,10 +170,8 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_compare_operations(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -206,30 +180,24 @@ class ddeDateFormat:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_date_parts(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&ddeDateFormat::#menu:dateParts", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_time_units(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&ddeDateFormat::#menu:timeUnits", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_locale_length(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

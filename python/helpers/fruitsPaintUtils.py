@@ -1,21 +1,16 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class fruitsPaintUtils:
 
+    @grepr_dataclass()
     class mix_colours(ThirdBlock):
-
-        def __init__(
-            self,
-            colour_name1: INPUT_COMPATIBLE_T,
-            colour_name2: INPUT_COMPATIBLE_T,
-            mix_options: str,
-        ):
-            self.colour_name1 = colour_name1
-            self.colour_name2 = colour_name2
-            self.mix_options = mix_options
+        colour_name1: INPUT_COMPATIBLE_T
+        colour_name2: INPUT_COMPATIBLE_T
+        mix_options: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -35,10 +30,9 @@ class fruitsPaintUtils:
                 },
             )
 
+    @grepr_dataclass()
     class get_colour(ThirdBlock):
-
-        def __init__(self, colour_name: INPUT_COMPATIBLE_T):
-            self.colour_name = colour_name
+        colour_name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -51,10 +45,8 @@ class fruitsPaintUtils:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_mix_options(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

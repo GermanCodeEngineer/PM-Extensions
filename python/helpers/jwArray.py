@@ -1,22 +1,20 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwArray:
 
+    @grepr_dataclass()
     class blank(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwArray::blank array", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class blank_length(ThirdBlock):
-
-        def __init__(self, length: INPUT_COMPATIBLE_T):
-            self.length = length
+        length: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -29,10 +27,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class from_list(ThirdBlock):
-
-        def __init__(self, list: INPUT_COMPATIBLE_T):
-            self.list = list
+        list: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -43,10 +40,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class parse(ThirdBlock):
-
-        def __init__(self, input: INPUT_COMPATIBLE_T):
-            self.input = input
+        input: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -59,11 +55,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class split(ThirdBlock):
-
-        def __init__(self, string: INPUT_COMPATIBLE_T, divider: INPUT_COMPATIBLE_T):
-            self.string = string
-            self.divider = divider
+        string: INPUT_COMPATIBLE_T
+        divider: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -79,10 +74,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -99,18 +93,15 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_current(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwArray::current array", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class builder_append(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -123,10 +114,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class builder_set(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T):
-            self.array = array
+        array: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -139,11 +129,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, index: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.index = index
+        array: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -159,17 +148,11 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class items(ThirdBlock):
-
-        def __init__(
-            self,
-            array: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.array = array
-            self.x = x
-            self.y = y
+        array: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -184,11 +167,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class index(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -204,11 +186,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class has(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -224,10 +205,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class length(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T):
-            self.array = array
+        array: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -240,17 +220,11 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set(ThirdBlock):
-
-        def __init__(
-            self,
-            array: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.array = array
-            self.index = index
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -269,11 +243,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class append(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -289,11 +262,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class concat(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T, two: INPUT_COMPATIBLE_T):
-            self.one = one
-            self.two = two
+        one: INPUT_COMPATIBLE_T
+        two: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -305,11 +277,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fill(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -325,10 +296,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class reverse(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T):
-            self.array = array
+        array: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -341,17 +311,11 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class splice(ThirdBlock):
-
-        def __init__(
-            self,
-            array: INPUT_COMPATIBLE_T,
-            index: INPUT_COMPATIBLE_T,
-            items: INPUT_COMPATIBLE_T,
-        ):
-            self.array = array
-            self.index = index
-            self.items = items
+        array: INPUT_COMPATIBLE_T
+        index: INPUT_COMPATIBLE_T
+        items: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -370,11 +334,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class repeat(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, times: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.times = times
+        array: INPUT_COMPATIBLE_T
+        times: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -390,11 +353,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class flat(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, depth: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.depth = depth
+        array: INPUT_COMPATIBLE_T
+        depth: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -410,11 +372,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.format = format
+        array: INPUT_COMPATIBLE_T
+        format: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -430,11 +391,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class join(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, divider: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.divider = divider
+        array: INPUT_COMPATIBLE_T
+        divider: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -450,10 +410,9 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class sum(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T):
-            self.array = array
+        array: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -466,27 +425,22 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class for_each_i(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwArray::index", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class for_each_v(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwArray::value", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class for_each(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.substack = substack
+        array: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -510,11 +464,10 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class basic_sort(ThirdBlock):
-
-        def __init__(self, array: INPUT_COMPATIBLE_T, value: INPUT_COMPATIBLE_T):
-            self.array = array
-            self.value = value
+        array: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -538,18 +491,14 @@ class jwArray:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_list(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwArray::#menu:list", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class menu_stringify_format(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

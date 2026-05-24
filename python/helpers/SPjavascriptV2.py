@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class SPjavascriptV2:
 
+    @grepr_dataclass()
     class code_input(ThirdBlock):
-
-        def __init__(self, code: INPUT_COMPATIBLE_T):
-            self.code = code
+        code: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -19,18 +19,15 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class argument_report(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&SPjavascriptV2::data", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class return_data(ThirdBlock):
-
-        def __init__(self, data: INPUT_COMPATIBLE_T):
-            self.data = data
+        data: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -43,10 +40,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_reporter(ThirdBlock):
-
-        def __init__(self, code: INPUT_COMPATIBLE_T):
-            self.code = code
+        code: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -59,10 +55,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_boolean(ThirdBlock):
-
-        def __init__(self, code: INPUT_COMPATIBLE_T):
-            self.code = code
+        code: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -75,10 +70,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_reporter_binded(ThirdBlock):
-
-        def __init__(self, args: INPUT_COMPATIBLE_T):
-            self.args = args
+        args: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -95,10 +89,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_boolean_binded(ThirdBlock):
-
-        def __init__(self, args: INPUT_COMPATIBLE_T):
-            self.args = args
+        args: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -115,10 +108,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_global_func(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -135,11 +127,10 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class define_scratch_code(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.substack = substack
+        name: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -159,10 +150,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_global_func(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -175,10 +165,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_command_binded(ThirdBlock):
-
-        def __init__(self, args: INPUT_COMPATIBLE_T):
-            self.args = args
+        args: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -195,10 +184,9 @@ class SPjavascriptV2:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class js_command(ThirdBlock):
-
-        def __init__(self, code: INPUT_COMPATIBLE_T):
-            self.code = code
+        code: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

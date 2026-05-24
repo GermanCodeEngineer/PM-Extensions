@@ -1,30 +1,26 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class divIterator:
 
+    @grepr_dataclass()
     class iter_item(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&divIterator::item", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class iter_acc(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&divIterator::acc", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class iter_advance(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -35,10 +31,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_next(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -49,10 +44,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_is_iter(ThirdBlock):
-
-        def __init__(self, thing: INPUT_COMPATIBLE_T):
-            self.thing = thing
+        thing: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -65,10 +59,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_done(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -79,10 +72,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_clone(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,10 +85,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_clonable(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -107,11 +98,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_branch(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, num: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.num = num
+        iter: INPUT_COMPATIBLE_T
+        num: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -127,11 +117,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_term_for_each(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.substack = substack
+        iter: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -151,11 +140,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_range(ThirdBlock):
-
-        def __init__(self, start: INPUT_COMPATIBLE_T, end: INPUT_COMPATIBLE_T):
-            self.start = start
-            self.end = end
+        start: INPUT_COMPATIBLE_T
+        end: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -171,10 +159,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_iter_over(ThirdBlock):
-
-        def __init__(self, val: INPUT_COMPATIBLE_T):
-            self.val = val
+        val: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -187,11 +174,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_builder(ThirdBlock):
-
-        def __init__(self, state: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.state = state
-            self.substack = substack
+        state: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -211,18 +197,15 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_builder_get_state(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&divIterator::state", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class iter_builder_set_state(ThirdBlock):
-
-        def __init__(self, state: INPUT_COMPATIBLE_T):
-            self.state = state
+        state: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -235,10 +218,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_builder_item(ThirdBlock):
-
-        def __init__(self, item: INPUT_COMPATIBLE_T):
-            self.item = item
+        item: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -251,21 +233,18 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_builder_done(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&divIterator::finish iterator", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class iter_adapter_map(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, map: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.map = map
+        iter: INPUT_COMPATIBLE_T
+        map: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -285,11 +264,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_keep(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, pred: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.pred = pred
+        iter: INPUT_COMPATIBLE_T
+        pred: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -309,10 +287,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_enum(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -323,10 +300,9 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_cycle(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -337,11 +313,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_take(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, count: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.count = count
+        iter: INPUT_COMPATIBLE_T
+        count: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -357,11 +332,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_skip(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, count: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.count = count
+        iter: INPUT_COMPATIBLE_T
+        count: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -377,11 +351,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_step_by(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, step: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.step = step
+        iter: INPUT_COMPATIBLE_T
+        step: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -397,11 +370,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_chain(ThirdBlock):
-
-        def __init__(self, iter1: INPUT_COMPATIBLE_T, iter2: INPUT_COMPATIBLE_T):
-            self.iter1 = iter1
-            self.iter2 = iter2
+        iter1: INPUT_COMPATIBLE_T
+        iter2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -417,11 +389,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_zip(ThirdBlock):
-
-        def __init__(self, iter1: INPUT_COMPATIBLE_T, iter2: INPUT_COMPATIBLE_T):
-            self.iter1 = iter1
-            self.iter2 = iter2
+        iter1: INPUT_COMPATIBLE_T
+        iter2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -437,11 +408,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_cross(ThirdBlock):
-
-        def __init__(self, iter1: INPUT_COMPATIBLE_T, iter2: INPUT_COMPATIBLE_T):
-            self.iter1 = iter1
-            self.iter2 = iter2
+        iter1: INPUT_COMPATIBLE_T
+        iter2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -457,11 +427,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_adapter_inspect(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.substack = substack
+        iter: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -481,11 +450,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_collect_to(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, type: str):
-            self.iter = iter
-            self.type = type
+        iter: INPUT_COMPATIBLE_T
+        type: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -498,10 +466,9 @@ class divIterator:
                 },
             )
 
+    @grepr_dataclass()
     class iter_term_count(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T):
-            self.iter = iter
+        iter: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -512,17 +479,11 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_term_fold(ThirdBlock):
-
-        def __init__(
-            self,
-            iter: INPUT_COMPATIBLE_T,
-            init: INPUT_COMPATIBLE_T,
-            fold: INPUT_COMPATIBLE_T,
-        ):
-            self.iter = iter
-            self.init = init
-            self.fold = fold
+        iter: INPUT_COMPATIBLE_T
+        init: INPUT_COMPATIBLE_T
+        fold: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -549,11 +510,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_term_any(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, pred: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.pred = pred
+        iter: INPUT_COMPATIBLE_T
+        pred: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -573,11 +533,10 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class iter_term_all(ThirdBlock):
-
-        def __init__(self, iter: INPUT_COMPATIBLE_T, pred: INPUT_COMPATIBLE_T):
-            self.iter = iter
-            self.pred = pred
+        iter: INPUT_COMPATIBLE_T
+        pred: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -597,10 +556,8 @@ class divIterator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_from_iter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

@@ -1,22 +1,20 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwLambda:
 
+    @grepr_dataclass()
     class arg(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwLambda::argument", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class new_lambda(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -32,10 +30,9 @@ class jwLambda:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class raw_lambda_input(ThirdBlock):
-
-        def __init__(self, field: INPUT_COMPATIBLE_T):
-            self.field = field
+        field: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -48,10 +45,8 @@ class jwLambda:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class raw_lambda(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -65,11 +60,10 @@ class jwLambda:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class execute_r(ThirdBlock):
-
-        def __init__(self, lambda_: INPUT_COMPATIBLE_T, arg: INPUT_COMPATIBLE_T):
-            self.lambda_ = lambda_
-            self.arg = arg
+        lambda_: INPUT_COMPATIBLE_T
+        arg: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -85,18 +79,15 @@ class jwLambda:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class this(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwLambda::this lambda", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class times_executed(ThirdBlock):
-
-        def __init__(self, lambda_: INPUT_COMPATIBLE_T):
-            self.lambda_ = lambda_
+        lambda_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -109,11 +100,10 @@ class jwLambda:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class execute(ThirdBlock):
-
-        def __init__(self, lambda_: INPUT_COMPATIBLE_T, arg: INPUT_COMPATIBLE_T):
-            self.lambda_ = lambda_
-            self.arg = arg
+        lambda_: INPUT_COMPATIBLE_T
+        arg: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

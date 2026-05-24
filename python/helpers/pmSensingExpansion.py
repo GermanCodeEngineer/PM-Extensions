@@ -1,14 +1,13 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class pmSensingExpansion:
 
+    @grepr_dataclass()
     class battery_percentage(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -17,10 +16,8 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class battery_charging(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -29,20 +26,16 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class vibrate_device(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::vibrate", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class browser_language(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -51,10 +44,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class url_options(ThirdBlock):
-
-        def __init__(self, options: INPUT_COMPATIBLE_T):
-            self.options = options
+        options: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -67,11 +59,10 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class url_options_of(ThirdBlock):
-
-        def __init__(self, options: INPUT_COMPATIBLE_T, url: INPUT_COMPATIBLE_T):
-            self.options = options
-            self.url = url
+        options: INPUT_COMPATIBLE_T
+        url: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -87,10 +78,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_username(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -103,10 +93,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_url_end(ThirdBlock):
-
-        def __init__(self, path: INPUT_COMPATIBLE_T):
-            self.path = path
+        path: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -119,11 +108,10 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class query_param_of_url(ThirdBlock):
-
-        def __init__(self, param: INPUT_COMPATIBLE_T, url: INPUT_COMPATIBLE_T):
-            self.param = param
-            self.url = url
+        param: INPUT_COMPATIBLE_T
+        url: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -139,30 +127,24 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class packaged(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::project packaged?", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class sprite_name(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::sprite name", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class framed(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -171,10 +153,8 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class current_millisecond(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,21 +163,18 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delta_time(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::delta time", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class pick_color(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -209,30 +186,24 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class max_sprite_layers(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::max sprite layers", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class average_loudness(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::average loudness", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class scrolling_distance(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -241,10 +212,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_scrolling_distance(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T):
-            self.amount = amount
+        amount: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -257,10 +227,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class change_scrolling_distance_by(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T):
-            self.amount = amount
+        amount: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -273,10 +242,8 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class current_key_pressed(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -285,20 +252,17 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_last_key_pressed(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::last key pressed", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class get_button_is_down(ThirdBlock):
-
-        def __init__(self, mouse_button: INPUT_COMPATIBLE_T):
-            self.mouse_button = mouse_button
+        mouse_button: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -311,10 +275,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class changed(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T):
-            self.one = one
+        one: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -325,10 +288,9 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class amount_of_time_key_has_been_held(ThirdBlock):
-
-        def __init__(self, key: INPUT_COMPATIBLE_T):
-            self.key = key
+        key: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -341,30 +303,24 @@ class pmSensingExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_key(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::#menu:key", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_mouse_button(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmSensingExpansion::#menu:mouseButton", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_url_sections(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

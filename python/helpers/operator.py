@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class operator:
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -25,11 +25,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class subtract(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -45,11 +44,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class multiply(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -65,11 +63,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class divide(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -85,11 +82,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class power(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -105,19 +101,12 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class adv_math_expanded(ThirdBlock):
-
-        def __init__(
-            self,
-            operand1: INPUT_COMPATIBLE_T,
-            operand2: INPUT_COMPATIBLE_T,
-            operand3: INPUT_COMPATIBLE_T,
-            operation: str,
-        ):
-            self.operand1 = operand1
-            self.operand2 = operand2
-            self.operand3 = operand3
-            self.operation = operation
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
+        operand3: INPUT_COMPATIBLE_T
+        operation: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -140,17 +129,11 @@ class operator:
                 },
             )
 
+    @grepr_dataclass()
     class adv_math(ThirdBlock):
-
-        def __init__(
-            self,
-            operand1: INPUT_COMPATIBLE_T,
-            operand2: INPUT_COMPATIBLE_T,
-            operation: str,
-        ):
-            self.operand1 = operand1
-            self.operand2 = operand2
-            self.operation = operation
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
+        operation: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -170,11 +153,10 @@ class operator:
                 },
             )
 
+    @grepr_dataclass()
     class random(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -190,17 +172,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class constrainnumber(ThirdBlock):
-
-        def __init__(
-            self,
-            num: INPUT_COMPATIBLE_T,
-            min: INPUT_COMPATIBLE_T,
-            max: INPUT_COMPATIBLE_T,
-        ):
-            self.num = num
-            self.min = min
-            self.max = max
+        num: INPUT_COMPATIBLE_T
+        min: INPUT_COMPATIBLE_T
+        max: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -219,17 +195,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class lerp_func(ThirdBlock):
-
-        def __init__(
-            self,
-            operand1: INPUT_COMPATIBLE_T,
-            operand2: INPUT_COMPATIBLE_T,
-            weight: INPUT_COMPATIBLE_T,
-        ):
-            self.operand1 = operand1
-            self.operand2 = operand2
-            self.weight = weight
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
+        weight: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -248,11 +218,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class gt(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -268,11 +237,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class gtorequal(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -288,11 +256,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class lt(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -308,11 +275,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class ltorequal(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -328,11 +294,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class equals(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -348,11 +313,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class notequal(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -368,27 +332,22 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class true_boolean(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&operators::true", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class false_boolean(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&operators::false", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class and_(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -404,11 +363,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class or_(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -424,10 +382,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class not_(ThirdBlock):
-
-        def __init__(self, operand: INPUT_COMPATIBLE_T):
-            self.operand = operand
+        operand: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -440,29 +397,24 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class new_line(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&operators::new line", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class tab_character(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&operators::tab character", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class join(ThirdBlock):
-
-        def __init__(self, string1: INPUT_COMPATIBLE_T, string2: INPUT_COMPATIBLE_T):
-            self.string1 = string1
-            self.string2 = string2
+        string1: INPUT_COMPATIBLE_T
+        string2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -478,17 +430,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class join3(ThirdBlock):
-
-        def __init__(
-            self,
-            string1: INPUT_COMPATIBLE_T,
-            string2: INPUT_COMPATIBLE_T,
-            string3: INPUT_COMPATIBLE_T,
-        ):
-            self.string1 = string1
-            self.string2 = string2
-            self.string3 = string3
+        string1: INPUT_COMPATIBLE_T
+        string2: INPUT_COMPATIBLE_T
+        string3: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -507,11 +453,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class index_of_text_in_text(ThirdBlock):
-
-        def __init__(self, substring: INPUT_COMPATIBLE_T, text: INPUT_COMPATIBLE_T):
-            self.substring = substring
-            self.text = text
+        substring: INPUT_COMPATIBLE_T
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -527,11 +472,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class last_index_of_text_in_text(ThirdBlock):
-
-        def __init__(self, substring: INPUT_COMPATIBLE_T, text: INPUT_COMPATIBLE_T):
-            self.substring = substring
-            self.text = text
+        substring: INPUT_COMPATIBLE_T
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -547,11 +491,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class letter_of(ThirdBlock):
-
-        def __init__(self, letter: INPUT_COMPATIBLE_T, string: INPUT_COMPATIBLE_T):
-            self.letter = letter
-            self.string = string
+        letter: INPUT_COMPATIBLE_T
+        string: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -567,17 +510,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_letters_from_index_to_index_in_text(ThirdBlock):
-
-        def __init__(
-            self,
-            start: INPUT_COMPATIBLE_T,
-            stop: INPUT_COMPATIBLE_T,
-            text: INPUT_COMPATIBLE_T,
-        ):
-            self.start = start
-            self.stop = stop
-            self.text = text
+        start: INPUT_COMPATIBLE_T
+        stop: INPUT_COMPATIBLE_T
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -596,10 +533,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class length(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T):
-            self.text = text
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -612,11 +548,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class contains(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T, substring: INPUT_COMPATIBLE_T):
-            self.text = text
-            self.substring = substring
+        text: INPUT_COMPATIBLE_T
+        substring: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -632,17 +567,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class text_starts_or_ends_with(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            substring: INPUT_COMPATIBLE_T,
-            operation: str,
-        ):
-            self.text = text
-            self.substring = substring
-            self.operation = operation
+        text: INPUT_COMPATIBLE_T
+        substring: INPUT_COMPATIBLE_T
+        operation: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -662,17 +591,11 @@ class operator:
                 },
             )
 
+    @grepr_dataclass()
     class replace_all(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            oldvalue: INPUT_COMPATIBLE_T,
-            newvalue: INPUT_COMPATIBLE_T,
-        ):
-            self.text = text
-            self.oldvalue = oldvalue
-            self.newvalue = newvalue
+        text: INPUT_COMPATIBLE_T
+        oldvalue: INPUT_COMPATIBLE_T
+        newvalue: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -691,17 +614,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class replace_first(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            oldvalue: INPUT_COMPATIBLE_T,
-            newvalue: INPUT_COMPATIBLE_T,
-        ):
-            self.text = text
-            self.oldvalue = oldvalue
-            self.newvalue = newvalue
+        text: INPUT_COMPATIBLE_T
+        oldvalue: INPUT_COMPATIBLE_T
+        newvalue: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -720,17 +637,11 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class regexmatch(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            regex: INPUT_COMPATIBLE_T,
-            modifier: INPUT_COMPATIBLE_T,
-        ):
-            self.text = text
-            self.regex = regex
-            self.modifier = modifier
+        text: INPUT_COMPATIBLE_T
+        regex: INPUT_COMPATIBLE_T
+        modifier: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -749,11 +660,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_upper_lower_case(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T, case: str):
-            self.text = text
-            self.case = case
+        text: INPUT_COMPATIBLE_T
+        case: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -768,11 +678,10 @@ class operator:
                 },
             )
 
+    @grepr_dataclass()
     class mod(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -788,10 +697,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class round(ThirdBlock):
-
-        def __init__(self, num: INPUT_COMPATIBLE_T):
-            self.num = num
+        num: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -804,11 +712,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mathop(ThirdBlock):
-
-        def __init__(self, num: INPUT_COMPATIBLE_T, operation: str):
-            self.num = num
-            self.operation = operation
+        num: INPUT_COMPATIBLE_T
+        operation: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -825,10 +732,9 @@ class operator:
                 },
             )
 
+    @grepr_dataclass()
     class stringify(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -841,10 +747,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class boolify(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -857,59 +762,42 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class expandable_math(ThirdBlock):
 
-        def __init__(self):
-            raise NotImplementedError(
-                "This opcode is not supported yet, because it requires flexible input counts."
-            )
-
         def to_second(self) -> p.SRBlock:
             raise NotImplementedError(
                 "This opcode is not supported yet, because it requires flexible input counts."
             )
 
+    @grepr_dataclass()
     class expandable_bool(ThirdBlock):
 
-        def __init__(self):
-            raise NotImplementedError(
-                "This opcode is not supported yet, because it requires flexible input counts."
-            )
-
         def to_second(self) -> p.SRBlock:
             raise NotImplementedError(
                 "This opcode is not supported yet, because it requires flexible input counts."
             )
 
+    @grepr_dataclass()
     class expandable_compare(ThirdBlock):
 
-        def __init__(self):
-            raise NotImplementedError(
-                "This opcode is not supported yet, because it requires flexible input counts."
-            )
-
         def to_second(self) -> p.SRBlock:
             raise NotImplementedError(
                 "This opcode is not supported yet, because it requires flexible input counts."
             )
 
+    @grepr_dataclass()
     class expandablejoininputs(ThirdBlock):
 
-        def __init__(self):
-            raise NotImplementedError(
-                "This opcode is not supported yet, because it requires flexible input counts."
-            )
-
         def to_second(self) -> p.SRBlock:
             raise NotImplementedError(
                 "This opcode is not supported yet, because it requires flexible input counts."
             )
 
+    @grepr_dataclass()
     class nand(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -925,11 +813,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class nor(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -945,11 +832,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class xor(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -965,11 +851,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class xnor(ThirdBlock):
-
-        def __init__(self, operand1: INPUT_COMPATIBLE_T, operand2: INPUT_COMPATIBLE_T):
-            self.operand1 = operand1
-            self.operand2 = operand2
+        operand1: INPUT_COMPATIBLE_T
+        operand2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -985,19 +870,16 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class random_boolean(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&operator::random", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class count_appear_times(ThirdBlock):
-
-        def __init__(self, text1: INPUT_COMPATIBLE_T, text2: INPUT_COMPATIBLE_T):
-            self.text1 = text1
-            self.text2 = text2
+        text1: INPUT_COMPATIBLE_T
+        text2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1013,11 +895,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class read_line_in_multiline_text(ThirdBlock):
-
-        def __init__(self, line: INPUT_COMPATIBLE_T, text: INPUT_COMPATIBLE_T):
-            self.line = line
-            self.text = text
+        line: INPUT_COMPATIBLE_T
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1033,11 +914,10 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class text_includes_letter_from(ThirdBlock):
-
-        def __init__(self, text1: INPUT_COMPATIBLE_T, text2: INPUT_COMPATIBLE_T):
-            self.text1 = text1
-            self.text2 = text2
+        text1: INPUT_COMPATIBLE_T
+        text2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1053,10 +933,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class character_to_code(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T):
-            self.one = one
+        one: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1069,10 +948,9 @@ class operator:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class code_to_character(ThirdBlock):
-
-        def __init__(self, one: INPUT_COMPATIBLE_T):
-            self.one = one
+        one: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

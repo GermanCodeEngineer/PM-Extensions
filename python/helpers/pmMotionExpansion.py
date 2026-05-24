@@ -1,41 +1,32 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class pmMotionExpansion:
 
+    @grepr_dataclass()
     class rotation_style(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmMotionExpansion::rotation style", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class fence(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmMotionExpansion::manually fence", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class steptowards(ThirdBlock):
-
-        def __init__(
-            self,
-            steps: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.steps = steps
-            self.x = x
-            self.y = y
+        steps: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -50,17 +41,11 @@ class pmMotionExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class tweentowards(ThirdBlock):
-
-        def __init__(
-            self,
-            percent: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.percent = percent
-            self.x = x
-            self.y = y
+        percent: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -75,11 +60,10 @@ class pmMotionExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class touchingxy(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -91,19 +75,12 @@ class pmMotionExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class touchingrect(ThirdBlock):
-
-        def __init__(
-            self,
-            x1: INPUT_COMPATIBLE_T,
-            y1: INPUT_COMPATIBLE_T,
-            x2: INPUT_COMPATIBLE_T,
-            y2: INPUT_COMPATIBLE_T,
-        ):
-            self.x1 = x1
-            self.y1 = y1
-            self.x2 = x2
-            self.y2 = y2
+        x1: INPUT_COMPATIBLE_T
+        y1: INPUT_COMPATIBLE_T
+        x2: INPUT_COMPATIBLE_T
+        y2: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -117,20 +94,16 @@ class pmMotionExpansion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_home(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&pmMotionExpansion::set my home", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class goto_home(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

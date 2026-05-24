@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwXML:
 
+    @grepr_dataclass()
     class new_node(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,10 +21,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class parse(ThirdBlock):
-
-        def __init__(self, input: INPUT_COMPATIBLE_T):
-            self.input = input
+        input: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,10 +36,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class parse_multiple(ThirdBlock):
-
-        def __init__(self, input: INPUT_COMPATIBLE_T):
-            self.input = input
+        input: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,10 +51,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_name(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T):
-            self.node = node
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -67,11 +64,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_name(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
-            self.node = node
-            self.name = name
+        node: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -87,11 +83,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class append_child(ThirdBlock):
-
-        def __init__(self, child: INPUT_COMPATIBLE_T, node: INPUT_COMPATIBLE_T):
-            self.child = child
-            self.node = node
+        child: INPUT_COMPATIBLE_T
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -107,10 +102,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class remove_children(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T):
-            self.node = node
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -121,10 +115,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_children(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T):
-            self.node = node
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -135,11 +128,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_children(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T, children: INPUT_COMPATIBLE_T):
-            self.node = node
-            self.children = children
+        node: INPUT_COMPATIBLE_T
+        children: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -155,11 +147,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_attribute(ThirdBlock):
-
-        def __init__(self, attribute: INPUT_COMPATIBLE_T, node: INPUT_COMPATIBLE_T):
-            self.attribute = attribute
-            self.node = node
+        attribute: INPUT_COMPATIBLE_T
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -175,17 +166,11 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class set_attribute(ThirdBlock):
-
-        def __init__(
-            self,
-            attribute: INPUT_COMPATIBLE_T,
-            node: INPUT_COMPATIBLE_T,
-            value: INPUT_COMPATIBLE_T,
-        ):
-            self.attribute = attribute
-            self.node = node
-            self.value = value
+        attribute: INPUT_COMPATIBLE_T
+        node: INPUT_COMPATIBLE_T
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -204,11 +189,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class remove_attribute(ThirdBlock):
-
-        def __init__(self, attribute: INPUT_COMPATIBLE_T, node: INPUT_COMPATIBLE_T):
-            self.attribute = attribute
-            self.node = node
+        attribute: INPUT_COMPATIBLE_T
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -224,10 +208,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class remove_attributes(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T):
-            self.node = node
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -238,11 +221,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class has_attribute(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T, attribute: INPUT_COMPATIBLE_T):
-            self.node = node
-            self.attribute = attribute
+        node: INPUT_COMPATIBLE_T
+        attribute: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -258,10 +240,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_attributes(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T):
-            self.node = node
+        node: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -272,11 +253,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string(ThirdBlock):
-
-        def __init__(self, node: INPUT_COMPATIBLE_T, format: INPUT_COMPATIBLE_T):
-            self.node = node
-            self.format = format
+        node: INPUT_COMPATIBLE_T
+        format: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -292,10 +272,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class valid_name(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -308,10 +287,9 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string_safe(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T):
-            self.text = text
+        text: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -324,11 +302,10 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class filter_array(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T, input: INPUT_COMPATIBLE_T):
-            self.name = name
-            self.input = input
+        name: INPUT_COMPATIBLE_T
+        input: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -344,10 +321,8 @@ class jwXML:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_stringify_format(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

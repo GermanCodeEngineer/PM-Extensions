@@ -1,42 +1,36 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class event:
 
+    @grepr_dataclass()
     class whenflagclicked(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&events::when green flag clicked", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class whenstopclicked(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&events::when stop clicked", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class always(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&events::always", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class whenanything(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T):
-            self.condition = condition
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -49,10 +43,9 @@ class event:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class whenkeypressed(ThirdBlock):
-
-        def __init__(self, key: str):
-            self.key = key
+        key: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -63,10 +56,9 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class whenkeyhit(ThirdBlock):
-
-        def __init__(self, key: str):
-            self.key = key
+        key: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -77,10 +69,9 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class whenmousescrolled(ThirdBlock):
-
-        def __init__(self, direction: str):
-            self.direction = direction
+        direction: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -93,30 +84,25 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class whenthisspriteclicked(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&events::when this sprite clicked", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class whenstageclicked(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&events::when stage clicked", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class whenbackdropswitchesto(ThirdBlock):
-
-        def __init__(self, backdrop: str):
-            self.backdrop = backdrop
+        backdrop: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -129,11 +115,10 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class whengreaterthan(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T, option: str):
-            self.value = value
-            self.option = option
+        value: INPUT_COMPATIBLE_T
+        option: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -150,10 +135,9 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class whenbroadcastreceived(ThirdBlock):
-
-        def __init__(self, message: str):
-            self.message = message
+        message: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -166,10 +150,9 @@ class event:
                 },
             )
 
+    @grepr_dataclass()
     class broadcast(ThirdBlock):
-
-        def __init__(self, message: INPUT_COMPATIBLE_T):
-            self.message = message
+        message: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -182,10 +165,9 @@ class event:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class broadcastandwait(ThirdBlock):
-
-        def __init__(self, message: INPUT_COMPATIBLE_T):
-            self.message = message
+        message: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

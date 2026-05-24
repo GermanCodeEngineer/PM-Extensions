@@ -1,15 +1,15 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwNum:
 
+    @grepr_dataclass()
     class add(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class sub(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,11 +36,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mul(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -53,11 +51,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class div(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -69,11 +66,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pow(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -85,10 +81,9 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class fact(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T):
-            self.a = a
+        a: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -99,11 +94,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class eq(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -115,11 +109,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class gt(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -131,11 +124,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class gte(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -147,11 +139,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class lt(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -163,11 +154,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class lte(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -179,11 +169,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class root(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -195,10 +184,9 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class ssqrt(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T):
-            self.a = a
+        a: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -209,11 +197,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class log(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -225,11 +212,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class slog(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -241,11 +227,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class mod(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -257,11 +242,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class round(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -275,10 +259,9 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class is_integer(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T):
-            self.a = a
+        a: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -289,14 +272,11 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class hyper(ThirdBlock):
-
-        def __init__(
-            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-        ):
-            self.a = a
-            self.b = b
-            self.c = c
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
+        c: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -309,14 +289,11 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class arrow(ThirdBlock):
-
-        def __init__(
-            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-        ):
-            self.a = a
-            self.b = b
-            self.c = c
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
+        c: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -329,14 +306,11 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class reverse_arrow(ThirdBlock):
-
-        def __init__(
-            self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T, c: INPUT_COMPATIBLE_T
-        ):
-            self.a = a
-            self.b = b
-            self.c = c
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
+        c: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -349,11 +323,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class expansion(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -365,10 +338,9 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T):
-            self.a = a
+        a: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -379,11 +351,10 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_string_d(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T, b: INPUT_COMPATIBLE_T):
-            self.a = a
-            self.b = b
+        a: INPUT_COMPATIBLE_T
+        b: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -395,10 +366,9 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class to_hyper_e(ThirdBlock):
-
-        def __init__(self, a: INPUT_COMPATIBLE_T):
-            self.a = a
+        a: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -409,10 +379,8 @@ class jwNum:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class menu_round(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&jwNum::#menu:round", inputs={}, dropdowns={})

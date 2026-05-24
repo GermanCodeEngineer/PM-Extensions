@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class motion:
 
+    @grepr_dataclass()
     class movesteps(ThirdBlock):
-
-        def __init__(self, steps: INPUT_COMPATIBLE_T):
-            self.steps = steps
+        steps: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,10 +21,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class movebacksteps(ThirdBlock):
-
-        def __init__(self, steps: INPUT_COMPATIBLE_T):
-            self.steps = steps
+        steps: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -37,11 +36,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class moveupdownsteps(ThirdBlock):
-
-        def __init__(self, steps: INPUT_COMPATIBLE_T, direction: str):
-            self.steps = steps
-            self.direction = direction
+        steps: INPUT_COMPATIBLE_T
+        direction: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -58,10 +56,9 @@ class motion:
                 },
             )
 
+    @grepr_dataclass()
     class turnright(ThirdBlock):
-
-        def __init__(self, degrees: INPUT_COMPATIBLE_T):
-            self.degrees = degrees
+        degrees: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -74,10 +71,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class turnleft(ThirdBlock):
-
-        def __init__(self, degrees: INPUT_COMPATIBLE_T):
-            self.degrees = degrees
+        degrees: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -90,10 +86,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class goto(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -106,11 +101,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class gotoxy(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -122,11 +116,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class changebyxy(ThirdBlock):
-
-        def __init__(self, dx: INPUT_COMPATIBLE_T, dy: INPUT_COMPATIBLE_T):
-            self.dx = dx
-            self.dy = dy
+        dx: INPUT_COMPATIBLE_T
+        dy: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -138,11 +131,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class glideto(ThirdBlock):
-
-        def __init__(self, seconds: INPUT_COMPATIBLE_T, target: INPUT_COMPATIBLE_T):
-            self.seconds = seconds
-            self.target = target
+        seconds: INPUT_COMPATIBLE_T
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -158,17 +150,11 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class glidesecstoxy(ThirdBlock):
-
-        def __init__(
-            self,
-            seconds: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.seconds = seconds
-            self.x = x
-            self.y = y
+        seconds: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,10 +169,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pointindirection(ThirdBlock):
-
-        def __init__(self, direction: INPUT_COMPATIBLE_T):
-            self.direction = direction
+        direction: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -199,10 +184,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pointtowards(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -215,11 +199,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pointtowardsxy(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -231,18 +214,15 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class turnaround(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&motion::turn around", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class changexby(ThirdBlock):
-
-        def __init__(self, dx: INPUT_COMPATIBLE_T):
-            self.dx = dx
+        dx: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -253,10 +233,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class setx(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T):
-            self.x = x
+        x: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -267,10 +246,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class changeyby(ThirdBlock):
-
-        def __init__(self, dy: INPUT_COMPATIBLE_T):
-            self.dy = dy
+        dy: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -281,10 +259,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class sety(ThirdBlock):
-
-        def __init__(self, y: INPUT_COMPATIBLE_T):
-            self.y = y
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -295,20 +272,17 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class ifonedgebounce(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&motion::if on edge, bounce", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class ifonspritebounce(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -321,10 +295,9 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class setrotationstyle(ThirdBlock):
-
-        def __init__(self, style: str):
-            self.style = style
+        style: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -335,10 +308,9 @@ class motion:
                 },
             )
 
+    @grepr_dataclass()
     class move_sprite_to_scene_side(ThirdBlock):
-
-        def __init__(self, zone: str):
-            self.zone = zone
+        zone: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -349,44 +321,34 @@ class motion:
                 },
             )
 
+    @grepr_dataclass()
     class xposition(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&motion::x position", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class yposition(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&motion::y position", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class direction(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&motion::direction", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class goto_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&motion::#REACHABLE TARGET MENU (GO)", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class glideto_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -395,27 +357,19 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class pointtowards_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&motion::#OBSERVABLE TARGET MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class turnrightaroundxy(ThirdBlock):
-
-        def __init__(
-            self,
-            degrees: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.degrees = degrees
-            self.x = x
-            self.y = y
+        degrees: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -430,17 +384,11 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class turnleftaroundxy(ThirdBlock):
-
-        def __init__(
-            self,
-            degrees: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-        ):
-            self.degrees = degrees
-            self.x = x
-            self.y = y
+        degrees: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -455,11 +403,10 @@ class motion:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class ifonxybounce(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T):
-            self.x = x
-            self.y = y
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class newCanvas:
 
+    @grepr_dataclass()
     class canvas_getter(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,14 +21,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_size(ThirdBlock):
-
-        def __init__(
-            self, width: INPUT_COMPATIBLE_T, height: INPUT_COMPATIBLE_T, canvas: str
-        ):
-            self.width = width
-            self.height = height
-            self.canvas = canvas
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -48,11 +45,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_property(ThirdBlock):
-
-        def __init__(self, canvas: str, prop: str):
-            self.canvas = canvas
-            self.prop = prop
+        canvas: str
+        prop: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -66,11 +62,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_property(ThirdBlock):
-
-        def __init__(self, canvas: str, prop: str):
-            self.canvas = canvas
-            self.prop = prop
+        canvas: str
+        prop: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -84,11 +79,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class dash(ThirdBlock):
-
-        def __init__(self, dashing: INPUT_COMPATIBLE_T, canvas: str):
-            self.dashing = dashing
-            self.canvas = canvas
+        dashing: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -105,10 +99,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class clear_canvas(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -121,21 +114,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class clear_aria(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -157,19 +142,12 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class draw_text(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.text = text
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        text: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -188,21 +166,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class draw_text_with_cap(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            cap: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.text = text
-            self.x = x
-            self.y = y
-            self.cap = cap
-            self.canvas = canvas
+        text: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        cap: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -224,19 +194,12 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class outline_text(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.text = text
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        text: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -255,21 +218,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class outline_text_with_cap(ThirdBlock):
-
-        def __init__(
-            self,
-            text: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            cap: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.text = text
-            self.x = x
-            self.y = y
-            self.cap = cap
-            self.canvas = canvas
+        text: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        cap: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -291,21 +246,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class draw_rect(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -327,21 +274,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class outline_rect(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -363,11 +302,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class preload_uri_image(ThirdBlock):
-
-        def __init__(self, uri: INPUT_COMPATIBLE_T, name: INPUT_COMPATIBLE_T):
-            self.uri = uri
-            self.name = name
+        uri: INPUT_COMPATIBLE_T
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -383,10 +321,9 @@ class newCanvas:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class unload_uri_image(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -399,10 +336,9 @@ class newCanvas:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_width_of_preloaded(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -415,10 +351,9 @@ class newCanvas:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class get_height_of_preloaded(ThirdBlock):
-
-        def __init__(self, name: INPUT_COMPATIBLE_T):
-            self.name = name
+        name: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -431,19 +366,12 @@ class newCanvas:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class draw_uri_image(ThirdBlock):
-
-        def __init__(
-            self,
-            uri: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.uri = uri
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        uri: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -462,25 +390,15 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class draw_uri_image_whr(ThirdBlock):
-
-        def __init__(
-            self,
-            uri: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            rotate: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.uri = uri
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.rotate = rotate
-            self.canvas = canvas
+        uri: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        rotate: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -508,33 +426,19 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class draw_uri_image_whcx1_y1_x2_y2_r(ThirdBlock):
-
-        def __init__(
-            self,
-            uri: INPUT_COMPATIBLE_T,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            cropx: INPUT_COMPATIBLE_T,
-            cropy: INPUT_COMPATIBLE_T,
-            cropw: INPUT_COMPATIBLE_T,
-            croph: INPUT_COMPATIBLE_T,
-            rotate: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.uri = uri
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.cropx = cropx
-            self.cropy = cropy
-            self.cropw = cropw
-            self.croph = croph
-            self.rotate = rotate
-            self.canvas = canvas
+        uri: INPUT_COMPATIBLE_T
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        cropx: INPUT_COMPATIBLE_T
+        cropy: INPUT_COMPATIBLE_T
+        cropw: INPUT_COMPATIBLE_T
+        croph: INPUT_COMPATIBLE_T
+        rotate: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -574,10 +478,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class begin_path(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -590,12 +493,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class move_to(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T, canvas: str):
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -611,12 +513,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class line_to(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T, canvas: str):
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -632,19 +533,12 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class arc_to(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            radius: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.radius = radius
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        radius: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -666,21 +560,13 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class add_rect(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -702,23 +588,14 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class add_ellipse(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            dir: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.dir = dir
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        dir: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -743,27 +620,16 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class add_ellipse_start_stop(ThirdBlock):
-
-        def __init__(
-            self,
-            x: INPUT_COMPATIBLE_T,
-            y: INPUT_COMPATIBLE_T,
-            width: INPUT_COMPATIBLE_T,
-            height: INPUT_COMPATIBLE_T,
-            start: INPUT_COMPATIBLE_T,
-            end: INPUT_COMPATIBLE_T,
-            dir: INPUT_COMPATIBLE_T,
-            canvas: str,
-        ):
-            self.x = x
-            self.y = y
-            self.width = width
-            self.height = height
-            self.start = start
-            self.end = end
-            self.dir = dir
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        width: INPUT_COMPATIBLE_T
+        height: INPUT_COMPATIBLE_T
+        start: INPUT_COMPATIBLE_T
+        end: INPUT_COMPATIBLE_T
+        dir: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -794,10 +660,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class close_path(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -810,10 +675,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class stroke(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -826,10 +690,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class fill(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -842,10 +705,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class save_transform(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -858,10 +720,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class restore_transform(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -874,11 +735,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class turn_rotation_left(ThirdBlock):
-
-        def __init__(self, degrees: INPUT_COMPATIBLE_T, canvas: str):
-            self.degrees = degrees
-            self.canvas = canvas
+        degrees: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -895,11 +755,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class turn_rotation_right(ThirdBlock):
-
-        def __init__(self, degrees: INPUT_COMPATIBLE_T, canvas: str):
-            self.degrees = degrees
-            self.canvas = canvas
+        degrees: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -916,11 +775,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_rotation(ThirdBlock):
-
-        def __init__(self, degrees: INPUT_COMPATIBLE_T, canvas: str):
-            self.degrees = degrees
-            self.canvas = canvas
+        degrees: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -937,12 +795,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_translate_xy(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T, canvas: str):
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -958,12 +815,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_translate_xy(ThirdBlock):
-
-        def __init__(self, x: INPUT_COMPATIBLE_T, y: INPUT_COMPATIBLE_T, canvas: str):
-            self.x = x
-            self.y = y
-            self.canvas = canvas
+        x: INPUT_COMPATIBLE_T
+        y: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -979,11 +835,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_translate_x(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T, canvas: str):
-            self.amount = amount
-            self.canvas = canvas
+        amount: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1000,11 +855,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_translate_x(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T, canvas: str):
-            self.amount = amount
-            self.canvas = canvas
+        amount: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1021,11 +875,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_translate_y(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T, canvas: str):
-            self.amount = amount
-            self.canvas = canvas
+        amount: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1042,11 +895,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_translate_y(ThirdBlock):
-
-        def __init__(self, amount: INPUT_COMPATIBLE_T, canvas: str):
-            self.amount = amount
-            self.canvas = canvas
+        amount: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1063,11 +915,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_scale_xy(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1084,11 +935,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_scale_xy(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1105,11 +955,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_scale_x(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1126,11 +975,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_scale_x(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1147,11 +995,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class change_scale_y(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1168,11 +1015,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class set_scale_y(ThirdBlock):
-
-        def __init__(self, percent: INPUT_COMPATIBLE_T, canvas: str):
-            self.percent = percent
-            self.canvas = canvas
+        percent: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1189,10 +1035,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class reset_transform(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1205,11 +1050,10 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class load_transform(ThirdBlock):
-
-        def __init__(self, transform: INPUT_COMPATIBLE_T, canvas: str):
-            self.transform = transform
-            self.canvas = canvas
+        transform: INPUT_COMPATIBLE_T
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1226,10 +1070,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_transform(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1242,10 +1085,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class put_onto_sprite(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1258,10 +1100,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_data_uri(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1274,10 +1115,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_width_of_canvas(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1290,10 +1130,9 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_height_of_canvas(ThirdBlock):
-
-        def __init__(self, canvas: str):
-            self.canvas = canvas
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1306,12 +1145,11 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class get_drawn_width_of_text(ThirdBlock):
-
-        def __init__(self, text: INPUT_COMPATIBLE_T, dimension: str, canvas: str):
-            self.text = text
-            self.dimension = dimension
-            self.canvas = canvas
+        text: INPUT_COMPATIBLE_T
+        dimension: str
+        canvas: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -1331,28 +1169,22 @@ class newCanvas:
                 },
             )
 
+    @grepr_dataclass()
     class menu_text_dimension(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&newCanvas::#menu:textDimension", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class menu_canvas(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&newCanvas::#menu:canvas", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class menu_canvas_props(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(

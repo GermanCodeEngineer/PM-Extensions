@@ -1,14 +1,14 @@
 from __future__ import annotations
+from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class control:
 
+    @grepr_dataclass()
     class wait(ThirdBlock):
-
-        def __init__(self, seconds: INPUT_COMPATIBLE_T):
-            self.seconds = seconds
+        seconds: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -21,11 +21,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class waitsecondsoruntil(ThirdBlock):
-
-        def __init__(self, seconds: INPUT_COMPATIBLE_T, condition: INPUT_COMPATIBLE_T):
-            self.seconds = seconds
-            self.condition = condition
+        seconds: INPUT_COMPATIBLE_T
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -41,11 +40,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class repeat(ThirdBlock):
-
-        def __init__(self, times: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
-            self.times = times
-            self.body = body
+        times: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -59,10 +57,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class forever(ThirdBlock):
-
-        def __init__(self, body: INPUT_COMPATIBLE_T):
-            self.body = body
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -73,14 +70,11 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class for_each(ThirdBlock):
-
-        def __init__(
-            self, range: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T, variable: str
-        ):
-            self.range = range
-            self.body = body
-            self.variable = variable
+        range: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
+        variable: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -98,27 +92,22 @@ class control:
                 },
             )
 
+    @grepr_dataclass()
     class exit_loop(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::escape loop", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class continue_loop(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::continue loop", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class switch(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, cases: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.cases = cases
+        condition: INPUT_COMPATIBLE_T
+        cases: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -132,17 +121,11 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class switch_default(ThirdBlock):
-
-        def __init__(
-            self,
-            condition: INPUT_COMPATIBLE_T,
-            cases: INPUT_COMPATIBLE_T,
-            default: INPUT_COMPATIBLE_T,
-        ):
-            self.condition = condition
-            self.cases = cases
-            self.default = default
+        condition: INPUT_COMPATIBLE_T
+        cases: INPUT_COMPATIBLE_T
+        default: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -159,18 +142,15 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class exit_case(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::exit case", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class case_next(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T):
-            self.condition = condition
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -183,11 +163,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class case(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.body = body
+        condition: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -201,11 +180,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class if_(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, then: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.then = then
+        condition: INPUT_COMPATIBLE_T
+        then: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -219,17 +197,11 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class if_else(ThirdBlock):
-
-        def __init__(
-            self,
-            condition: INPUT_COMPATIBLE_T,
-            then: INPUT_COMPATIBLE_T,
-            else_: INPUT_COMPATIBLE_T,
-        ):
-            self.condition = condition
-            self.then = then
-            self.else_ = else_
+        condition: INPUT_COMPATIBLE_T
+        then: INPUT_COMPATIBLE_T
+        else_: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -244,17 +216,11 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class if_return_else_return(ThirdBlock):
-
-        def __init__(
-            self,
-            condition: INPUT_COMPATIBLE_T,
-            truevalue: INPUT_COMPATIBLE_T,
-            falsevalue: INPUT_COMPATIBLE_T,
-        ):
-            self.condition = condition
-            self.truevalue = truevalue
-            self.falsevalue = falsevalue
+        condition: INPUT_COMPATIBLE_T
+        truevalue: INPUT_COMPATIBLE_T
+        falsevalue: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -273,10 +239,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class wait_until(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T):
-            self.condition = condition
+        condition: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -289,11 +254,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class repeat_until(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.body = body
+        condition: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -307,11 +271,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class while_(ThirdBlock):
-
-        def __init__(self, condition: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
-            self.condition = condition
-            self.body = body
+        condition: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -325,10 +288,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class all_at_once(ThirdBlock):
-
-        def __init__(self, body: INPUT_COMPATIBLE_T):
-            self.body = body
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -339,11 +301,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class run_as_sprite(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T, body: INPUT_COMPATIBLE_T):
-            self.target = target
-            self.body = body
+        target: INPUT_COMPATIBLE_T
+        body: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -357,11 +318,10 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class try_catch(ThirdBlock):
-
-        def __init__(self, try_: INPUT_COMPATIBLE_T, iferror: INPUT_COMPATIBLE_T):
-            self.try_ = try_
-            self.iferror = iferror
+        try_: INPUT_COMPATIBLE_T
+        iferror: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -375,10 +335,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class throw_error(ThirdBlock):
-
-        def __init__(self, error: INPUT_COMPATIBLE_T):
-            self.error = error
+        error: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -391,26 +350,21 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class error(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::error", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class back_to_green_flag(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::run flag", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class stop_sprite(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -423,10 +377,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class stop(ThirdBlock):
-
-        def __init__(self, target: str):
-            self.target = target
+        target: str
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -439,20 +392,17 @@ class control:
                 },
             )
 
+    @grepr_dataclass()
     class start_as_clone(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::when I start as a clone", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class create_clone_of(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -465,10 +415,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_clones_of(ThirdBlock):
-
-        def __init__(self, target: INPUT_COMPATIBLE_T):
-            self.target = target
+        target: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -481,71 +430,56 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class delete_this_clone(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::delete this clone", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class is_clone(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::is clone?", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class stop_sprite_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::#STOP SPRITE MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class create_clone_of_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::#CLONE TARGET MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class run_as_sprite_menu(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::#RUN AS SPRITE MENU", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class expandable_if(ThirdBlock):
-
-        def __init__(self):
-            raise NotImplementedError(
-                "This opcode is not supported yet, because it requires flexible input counts."
-            )
 
         def to_second(self) -> p.SRBlock:
             raise NotImplementedError(
                 "This opcode is not supported yet, because it requires flexible input counts."
             )
 
+    @grepr_dataclass()
     class repeat_for_seconds(ThirdBlock):
-
-        def __init__(self, times: INPUT_COMPATIBLE_T, substack: INPUT_COMPATIBLE_T):
-            self.times = times
-            self.substack = substack
+        times: INPUT_COMPATIBLE_T
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -561,10 +495,9 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class inline_stack_output(ThirdBlock):
-
-        def __init__(self, substack: INPUT_COMPATIBLE_T):
-            self.substack = substack
+        substack: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -577,48 +510,39 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class waittick(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::wait until next tick", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class get_counter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::counter", inputs={}, dropdowns={})
 
+    @grepr_dataclass()
     class incr_counter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::increment counter", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class decr_counter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
                 opcode="&control::decrement counter", inputs={}, dropdowns={}
             )
 
+    @grepr_dataclass()
     class set_counter(ThirdBlock):
-
-        def __init__(self, value: INPUT_COMPATIBLE_T):
-            self.value = value
+        value: INPUT_COMPATIBLE_T
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(
@@ -631,10 +555,8 @@ class control:
                 dropdowns={},
             )
 
+    @grepr_dataclass()
     class clear_counter(ThirdBlock):
-
-        def __init__(self):
-            pass
 
         def to_second(self) -> p.SRBlock:
             return p.SRBlock(opcode="&control::clear counter", inputs={}, dropdowns={})
