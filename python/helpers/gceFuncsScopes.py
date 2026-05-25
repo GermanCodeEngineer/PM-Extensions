@@ -2,361 +2,497 @@ from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
 from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from typing import Self
 
 
 class gceFuncsScopes:
 
     @grepr_dataclass()
     class set_scope_var(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::set var (NAME) to (VALUE) in current scope"
         name: INPUT_COMPATIBLE_T
         value: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("VALUE", "value", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::set var (NAME) to (VALUE) in current scope",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    ),
-                    "VALUE": ThirdInputValue.as_input(
-                        self.value, p.SRBlockAndTextInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("VALUE", "value", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class get_scope_var(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::get var (NAME)"
         name: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("NAME", "name", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::get var (NAME)",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("NAME", "name", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class scope_var_exists(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::var (NAME) exists in [KIND]?"
         name: INPUT_COMPATIBLE_T
         kind: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("KIND", "kind", p.SRBlockAndDropdownInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::var (NAME) exists in [KIND]?",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    ),
-                    "KIND": ThirdInputValue.as_input(
-                        self.kind, p.SRBlockAndDropdownInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("KIND", "kind", p.SRBlockAndDropdownInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class delete_scope_var(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::delete var (NAME) in current scope"
         name: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("NAME", "name", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::delete var (NAME) in current scope",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("NAME", "name", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class all_variables(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::all variables in ([KIND])"
         kind: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("KIND", "kind", p.SRBlockAndDropdownInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::all variables in ([KIND])",
-                inputs={
-                    "KIND": ThirdInputValue.as_input(
-                        self.kind, p.SRBlockAndDropdownInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (("KIND", "kind", p.SRBlockAndDropdownInputValue, None),),
+                (),
             )
 
     @grepr_dataclass()
     class create_var_scope(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::create local variable scope {SUBSTACK}"
         substack: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("SUBSTACK", "substack", p.SRScriptInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::create local variable scope {SUBSTACK}",
-                inputs={
-                    "SUBSTACK": ThirdInputValue.as_input(
-                        self.substack, p.SRScriptInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("SUBSTACK", "substack", p.SRScriptInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class run_with_separate_globals(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::run with separate globals {SUBSTACK}"
         substack: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("SUBSTACK", "substack", p.SRScriptInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::run with separate globals {SUBSTACK}",
-                inputs={
-                    "SUBSTACK": ThirdInputValue.as_input(
-                        self.substack, p.SRScriptInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("SUBSTACK", "substack", p.SRScriptInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class bind_var_to_scope(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::bind ([KIND]) variable (NAME) to current scope"
         kind: INPUT_COMPATIBLE_T
         name: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("KIND", "kind", p.SRBlockAndDropdownInputValue, None),
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::bind ([KIND]) variable (NAME) to current scope",
-                inputs={
-                    "KIND": ThirdInputValue.as_input(
-                        self.kind, p.SRBlockAndDropdownInputValue
-                    ),
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("KIND", "kind", p.SRBlockAndDropdownInputValue, None),
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class configure_next_function_args(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::configure next function: argument names (ARGNAMES) defaults (ARGDEFAULTS)"
         argnames: INPUT_COMPATIBLE_T
         argdefaults: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("ARGNAMES", "argnames", p.SRBlockAndTextInputValue, None),
+                    ("ARGDEFAULTS", "argdefaults", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::configure next function: argument names (ARGNAMES) defaults (ARGDEFAULTS)",
-                inputs={
-                    "ARGNAMES": ThirdInputValue.as_input(
-                        self.argnames, p.SRBlockAndTextInputValue
-                    ),
-                    "ARGDEFAULTS": ThirdInputValue.as_input(
-                        self.argdefaults, p.SRBlockAndTextInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("ARGNAMES", "argnames", p.SRBlockAndTextInputValue, None),
+                    ("ARGDEFAULTS", "argdefaults", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class create_function_at(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::create function at var (NAME) {SUBSTACK}"
         name: INPUT_COMPATIBLE_T
         substack: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("SUBSTACK", "substack", p.SRScriptInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::create function at var (NAME) {SUBSTACK}",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    ),
-                    "SUBSTACK": ThirdInputValue.as_input(
-                        self.substack, p.SRScriptInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("SUBSTACK", "substack", p.SRScriptInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class create_function_named(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::create function named (NAME) {SUBSTACK}"
         name: INPUT_COMPATIBLE_T
         substack: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("SUBSTACK", "substack", p.SRScriptInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::create function named (NAME) {SUBSTACK}",
-                inputs={
-                    "NAME": ThirdInputValue.as_input(
-                        self.name, p.SRBlockAndTextInputValue
-                    ),
-                    "SUBSTACK": ThirdInputValue.as_input(
-                        self.substack, p.SRScriptInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("NAME", "name", p.SRBlockAndTextInputValue, None),
+                    ("SUBSTACK", "substack", p.SRScriptInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class return_value(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::return (VALUE)"
         value: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("VALUE", "value", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::return (VALUE)",
-                inputs={
-                    "VALUE": ThirdInputValue.as_input(
-                        self.value, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("VALUE", "value", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class call_function(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::call function (FUNC) with positional args (POSARGS)"
         func: INPUT_COMPATIBLE_T
         posargs: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("FUNC", "func", p.SRBlockAndTextInputValue, None),
+                    ("POSARGS", "posargs", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::call function (FUNC) with positional args (POSARGS)",
-                inputs={
-                    "FUNC": ThirdInputValue.as_input(
-                        self.func, p.SRBlockAndTextInputValue
-                    ),
-                    "POSARGS": ThirdInputValue.as_input(
-                        self.posargs, p.SRBlockAndTextInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("FUNC", "func", p.SRBlockAndTextInputValue, None),
+                    ("POSARGS", "posargs", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class object_as_string(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::(VALUE) as string"
         value: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("VALUE", "value", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::(VALUE) as string",
-                inputs={
-                    "VALUE": ThirdInputValue.as_input(
-                        self.value, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("VALUE", "value", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class typeof_value(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::typeof (VALUE)"
         value: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("VALUE", "value", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::typeof (VALUE)",
-                inputs={
-                    "VALUE": ThirdInputValue.as_input(
-                        self.value, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("VALUE", "value", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class typeof_value_is_menu(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::typeof (VALUE) is ([TYPE]) ?"
         value: INPUT_COMPATIBLE_T
         type: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("VALUE", "value", p.SRBlockAndTextInputValue, None),
+                    ("TYPE", "type", p.SRBlockAndDropdownInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::typeof (VALUE) is ([TYPE]) ?",
-                inputs={
-                    "VALUE": ThirdInputValue.as_input(
-                        self.value, p.SRBlockAndTextInputValue
-                    ),
-                    "TYPE": ThirdInputValue.as_input(
-                        self.type, p.SRBlockAndDropdownInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("VALUE", "value", p.SRBlockAndTextInputValue, None),
+                    ("TYPE", "type", p.SRBlockAndDropdownInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class typeof_value_selection(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::([TYPE])"
         type: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("TYPE", "type", p.SRBlockAndDropdownInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::([TYPE])",
-                inputs={
-                    "TYPE": ThirdInputValue.as_input(
-                        self.type, p.SRBlockAndDropdownInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (("TYPE", "type", p.SRBlockAndDropdownInputValue, None),),
+                (),
             )
 
     @grepr_dataclass()
     class check_identity(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::(VALUE1) is (VALUE2) ?"
         value1: INPUT_COMPATIBLE_T
         value2: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (
+                    ("VALUE1", "value1", p.SRBlockAndTextInputValue, None),
+                    ("VALUE2", "value2", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::(VALUE1) is (VALUE2) ?",
-                inputs={
-                    "VALUE1": ThirdInputValue.as_input(
-                        self.value1, p.SRBlockAndTextInputValue
-                    ),
-                    "VALUE2": ThirdInputValue.as_input(
-                        self.value2, p.SRBlockAndTextInputValue
-                    ),
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE,
+                (
+                    ("VALUE1", "value1", p.SRBlockAndTextInputValue, None),
+                    ("VALUE2", "value2", p.SRBlockAndTextInputValue, None),
+                ),
+                (),
             )
 
     @grepr_dataclass()
     class nothing(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::Nothing"
+
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(block, cls.OPCODE, (), ())
 
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(opcode="&gceFuncsScopes::Nothing", inputs={}, dropdowns={})
+            return self._to_second_block(self.OPCODE, (), ())
 
     @grepr_dataclass()
     class execute_expression(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::execute expression (EXPR)"
         expr: INPUT_COMPATIBLE_T
 
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(
+                block,
+                cls.OPCODE,
+                (("EXPR", "expr", p.SRBlockAndTextInputValue, None),),
+                (),
+            )
+
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::execute expression (EXPR)",
-                inputs={
-                    "EXPR": ThirdInputValue.as_input(
-                        self.expr, p.SRBlockAndTextInputValue
-                    )
-                },
-                dropdowns={},
+            return self._to_second_block(
+                self.OPCODE, (("EXPR", "expr", p.SRBlockAndTextInputValue, None),), ()
             )
 
     @grepr_dataclass()
     class menu_variable_available_kind(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::#menu:variableAvailableKind"
+
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(block, cls.OPCODE, (), ())
 
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::#menu:variableAvailableKind",
-                inputs={},
-                dropdowns={},
-            )
+            return self._to_second_block(self.OPCODE, (), ())
 
     @grepr_dataclass()
     class menu_bind_var_origin_kind(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::#menu:bindVarOriginKind"
+
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(block, cls.OPCODE, (), ())
 
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::#menu:bindVarOriginKind",
-                inputs={},
-                dropdowns={},
-            )
+            return self._to_second_block(self.OPCODE, (), ())
 
     @grepr_dataclass()
     class menu_typeof_menu(ThirdBlock):
+        OPCODE = "&gceFuncsScopes::#menu:typeofMenu"
+
+        @classmethod
+        def from_second(cls, block: p.SRBlock) -> Self:
+            return cls._from_second_block(block, cls.OPCODE, (), ())
 
         def to_second(self) -> p.SRBlock:
-            return p.SRBlock(
-                opcode="&gceFuncsScopes::#menu:typeofMenu", inputs={}, dropdowns={}
-            )
+            return self._to_second_block(self.OPCODE, (), ())

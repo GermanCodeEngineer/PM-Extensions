@@ -22,6 +22,18 @@ class ThirdProject:
     extensions: list[p.SRBuiltinExtension | p.SRCustomExtension]
 
     @classmethod
+    def from_second(cls, project: p.SRProject) -> Self:
+        return cls(
+            stage=ThirdStage.from_second(project.stage),
+            sprites=[ThirdSprite.from_second(sprite) for sprite in project.sprites],
+            sprite_layer_stack=copy.copy(project.sprite_layer_stack),
+            global_variables=copy.deepcopy(project.global_variables),
+            global_lists=copy.deepcopy(project.global_lists),
+            global_monitors=copy.deepcopy(project.global_monitors),
+            extensions=copy.deepcopy(project.extensions),
+        )
+
+    @classmethod
     def create_empty(cls) -> Self:
         return cls(
             stage=ThirdStage.create_empty(),
@@ -48,15 +60,34 @@ class ThirdProject:
             text_to_speech_language=None,
         )
 
-p.SRTarget
+
 @grepr_dataclass()
 class ThirdTarget:
+    LAYOUT_LEFT_PADDING = 48
+    LAYOUT_TOP_PADDING = 64
+    LAYOUT_COLUMN_GAP = 96
+    LAYOUT_BLOCK_HEIGHT = 48
+    LAYOUT_STACK_PADDING = 72
+    LAYOUT_SCRIPT_WIDTH = 260
+    LAYOUT_NESTED_BLOCK_HEIGHT_FACTOR = 0.9
+
     scripts: list[ThirdScript]
     comments: list[p.SRComment]
     costumes: list[p.SRVectorCostume | p.SRBitmapCostume]
     sounds: list[p.SRSound]
     costume_index: int
     volume: int | float
+
+    @classmethod
+    def from_second(cls, target: p.SRTarget) -> Self:
+        return cls(
+            scripts=[ThirdScript.from_second(script) for script in target.scripts],
+            comments=copy.deepcopy(target.comments),
+            costumes=copy.deepcopy(target.costumes),
+            sounds=copy.deepcopy(target.sounds),
+            costume_index=target.costume_index,
+            volume=target.volume,
+        )
 
     @classmethod
     def create_empty(cls) -> Self:
@@ -69,12 +100,19 @@ class ThirdTarget:
             volume=100,
         )
 
+    def to_second[T: p.SRTarget](self, cls: type[T] = p.SRTarget) -> T:
+        return cls(
+            scripts=self._to_second_scripts(),
+            comments=copy.deepcopy(self.comments),
+            costumes=copy.deepcopy(self.costumes),
+            sounds=copy.deepcopy(self.sounds),
+            costume_index=self.costume_index,
+            volume=self.volume,
+        )
+
     @staticmethod
     def _default_map_position(row: int | None, col: int | None) -> tuple[int | float, int | float]:
-        return (
-            float(0 if col is None else col),
-            float(0 if row is None else row),
-        )
+        return (float(0 if col is None else col), float(0 if row is None else row))
 
     def _to_second_scripts(
         self,
@@ -90,77 +128,17 @@ class ThirdTarget:
                 for script in self.scripts
             ]
 
-        mapper = map_position or self._default_map_position
-        return [script.to_second(mapper) for script in self.scripts]
+        if map_position is not None:
+            return [script.to_second(map_position) for script in self.scripts]
 
-p.SRSprite
-@grepr_dataclass()
-class ThirdSprite(ThirdTarget):
-    name: str
-    local_variables: list[p.SRVariable]
-    local_lists: list[p.SRList]
-    local_monitors: list[p.SRMonitor]
-    is_visible: bool
-    position: tuple[int | float, int | float]
-    size: int | float
-    direction: int | float
-    is_draggable: bool
-    rotation_style: p.SRSpriteRotationStyle
-    uuid: UUID = field(default_factory=uuid4, init=False, compare=False)
-
-    @classmethod
-    def create_empty(cls, name: str) -> Self:
-        return cls(
-            scripts=[],
-            comments=[],
-            costumes=[p.SRVectorCostume.create_empty()],
-            sounds=[],
-            costume_index=0,
-            volume=100,
-
-            name=name,
-            local_variables=[],
-            local_lists=[],
-            local_monitors=[],
-            is_visible=True,
-            position=(0, 0),
-            size=100,
-            direction=90,
-            is_draggable=False,
-            rotation_style=p.SRSpriteRotationStyle.ALL_AROUND,
-        )
-
-    def to_second(self) -> p.SRSprite:
-        return p.SRSprite(
-            scripts=self._to_second_scripts(),
-            comments=copy.deepcopy(self.comments),
-            costumes=copy.deepcopy(self.costumes),
-            sounds=copy.deepcopy(self.sounds),
-            costume_index=self.costume_index,
-            volume=self.volume,
-
-            name=self.name,
-            local_variables=copy.deepcopy(self.local_variables),
-            local_lists=copy.deepcopy(self.local_lists),
-            local_monitors=copy.deepcopy(self.local_monitors),
-            is_visible=self.is_visible,
-            position=copy.copy(self.position),
-            size=self.size,
-            direction=self.direction,
-            is_draggable=self.is_draggable,
-            rotation_style=self.rotation_style,
-        )
-    
-p.SRStage
-@grepr_dataclass()
-class ThirdStage(ThirdTarget):
-    LAYOUT_LEFT_PADDING = 48
-    LAYOUT_TOP_PADDING = 64
-    LAYOUT_COLUMN_GAP = 96
-    LAYOUT_BLOCK_HEIGHT = 48
-    LAYOUT_STACK_PADDING = 72
-    LAYOUT_SCRIPT_WIDTH = 260
-    LAYOUT_NESTED_BLOCK_HEIGHT_FACTOR = 0.9
+        spaced_positions = self._compute_spaced_positions()
+        return [
+            p.SRScript(
+                position=(float(spaced_positions[id(script)][0]), float(spaced_positions[id(script)][1])),
+                blocks=[block.to_second() for block in script.blocks],
+            )
+            for script in self.scripts
+        ]
 
     def _group_script_columns(self) -> list[list[ThirdScript]]:
         columns: dict[int, list[ThirdScript]] = {}
@@ -259,29 +237,103 @@ class ThirdStage(ThirdTarget):
 
         return script_positions
 
-    def to_second(self) -> p.SRStage:
-        spaced_positions = self._compute_spaced_positions()
 
-        return p.SRStage(
-            scripts=self._to_second_scripts(
-                map_script_position=lambda script: (
-                    float(spaced_positions[id(script)][0]),
-                    float(spaced_positions[id(script)][1]),
-                )
-            ),
+@grepr_dataclass()
+class ThirdSprite(ThirdTarget):
+    name: str
+    local_variables: list[p.SRVariable]
+    local_lists: list[p.SRList]
+    local_monitors: list[p.SRMonitor]
+    is_visible: bool
+    position: tuple[int | float, int | float]
+    size: int | float
+    direction: int | float
+    is_draggable: bool
+    rotation_style: p.SRSpriteRotationStyle
+    uuid: UUID = field(default_factory=uuid4, init=False, compare=False)
+
+    @classmethod
+    def from_second(cls, sprite: p.SRSprite) -> Self:
+        return cls(
+            scripts=[ThirdScript.from_second(script) for script in sprite.scripts],
+            comments=copy.deepcopy(sprite.comments),
+            costumes=copy.deepcopy(sprite.costumes),
+            sounds=copy.deepcopy(sprite.sounds),
+            costume_index=sprite.costume_index,
+            volume=sprite.volume,
+            name=sprite.name,
+            local_variables=copy.deepcopy(sprite.local_variables),
+            local_lists=copy.deepcopy(sprite.local_lists),
+            local_monitors=copy.deepcopy(sprite.local_monitors),
+            is_visible=sprite.is_visible,
+            position=copy.copy(sprite.position),
+            size=sprite.size,
+            direction=sprite.direction,
+            is_draggable=sprite.is_draggable,
+            rotation_style=sprite.rotation_style,
+        )
+
+    @classmethod
+    def create_empty(cls, name: str) -> Self:
+        return cls(
+            scripts=[],
+            comments=[],
+            costumes=[p.SRVectorCostume.create_empty()],
+            sounds=[],
+            costume_index=0,
+            volume=100,
+            name=name,
+            local_variables=[],
+            local_lists=[],
+            local_monitors=[],
+            is_visible=True,
+            position=(0, 0),
+            size=100,
+            direction=90,
+            is_draggable=False,
+            rotation_style=p.SRSpriteRotationStyle.ALL_AROUND,
+        )
+
+    def to_second[T: p.SRSprite](self, cls: type[T] = p.SRSprite) -> T:
+        return cls(
+            scripts=self._to_second_scripts(),
             comments=copy.deepcopy(self.comments),
             costumes=copy.deepcopy(self.costumes),
             sounds=copy.deepcopy(self.sounds),
             costume_index=self.costume_index,
             volume=self.volume,
+            name=self.name,
+            local_variables=copy.deepcopy(self.local_variables),
+            local_lists=copy.deepcopy(self.local_lists),
+            local_monitors=copy.deepcopy(self.local_monitors),
+            is_visible=self.is_visible,
+            position=copy.copy(self.position),
+            size=self.size,
+            direction=self.direction,
+            is_draggable=self.is_draggable,
+            rotation_style=self.rotation_style,
         )
 
-p.SRScript
+
+@grepr_dataclass()
+class ThirdStage(ThirdTarget):
+    def to_second[T: p.SRStage](self, cls: type[T] = p.SRStage) -> T:
+        return super().to_second(cls)
+
+
 @grepr_dataclass()
 class ThirdScript:
     blocks: list[ThirdBlock]
     row: int | None
     col: int | None
+
+    @classmethod
+    def from_second(cls, script: p.SRScript) -> Self:
+        return cls(
+            blocks=[ThirdBlock.from_second(block) for block in script.blocks],
+            row=None,
+            col=None,
+        )
 
     def to_second(self, map_position: Callable[[int | None, int | None], tuple[int | float, int | float]]) -> p.SRScript:
         return p.SRScript(
@@ -289,14 +341,103 @@ class ThirdScript:
             blocks=[block.to_second() for block in self.blocks],
         )
 
-p.SRBlock
+
 @grepr_dataclass()
 class ThirdBlock(ABC):
+    OPCODE: str | None = None
+    _opcode_registry: dict[str, type[ThirdBlock]] = {}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        opcode = getattr(cls, "OPCODE", None)
+        if opcode is not None:
+            ThirdBlock._opcode_registry[opcode] = cls
+
+    @classmethod
+    def _from_second_block(
+        cls,
+        block: p.SRBlock,
+        expected_opcode: str,
+        input_specs: tuple[tuple[str, str, type[p.SRInputValue], Callable[[], ThirdBlock] | None], ...],
+        dropdown_specs: tuple[tuple[str, str], ...],
+    ):
+        if block.opcode != expected_opcode:
+            raise ValueError(f"Expected opcode '{expected_opcode}' while converting block.")
+
+        kwargs = {}
+        for input_id, attr_name, input_type, shadow_factory in input_specs:
+            if shadow_factory is not None:
+                continue
+
+            input_value = block.inputs[input_id]
+            if input_type in (
+                p.SRBlockAndTextInputValue,
+                p.SRBlockAndMenuTextInputValue,
+                p.SRBlockAndBoolInputValue,
+            ):
+                value = ThirdBlock.from_second(input_value.block) if input_value.block is not None else input_value.immediate
+            elif input_type in (
+                p.SRBlockAndDropdownInputValue,
+                p.SRBlockAndBroadcastDropdownInputValue,
+            ):
+                value = (
+                    ThirdBlock.from_second(input_value.block)
+                    if input_value.block is not None
+                    else (input_value.dropdown.value if input_value.dropdown is not None else None)
+                )
+            elif input_type in (p.SRBlockOnlyInputValue, p.SREmbeddedBlockInputValue):
+                value = ThirdBlock.from_second(input_value.block) if input_value.block is not None else None
+            elif input_type is p.SRScriptInputValue:
+                value = [ThirdBlock.from_second(item) for item in input_value.blocks]
+            else:
+                raise NotImplementedError(f"Unsupported conversion type: {input_type}")
+
+            kwargs[attr_name] = value
+
+        for dropdown_id, attr_name in dropdown_specs:
+            kwargs[attr_name] = block.dropdowns[dropdown_id].value
+
+        return cls(**kwargs)
+    
+    def _to_second_block(
+        self,
+        opcode: str,
+        input_specs: tuple[tuple[str, str, type[p.SRInputValue], Callable[[], ThirdBlock] | None], ...],
+        dropdown_specs: tuple[tuple[str, str], ...],
+    ) -> p.SRBlock:
+        inputs: dict[str, p.SRInputValue] = {}
+        for input_id, attr_name, input_type, shadow_factory in input_specs:
+            if shadow_factory is not None:
+                value = ThirdInputValue(shadow_factory())
+            else:
+                value = getattr(self, attr_name)
+            inputs[input_id] = ThirdInputValue.as_input(value, input_type)
+
+        dropdowns: dict[str, p.SRDropdownValue] = {}
+        for dropdown_id, attr_name in dropdown_specs:
+            dropdowns[dropdown_id] = p.SRDropdownValue(
+                p.DropdownValueKind.STANDARD,
+                getattr(self, attr_name),
+            )
+
+        return p.SRBlock(opcode=opcode, inputs=inputs, dropdowns=dropdowns)
+
+    @classmethod
+    def from_second(cls, block: p.SRBlock) -> Self:
+        if cls is ThirdBlock:
+            target_cls = ThirdBlock._opcode_registry.get(block.opcode)
+            if target_cls is None:
+                raise ValueError(f"No ThirdBlock subclass is registered for opcode '{block.opcode}'.")
+            return target_cls.from_second(block)
+
+        raise NotImplementedError()
+
     @abstractmethod
     def to_second(self) -> p.SRBlock:
         ...
 
-# TODO: properly convert the following to actual classes not just conversion helpr
+
+# TODO: properly convert the following to actual classes not just conversion helper
 p.SRInputValue
 @grepr_dataclass()
 class ThirdInputValue:
@@ -318,47 +459,57 @@ class ThirdInputValue:
                         block=p.SRBlock(opcode="&operators::true" if self.value else "&operators::false"),
                         immediate="",
                     )
-                else: raise ValueError(self.value, type(self.value))
+                else:
+                    raise ValueError(self.value, type(self.value))
 
             case p.SRBlockAndDropdownInputValue:
                 if isinstance(self.value, ThirdBlock):
-                    return input_type(block=self.value, dropdown=None)
+                    return input_type(block=self.value.to_second(), dropdown=None)
                 elif isinstance(self.value, ThirdDropdownValue):
                     return input_type(block=None, dropdown=self.value.to_second())
                 elif isinstance(self.value, str):
-                    return input_type(block=None, dropdown=p.SRDropdownValue(
-                        p.DropdownValueKind.STANDARD, self.value,
-                    ))
-                else: raise ValueError(self.value)
+                    return input_type(
+                        block=None,
+                        dropdown=p.SRDropdownValue(
+                            p.DropdownValueKind.STANDARD, self.value,
+                        ),
+                    )
+                else:
+                    raise ValueError(self.value)
 
             case p.SRBlockAndBoolInputValue:
                 if isinstance(self.value, ThirdBlock):
-                    return input_type(block=self.value, immediate=False)
+                    return input_type(block=self.value.to_second(), immediate=False)
                 elif isinstance(self.value, bool):
                     return input_type(block=None, immediate=self.value)
-                else: raise ValueError(self.value)
+                else:
+                    raise ValueError(self.value)
 
             case p.SRBlockOnlyInputValue | p.SREmbeddedBlockInputValue:
                 if isinstance(self.value, ThirdBlock) or self.value is None:
-                    return input_type(block=self.value)
-                else: raise ValueError(self.value)
+                    return input_type(block=self.value.to_second() if isinstance(self.value, ThirdBlock) else None)
+                else:
+                    raise ValueError(self.value)
 
             case p.SRScriptInputValue:
                 if isinstance(self.value, list):
-                    # and all(isinstance(item, ThirdBlock) for item in self.value)
-                    return input_type(blocks=self.value)
-                else: raise ValueError(self.value)
+                    return input_type(blocks=[block.to_second() for block in self.value])
+                else:
+                    raise ValueError(self.value)
 
             case _:
                 raise ValueError("Value is not compatible with input type", self.value, input_type)
 
-    @enforce_argument_types
     @staticmethod
+    @enforce_argument_types
     def as_input[_T: p.SRInputValue](value: list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue, input_type: type[_T]) -> _T:
         if isinstance(value, (list, ThirdBlock, str, bool, ThirdDropdownValue, type(None))):
             return ThirdInputValue(value).to_second(input_type)
         elif isinstance(value, ThirdInputValue):
             return value.to_second(input_type)
+        else:
+            raise ValueError(value)
+
 
 p.SRDropdownValue
 @grepr_dataclass()
