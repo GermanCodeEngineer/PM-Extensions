@@ -2,9 +2,10 @@ from __future__ import annotations
 from abc import ABC
 import copy
 from gceutils import field, grepr_dataclass, enforce_argument_types
+from lxml import etree
 import pmp_manip as p
 from uuid import UUID, uuid4
-from typing import Any, Callable, ClassVar, Self
+from typing import Any, Callable, ClassVar, Iterable, Iterator, Self, TYPE_CHECKING as TYPING
 
 # TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
@@ -82,8 +83,8 @@ class ThirdTarget:
 
     scripts: list[ThirdScript]
     comments: list[p.SRComment]
-    costumes: list[p.SRVectorCostume | p.SRBitmapCostume]
-    sounds: list[p.SRSound]
+    costumes: list[ThirdVectorCostume | ThirdBitmapCostume]
+    sounds: list[ThirdSound]
     costume_index: int
     volume: int | float
 
@@ -383,13 +384,11 @@ class ThirdBlock(ABC):
             input_value = block.inputs[input_id]
             if input_type in (
                 p.SRBlockAndTextInputValue,
-                p.SRBlockAndMenuTextInputValue,
                 p.SRBlockAndBoolInputValue,
             ):
                 value = ThirdBlock.from_second(input_value.block) if input_value.block is not None else input_value.immediate
             elif input_type in (
                 p.SRBlockAndDropdownInputValue,
-                p.SRBlockAndBroadcastDropdownInputValue,
             ):
                 value = (
                     ThirdBlock.from_second(input_value.block)
@@ -542,7 +541,6 @@ class ThirdInputValue:
         else:
             raise ValueError(value)
 
-
 p.SRDropdownValue
 @grepr_dataclass()
 class ThirdDropdownValue:
@@ -553,3 +551,112 @@ class ThirdDropdownValue:
         return p.SRDropdownValue(self.kind, self.value)
 
 INPUT_COMPATIBLE_T = list[ThirdBlock] | ThirdBlock | str | bool | ThirdDropdownValue | None | ThirdInputValue
+
+p.SRVectorCostume
+@grepr_dataclass()
+class ThirdVectorCostume(p.SRVectorCostume):
+
+    content: ThirdVectorCostumeContent
+
+    @classmethod
+    def create_empty(cls, name: str = "empty") -> SRCostume:
+        super_result = super().create_empty(name)
+        return cls(
+            name = super_result.name,
+            file_extension  = super_result.file_extension,
+            rotation_center = super_result.rotation_center,
+            content = ThirdVectorCostumeContent(super_result.content),
+        )
+
+    def __eq__(self, other) -> bool:
+        """
+        Checks whether a SRVectorCostume is equal to another.
+        Requires same XML data. Ignores wrong identity of content.
+
+        Args:
+            other: the object to compare to
+
+        Returns:
+            bool: wether self is equal to other
+        """
+        if not super().__eq__(other):
+            return False
+        other: SRVectorCostume = other
+        return xml_equal(self.content, other.content)
+
+    def post_validate(self, path: AbstractTreePath) -> None:
+        """
+        Ensure an instance is valid, raise GU_ValidationError if not
+
+        Args:
+            path: the path from the project to itself. Used for better error messages
+
+        Raises:
+            GU_ValidationError: if the instance is invalid
+        """
+        ValidateAttribute.VA_EQUAL(self, path, "file_extension", "svg")
+
+    def to_first(self) -> tuple[FRCostume, bytes]:
+        """
+        Converts a SRVectorCostume into a FRCostume
+
+        Returns:
+            the FRCostume
+        """
+        file_bytes: bytes = etree.tostring(self.content, method="c14n")
+        md5 = generate_md5(file_bytes)
+        # I am using the md5 hash here(guessed by "md5ext").
+        # I do not know which hashing method Scratch uses.
+        # Scratch md5ext and mine do NOT match. I have uploaded generated project multiple times
+        # and there do not seem to be any consequences.
+        return (FRCostume(
+            name              = self.name,
+            asset_id          = md5,
+            data_format       = self.file_extension,
+            md5ext            = f"{md5}.{self.file_extension}",
+            rotation_center_x = self.rotation_center[0],
+            rotation_center_y = self.rotation_center[1],
+            bitmap_resolution = None,
+        ), file_bytes)
+
+if TYPING:
+    class ThirdVectorCostumeContent(etree._Element):
+        text: str | None
+        tail: str | None
+        attrib: dict[str, str]
+
+        def __init__(self, element: etree._Element) -> None: ...
+
+        def __iter__(self) -> Iterator[ThirdVectorCostumeContent]: ...
+        def append(self, element: ThirdVectorCostumeContent) -> None: ...
+        def extend(self, elements: Iterable[ThirdVectorCostumeContent]) -> None: ...
+        def insert(self, index: int, element: ThirdVectorCostumeContent) -> None: ...
+        def remove(self, element: ThirdVectorCostumeContent) -> None: ...
+
+        def get(self, key: str, default: str | None = None) -> str | None: ...
+        def set(self, key: str, value: str) -> None: ...
+        def keys(self) -> list[str]: ...
+        def values(self) -> list[str]: ...
+        def items(self) -> list[tuple[str, str]]: ...
+else:
+    class ThirdVectorCostumeContent(etree._Element):
+        def __init__(self, element: etree._Element):
+            etree.tostring(element, method="c14n")
+            # LEFT HERE
+
+            super().__init__(element.tag, element.attrib, element.nsmap)
+            self.text = element.text
+            self.tail = element.tail
+            for child in element:
+                self.append(ThirdVectorCostumeContent(child))
+    
+
+p.SRBitmapCostume
+@grepr_dataclass()
+class ThirdBitmapCostume(p.SRBitmapCostume):
+    ...
+
+p.SRSound
+@grepr_dataclass()
+class ThirdSound(p.SRSound):
+    ...
