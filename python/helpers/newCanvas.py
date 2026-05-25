@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class newCanvas:
@@ -301,7 +301,7 @@ class newCanvas:
                 "controlPoints",
                 "control_points",
                 p.SREmbeddedBlockInputValue,
-                newCanvas.param,
+                lambda: newCanvas.param(),
             ),
             ("radius", "radius", p.SRBlockAndTextInputValue, None),
         )

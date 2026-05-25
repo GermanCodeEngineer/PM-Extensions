@@ -46,10 +46,19 @@ class ThirdProject:
         )
 
     def to_second(self) -> p.SRProject:
+        converted_sprites = [sprite.to_second() for sprite in self.sprites]
+        
+        uuid_stack = []
+        for uuid_idx, uuid in enumerate(self.sprite_layer_stack):
+            for sprite_idx, sprite in enumerate(self.sprites):
+                if sprite.uuid == uuid:
+                    uuid_stack.append(converted_sprites[sprite_idx].uuid)
+                    break
+
         return p.SRProject(
             stage=self.stage.to_second(),
-            sprites=[sprite.to_second() for sprite in self.sprites],
-            sprite_layer_stack=copy.copy(self.sprite_layer_stack),
+            sprites=converted_sprites,
+            sprite_layer_stack=uuid_stack,
             global_variables=copy.deepcopy(self.global_variables),
             global_lists=copy.deepcopy(self.global_lists),
             global_monitors=copy.deepcopy(self.global_monitors),

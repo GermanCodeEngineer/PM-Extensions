@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class dogeiscutSet:
@@ -40,7 +40,7 @@ class dogeiscutSet:
                 "SHADOW",
                 "shadow",
                 p.SREmbeddedBlockInputValue,
-                dogeiscutSet.builder_current,
+                lambda: dogeiscutSet.builder_current(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
@@ -211,7 +211,7 @@ class dogeiscutSet:
         OPCODE = "&dogeiscutSet::for {:V:} of (SET) {SUBSTACK}"
         INPUT_SPECS = (
             ("SET", "set", p.SRBlockOnlyInputValue, None),
-            ("V", "v", p.SREmbeddedBlockInputValue, dogeiscutSet.for_each_v),
+            ("V", "v", p.SREmbeddedBlockInputValue, lambda: dogeiscutSet.for_each_v()),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class gceOOP:
@@ -29,7 +29,12 @@ class gceOOP:
         OPCODE = "&gceOOP::create class at var (NAME) {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.current_class),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.current_class(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -42,7 +47,12 @@ class gceOOP:
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
             ("SUPERCLASS", "superclass", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.current_class),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.current_class(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -55,7 +65,12 @@ class gceOOP:
         OPCODE = "&gceOOP::create class named (NAME) {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.current_class),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.current_class(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -68,7 +83,12 @@ class gceOOP:
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
             ("SUPERCLASS", "superclass", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.current_class),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.current_class(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -81,7 +101,12 @@ class gceOOP:
         OPCODE = "&gceOOP::on class (CLASS) {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
             ("CLASS", "class_", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.current_class),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.current_class(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -117,7 +142,12 @@ class gceOOP:
         OPCODE = "&gceOOP::define instance method (NAME) {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.self_value),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.self_value(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -131,7 +161,12 @@ class gceOOP:
         )
         INPUT_SPECS = (
             ("SPECIAL_METHOD", "special_method", p.SRBlockAndDropdownInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.self_value),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.self_value(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -167,7 +202,12 @@ class gceOOP:
         OPCODE = "&gceOOP::define getter for (NAME) {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, gceOOP.self_value),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.self_value(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -179,12 +219,17 @@ class gceOOP:
         OPCODE = "&gceOOP::define setter for (NAME) {:SHADOW1:} {:SHADOW2:} {SUBSTACK}"
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("SHADOW1", "shadow1", p.SREmbeddedBlockInputValue, gceOOP.self_value),
+            (
+                "SHADOW1",
+                "shadow1",
+                p.SREmbeddedBlockInputValue,
+                lambda: gceOOP.self_value(),
+            ),
             (
                 "SHADOW2",
                 "shadow2",
                 p.SREmbeddedBlockInputValue,
-                gceOOP.define_setter_value,
+                lambda: gceOOP.define_setter_value(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
@@ -203,7 +248,7 @@ class gceOOP:
                 "SHADOW",
                 "shadow",
                 p.SREmbeddedBlockInputValue,
-                gceOOP.operator_operator_value,
+                lambda: gceOOP.operator_operator_value(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )

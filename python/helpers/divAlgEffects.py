@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class divAlgEffects:
@@ -33,7 +33,12 @@ class divAlgEffects:
         OPCODE = "&divAlgEffects::effect (EFF) with {:DATA:} {SUBSTACK}"
         INPUT_SPECS = (
             ("EFF", "eff", p.SRBlockAndTextInputValue, None),
-            ("DATA", "data", p.SREmbeddedBlockInputValue, divAlgEffects.eff_data),
+            (
+                "DATA",
+                "data",
+                p.SREmbeddedBlockInputValue,
+                lambda: divAlgEffects.eff_data(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()

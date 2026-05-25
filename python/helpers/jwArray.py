@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwArray:
@@ -48,7 +48,12 @@ class jwArray:
     class builder(ThirdBlock):
         OPCODE = "&jwArray::array builder {:SHADOW:} {SUBSTACK}"
         INPUT_SPECS = (
-            ("SHADOW", "shadow", p.SREmbeddedBlockInputValue, jwArray.builder_current),
+            (
+                "SHADOW",
+                "shadow",
+                p.SREmbeddedBlockInputValue,
+                lambda: jwArray.builder_current(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -261,8 +266,8 @@ class jwArray:
         OPCODE = "&jwArray::for {:I:} {:V:} of (ARRAY) {SUBSTACK}"
         INPUT_SPECS = (
             ("ARRAY", "array", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, jwArray.for_each_i),
-            ("V", "v", p.SREmbeddedBlockInputValue, jwArray.for_each_v),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: jwArray.for_each_i()),
+            ("V", "v", p.SREmbeddedBlockInputValue, lambda: jwArray.for_each_v()),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -274,8 +279,8 @@ class jwArray:
         OPCODE = "&jwArray::sort (ARRAY) {:I:} {:V:} > (VALUE)"
         INPUT_SPECS = (
             ("ARRAY", "array", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, jwArray.for_each_i),
-            ("V", "v", p.SREmbeddedBlockInputValue, jwArray.for_each_v),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: jwArray.for_each_i()),
+            ("V", "v", p.SREmbeddedBlockInputValue, lambda: jwArray.for_each_v()),
             ("VALUE", "value", p.SRBlockAndTextInputValue, None),
         )
         DROPDOWN_SPECS = ()

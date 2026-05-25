@@ -16,16 +16,9 @@ from pmp_manip.opcode_info import api as info
 GCEUTILS_NAME = d.Name(id="gceutils", ctx=d.Load())
 PMP_MANIP_NAME = d.Name(id="p", ctx=d.Load())
 GREPR_DATACLASS_NAME = d.Name(id="grepr_dataclass", ctx=d.Load())
-INPUT_VALUE_NAME = d.Name(id="ThirdInputValue", ctx=d.Load())
 THIRD_BLOCK_NAME = d.Name(id="ThirdBlock", ctx=d.Load())
 INPUT_COMPATIBLE_T_NAME = d.Name(id="INPUT_COMPATIBLE_T", ctx=d.Load())
-DROPDOWN_VALUE_NAME = d.Name(id="SRDropdownValue", ctx=d.Load())
-DROPDOWN_VALUE_KIND_NAME = d.Name(id="DropdownValueKind", ctx=d.Load())
 STR_NAME = d.Name(id="str", ctx=d.Load())
-NOT_IMPLEMENTED_ERROR_NAME = d.Name(id="NotImplementedError", ctx=d.Load())
-UNSUPPORTED_FLEXIBLE_INPUTS_MESSAGE = (
-    "This opcode is not supported yet, because it requires flexible input counts."
-)
 
 def to_snake_case(target_name: str) -> str:
     target_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", target_name)
@@ -75,134 +68,12 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
         d.ImportFrom(
             module="third",
             names=[
-                d.alias(name=INPUT_VALUE_NAME.id, asname=None),
                 d.alias(name=THIRD_BLOCK_NAME.id, asname=None),
                 d.alias(name=INPUT_COMPATIBLE_T_NAME.id, asname=None),
             ],
             level=0,
         ),
     ]
-
-def create_input_value_call(input_id: str, input_info: info.InputInfo, class_name: str) -> d.Call:
-    if input_info.type.mode is info.InputMode.FORCED_EMBEDDED_BLOCK:
-        # Use constant blocks for shadow inputs
-        shadow_method_name = get_method_name(input_info.type.embedded_block_opcode)
-        try_as_input_arg = d.Call(
-            func=INPUT_VALUE_NAME,
-            args=[
-                d.Call(
-                    func=d.Attribute(
-                        value=d.Name(id=class_name, ctx=d.Load()),
-                        attr=shadow_method_name,
-                        ctx=d.Load(),
-                    ),
-                    args=[],
-                    keywords=[],
-                ),
-            ],
-            keywords=[],
-        )
-    else:
-        legal_name = pick_legal_name(to_snake_case(input_id))
-        try_as_input_arg = d.Attribute(
-            value=d.Name(id="self", ctx=d.Load()),
-            attr=legal_name,
-            ctx=d.Load(),
-        )
-
-    example_input_value = p.SRInputValue.from_mode(input_info.type.mode)
-
-    return d.Call(
-        func=d.Attribute(
-            value=INPUT_VALUE_NAME,
-            attr="as_input",
-            ctx=d.Load(),
-        ),
-        args=[
-            try_as_input_arg,
-            d.Attribute(
-                value=PMP_MANIP_NAME,
-                attr=pick_legal_name(type(example_input_value).__name__),
-                ctx=d.Load(),
-            ),
-        ],
-        keywords=[],
-    )
-
-def create_dropdown_value_call(dropdown_id: str) -> d.Call:
-    legal_name = pick_legal_name(to_snake_case(dropdown_id))
-    return d.Call(
-        func=d.Attribute(
-            value=PMP_MANIP_NAME,
-            attr=DROPDOWN_VALUE_NAME.id,
-            ctx=d.Load(),
-        ),
-        args=[
-            d.Attribute(
-                value=d.Attribute(
-                    value=PMP_MANIP_NAME,
-                    attr=DROPDOWN_VALUE_KIND_NAME.id,
-                    ctx=d.Load(),
-                ),
-                attr="STANDARD",
-                ctx=d.Load(),
-            ),
-            d.Attribute(
-                value=d.Name(id="self", ctx=d.Load()),
-                attr=legal_name,
-                ctx=d.Load(),
-            ),
-        ],
-        keywords=[],
-    )
-
-def create_srblock_call(
-        info_api: info.OpcodeInfoAPI, old_opcode: str, class_name: str,
-        input_infos: dict[str, info.InputInfo],
-        dropdown_infos: dict[str, info.DropdownInfo],
-    ) -> d.Call:
-    new_opcode = info_api.get_new_by_old(old_opcode)
-
-    input_keys = []
-    input_values = []
-    for input_id, input_info in input_infos.items():
-        input_keys.append(d.Constant(value=input_id, kind=None))
-        input_values.append(create_input_value_call(input_id, input_info, class_name))
-
-    dropdown_keys = []
-    dropdown_values = []
-    for dropdown_id, dropdown_info in dropdown_infos.items():
-        dropdown_keys.append(d.Constant(value=dropdown_id, kind=None))
-        dropdown_values.append(create_dropdown_value_call(dropdown_id))
-
-    return d.Call(
-        func=d.Attribute(
-            value=PMP_MANIP_NAME,
-            attr="SRBlock",
-            ctx=d.Load(),
-        ),
-        args=[],
-        keywords=[
-            d.keyword(
-                arg="opcode",
-                value=d.Constant(value=new_opcode, kind=None),
-            ),
-            d.keyword(
-                arg="inputs",
-                value=d.Dict(
-                    keys=input_keys,
-                    values=input_values,
-                ),
-            ),
-            d.keyword(
-                arg="dropdowns",
-                value=d.Dict(
-                    keys=dropdown_keys,
-                    values=dropdown_values,
-                ),
-            ),
-        ],
-    )
 
 def get_new_input_ids_infos(opcode_info: info.OpcodeInfo) -> dict[str, info.InputInfo] | None:
     instead_case = opcode_info.get_special_case(info.SpecialCaseType.GET_ALL_INPUT_IDS_INFO)
@@ -212,10 +83,6 @@ def get_new_input_ids_infos(opcode_info: info.OpcodeInfo) -> dict[str, info.Inpu
         )
     else:
         return None
-
-
-def create_conversion_helper_methods() -> list[d.FunctionDef]:
-    return []
 
 
 def create_specs_value(specs: list[d.Tuple] | None) -> d.Tuple | d.Constant:
@@ -257,10 +124,25 @@ def create_input_specs(
                     d.Constant(value=input_id, kind=None),
                     d.Constant(value=legal_name, kind=None),
                     d.Attribute(value=PMP_MANIP_NAME, attr=input_type_name, ctx=d.Load()),
-                    d.Attribute(
-                        value=d.Name(id=class_name, ctx=d.Load()),
-                        attr=shadow_method_name,
-                        ctx=d.Load(),
+                    d.Lambda(
+                        args=d.arguments(
+                            posonlyargs=[],
+                            args=[],
+                            vararg=None,
+                            kwonlyargs=[],
+                            kw_defaults=[],
+                            kwarg=None,
+                            defaults=[],
+                        ),
+                        body=d.Call(
+                            func=d.Attribute(
+                                value=d.Name(id=class_name, ctx=d.Load()),
+                                attr=shadow_method_name,
+                                ctx=d.Load(),
+                            ),
+                            args=[],
+                            keywords=[],
+                        ),
                     )
                     if shadow_method_name is not None
                     else d.Constant(value=None, kind=None),

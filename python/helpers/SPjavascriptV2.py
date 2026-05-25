@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class SPjavascriptV2:
@@ -44,7 +44,12 @@ class SPjavascriptV2:
     class js_reporter_binded(ThirdBlock):
         OPCODE = "&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsReporterBinded}}"
         INPUT_SPECS = (
-            ("CODE", "code", p.SREmbeddedBlockInputValue, SPjavascriptV2.code_input),
+            (
+                "CODE",
+                "code",
+                p.SREmbeddedBlockInputValue,
+                lambda: SPjavascriptV2.code_input(),
+            ),
             ("ARGS", "args", p.SRBlockAndTextInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -54,7 +59,12 @@ class SPjavascriptV2:
     class js_boolean_binded(ThirdBlock):
         OPCODE = "&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsBooleanBinded}}"
         INPUT_SPECS = (
-            ("CODE", "code", p.SREmbeddedBlockInputValue, SPjavascriptV2.code_input),
+            (
+                "CODE",
+                "code",
+                p.SREmbeddedBlockInputValue,
+                lambda: SPjavascriptV2.code_input(),
+            ),
             ("ARGS", "args", p.SRBlockAndTextInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -67,7 +77,12 @@ class SPjavascriptV2:
         )
         INPUT_SPECS = (
             ("NAME", "name", p.SRBlockAndTextInputValue, None),
-            ("CODE", "code", p.SREmbeddedBlockInputValue, SPjavascriptV2.code_input),
+            (
+                "CODE",
+                "code",
+                p.SREmbeddedBlockInputValue,
+                lambda: SPjavascriptV2.code_input(),
+            ),
         )
         DROPDOWN_SPECS = ()
         name: INPUT_COMPATIBLE_T
@@ -81,7 +96,7 @@ class SPjavascriptV2:
                 "CODE",
                 "code",
                 p.SREmbeddedBlockInputValue,
-                SPjavascriptV2.argument_report,
+                lambda: SPjavascriptV2.argument_report(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
@@ -100,7 +115,12 @@ class SPjavascriptV2:
     class js_command_binded(ThirdBlock):
         OPCODE = "&SPjavascriptV2::run {:CODE:} with data (ARGS) {{id=SPjavascriptV2_jsCommandBinded}}"
         INPUT_SPECS = (
-            ("CODE", "code", p.SREmbeddedBlockInputValue, SPjavascriptV2.code_input),
+            (
+                "CODE",
+                "code",
+                p.SREmbeddedBlockInputValue,
+                lambda: SPjavascriptV2.code_input(),
+            ),
             ("ARGS", "args", p.SRBlockAndTextInputValue, None),
         )
         DROPDOWN_SPECS = ()

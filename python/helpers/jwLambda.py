@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class jwLambda:
@@ -16,7 +16,7 @@ class jwLambda:
     class new_lambda(ThirdBlock):
         OPCODE = "&jwLambda::new lambda {:ARG:} {SUBSTACK}"
         INPUT_SPECS = (
-            ("ARG", "arg", p.SREmbeddedBlockInputValue, jwLambda.arg),
+            ("ARG", "arg", p.SREmbeddedBlockInputValue, lambda: jwLambda.arg()),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -33,7 +33,12 @@ class jwLambda:
     class raw_lambda(ThirdBlock):
         OPCODE = "&jwLambda::new lambda {:RAW:}"
         INPUT_SPECS = (
-            ("RAW", "raw", p.SREmbeddedBlockInputValue, jwLambda.raw_lambda_input),
+            (
+                "RAW",
+                "raw",
+                p.SREmbeddedBlockInputValue,
+                lambda: jwLambda.raw_lambda_input(),
+            ),
         )
         DROPDOWN_SPECS = ()
 

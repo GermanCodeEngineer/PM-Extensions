@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class agBuffer:
@@ -55,7 +55,7 @@ class agBuffer:
                 "CURRENT",
                 "current",
                 p.SREmbeddedBlockInputValue,
-                agBuffer.builder_current,
+                lambda: agBuffer.builder_current(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
@@ -296,8 +296,18 @@ class agBuffer:
         OPCODE = "&agBuffer::for each [INDEX], {:BYTE:} of (BUFFER) {SUBSTACK}"
         INPUT_SPECS = (
             ("BUFFER", "buffer", p.SRBlockOnlyInputValue, None),
-            ("INDEX", "index", p.SREmbeddedBlockInputValue, agBuffer.for_each_i),
-            ("BYTE", "byte", p.SREmbeddedBlockInputValue, agBuffer.for_each_v),
+            (
+                "INDEX",
+                "index",
+                p.SREmbeddedBlockInputValue,
+                lambda: agBuffer.for_each_i(),
+            ),
+            (
+                "BYTE",
+                "byte",
+                p.SREmbeddedBlockInputValue,
+                lambda: agBuffer.for_each_v(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()

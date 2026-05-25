@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class divIterator:
@@ -76,7 +76,7 @@ class divIterator:
         OPCODE = "&divIterator::for {:I:} of (ITER) {SUBSTACK}"
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -106,7 +106,12 @@ class divIterator:
         OPCODE = "&divIterator::iterator builder with {:S:} = (STATE) {SUBSTACK}"
         INPUT_SPECS = (
             ("STATE", "state", p.SRBlockAndTextInputValue, None),
-            ("S", "s", p.SREmbeddedBlockInputValue, divIterator.iter_builder_get_state),
+            (
+                "S",
+                "s",
+                p.SREmbeddedBlockInputValue,
+                lambda: divIterator.iter_builder_get_state(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -144,7 +149,7 @@ class divIterator:
         OPCODE = "&divIterator::(ITER) then map {:I:} (MAP)"
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
             ("MAP", "map", p.SRBlockAndTextInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -156,7 +161,7 @@ class divIterator:
         OPCODE = "&divIterator::(ITER) then keep {:I:} if <PRED>"
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
             ("PRED", "pred", p.SRBlockAndBoolInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -248,7 +253,7 @@ class divIterator:
         OPCODE = "&divIterator::(ITER) then inspect {:I:} {SUBSTACK}"
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
@@ -277,8 +282,8 @@ class divIterator:
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
             ("INIT", "init", p.SRBlockAndTextInputValue, None),
             ("FOLD", "fold", p.SRBlockAndTextInputValue, None),
-            ("A", "a", p.SREmbeddedBlockInputValue, divIterator.iter_acc),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("A", "a", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_acc()),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
         )
         DROPDOWN_SPECS = ()
         iter: INPUT_COMPATIBLE_T
@@ -291,7 +296,7 @@ class divIterator:
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
             ("PRED", "pred", p.SRBlockAndBoolInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
         )
         DROPDOWN_SPECS = ()
         iter: INPUT_COMPATIBLE_T
@@ -303,7 +308,7 @@ class divIterator:
         INPUT_SPECS = (
             ("ITER", "iter", p.SRBlockOnlyInputValue, None),
             ("PRED", "pred", p.SRBlockAndBoolInputValue, None),
-            ("I", "i", p.SREmbeddedBlockInputValue, divIterator.iter_item),
+            ("I", "i", p.SREmbeddedBlockInputValue, lambda: divIterator.iter_item()),
         )
         DROPDOWN_SPECS = ()
         iter: INPUT_COMPATIBLE_T

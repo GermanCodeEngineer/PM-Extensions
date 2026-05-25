@@ -113,20 +113,20 @@ def convert_project(test_project: TestProject) -> p.FRProject:
             p.SRCustomExtension(id, url) if url is not None else p.SRBuiltinExtension(id=id)
         )
     
-
-    opcode_info_copy = p.info_api.opcode_info.copy()
-    info_api_copy = OpcodeInfoAPI(opcode_info_copy)
-    trproject.add_all_extensions_to_info_api(info_api_copy)
-
     # Convert from TR to SR
     srproject = trproject.to_second()
-    
+    opcode_info_copy = p.info_api.opcode_info.copy()
+    info_api_copy = OpcodeInfoAPI(opcode_info_copy)
+    srproject.add_all_extensions_to_info_api(info_api_copy)
+
     # Validate SR
     # Tricks to avoid errors for invalid extension URLs (currently too strict)
     extensions_before = copy.deepcopy(srproject.extensions)
     for extension in srproject.extensions:
         extension.url = "https://example.com/"
 
+    print("TR UUIDS:", trproject.sprite_layer_stack, "SR UUIDS:", srproject.sprite_layer_stack)
+    print("TR SPRITES:", [sprite.uuid for sprite in trproject.sprites], "SR SPRITES:", [sprite.uuid for sprite in srproject.sprites])
     srproject.validate(AbstractTreePath(), info_api_copy)
     srproject.extensions = extensions_before
 

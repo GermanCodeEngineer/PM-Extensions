@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class data:
@@ -181,8 +181,18 @@ class data:
     class filterlist(ThirdBlock):
         OPCODE = "&lists::filter [LIST] by (INDEX) (ITEM) <KEEP>"
         INPUT_SPECS = (
-            ("INDEX", "index", p.SREmbeddedBlockInputValue, data.filterlistindex),
-            ("ITEM", "item", p.SREmbeddedBlockInputValue, data.filterlistitem),
+            (
+                "INDEX",
+                "index",
+                p.SREmbeddedBlockInputValue,
+                lambda: data.filterlistindex(),
+            ),
+            (
+                "ITEM",
+                "item",
+                p.SREmbeddedBlockInputValue,
+                lambda: data.filterlistitem(),
+            ),
             ("KEEP", "keep", p.SRBlockAndBoolInputValue, None),
         )
         DROPDOWN_SPECS = (("LIST", "list"),)

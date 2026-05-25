@@ -1,7 +1,7 @@
 from __future__ import annotations
 from gceutils import grepr_dataclass
 import pmp_manip as p
-from third import ThirdInputValue, ThirdBlock, INPUT_COMPATIBLE_T
+from third import ThirdBlock, INPUT_COMPATIBLE_T
 
 
 class dogeiscutObject:
@@ -40,7 +40,7 @@ class dogeiscutObject:
                 "CURRENT_OBJECT",
                 "current_object",
                 p.SREmbeddedBlockInputValue,
-                dogeiscutObject.current_object,
+                lambda: dogeiscutObject.current_object(),
             ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
@@ -227,8 +227,18 @@ class dogeiscutObject:
         OPCODE = "&dogeiscutObject::for {:K:} {:V:} of (OBJECT) {SUBSTACK}"
         INPUT_SPECS = (
             ("OBJECT", "object", p.SRBlockOnlyInputValue, None),
-            ("K", "k", p.SREmbeddedBlockInputValue, dogeiscutObject.for_each_k),
-            ("V", "v", p.SREmbeddedBlockInputValue, dogeiscutObject.for_each_v),
+            (
+                "K",
+                "k",
+                p.SREmbeddedBlockInputValue,
+                lambda: dogeiscutObject.for_each_k(),
+            ),
+            (
+                "V",
+                "v",
+                p.SREmbeddedBlockInputValue,
+                lambda: dogeiscutObject.for_each_v(),
+            ),
             ("SUBSTACK", "substack", p.SRScriptInputValue, None),
         )
         DROPDOWN_SPECS = ()
