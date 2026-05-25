@@ -81,13 +81,6 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
             ],
             level=0,
         ),
-        d.ImportFrom(
-            module="typing",
-            names=[
-                d.alias(name="Self", asname=None),
-            ],
-            level=0,
-        ),
     ]
 
 def create_input_value_call(input_id: str, input_info: info.InputInfo, class_name: str) -> d.Call:
@@ -225,17 +218,10 @@ def create_conversion_helper_methods() -> list[d.FunctionDef]:
     return []
 
 
-def create_unsupported_opcode_body() -> list[d.Raise]:
-    return [d.Raise(
-        exc=d.Call(
-            func=NOT_IMPLEMENTED_ERROR_NAME,
-            args=[
-                d.Constant(
-                    value=UNSUPPORTED_FLEXIBLE_INPUTS_MESSAGE
-                )
-            ]
-        )
-    )]
+def create_specs_value(specs: list[d.Tuple] | None) -> d.Tuple | d.Constant:
+    if specs is None:
+        return d.Constant(value=None, kind=None)
+    return d.Tuple(elts=specs, ctx=d.Load())
 
 
 def create_input_specs(
@@ -316,104 +302,27 @@ def create_dropdown_specs(
     return field_ann_assignments, dropdown_specs
 
 
-def create_to_second_body(input_specs: list[d.Tuple], dropdown_specs: list[d.Tuple]) -> list[d.Return]:
-    return [d.Return(
-        value=d.Call(
-            func=d.Attribute(
-                value=d.Name(id="self", ctx=d.Load()),
-                attr="_to_second_block",
-                ctx=d.Load(),
-            ),
-            args=[
-                d.Attribute(value=d.Name(id="self", ctx=d.Load()), attr="OPCODE", ctx=d.Load()),
-                d.Tuple(elts=input_specs, ctx=d.Load()),
-                d.Tuple(elts=dropdown_specs, ctx=d.Load()),
-            ],
-            keywords=[],
-        )
-    )]
-
-
-def create_from_second_body(input_specs: list[d.Tuple], dropdown_specs: list[d.Tuple]) -> list[d.Return]:
-    return [d.Return(
-        value=d.Call(
-            func=d.Attribute(
-                value=d.Name(id="cls", ctx=d.Load()),
-                attr="_from_second_block",
-                ctx=d.Load(),
-            ),
-            args=[
-                d.Name(id="block", ctx=d.Load()),
-                d.Attribute(value=d.Name(id="cls", ctx=d.Load()), attr="OPCODE", ctx=d.Load()),
-                d.Tuple(elts=input_specs, ctx=d.Load()),
-                d.Tuple(elts=dropdown_specs, ctx=d.Load()),
-            ],
-            keywords=[],
-        )
-    )]
-
-
-def create_from_second_method(from_second_body: list[d.stmt]) -> d.FunctionDef:
-    return d.FunctionDef(
-        name="from_second",
-        args=d.arguments(
-            posonlyargs=[],
-            args=[
-                d.arg(arg="cls", annotation=None, type_comment=None),
-                d.arg(
-                    arg="block",
-                    annotation=d.Attribute(
-                        value=PMP_MANIP_NAME,
-                        attr="SRBlock",
-                        ctx=d.Load(),
-                    ),
-                    type_comment=None,
-                ),
-            ],
-            vararg=None,
-            kwonlyargs=[],
-            kw_defaults=[],
-            kwarg=None,
-            defaults=[],
+def create_specs_assignments(
+    input_specs: list[d.Tuple] | None,
+    dropdown_specs: list[d.Tuple] | None,
+) -> list[d.Assign]:
+    return [
+        d.Assign(
+            targets=[d.Name(id="INPUT_SPECS", ctx=d.Store())],
+            value=create_specs_value(input_specs),
         ),
-        body=from_second_body,
-        decorator_list=[d.Name(id="classmethod", ctx=d.Load())],
-        returns=d.Name(id="Self", ctx=d.Load()),
-        type_comment=None,
-        type_params=[],
-    )
-
-
-def create_to_second_method(conversion_body: list[d.stmt]) -> d.FunctionDef:
-    return d.FunctionDef(
-        name="to_second",
-        args=d.arguments(
-            posonlyargs=[],
-            args=[d.arg(arg="self", annotation=None, type_comment=None)],
-            vararg=None,
-            kwonlyargs=[],
-            kw_defaults=[],
-            kwarg=None,
-            defaults=[],
+        d.Assign(
+            targets=[d.Name(id="DROPDOWN_SPECS", ctx=d.Store())],
+            value=create_specs_value(dropdown_specs),
         ),
-        body=conversion_body,
-        decorator_list=[],
-        returns=d.Attribute(
-            value=PMP_MANIP_NAME,
-            attr="SRBlock",
-            ctx=d.Load(),
-        ),
-        type_comment=None,
-        type_params=[],
-    )
+    ]
 
 
 def create_block_class_def(
     block_id: str,
     new_opcode: str,
     field_ann_assignments: list[d.AnnAssign],
-    from_second_method: d.FunctionDef,
-    conversion_method: d.FunctionDef,
+    specs_assignments: list[d.Assign],
 ) -> d.ClassDef:
     return d.ClassDef(
         name=block_id,
@@ -424,9 +333,8 @@ def create_block_class_def(
                 targets=[d.Name(id="OPCODE", ctx=d.Store())],
                 value=d.Constant(value=new_opcode, kind=None),
             ),
+            *specs_assignments,
             *field_ann_assignments,
-            from_second_method,
-            conversion_method,
         ],
         decorator_list=[
             d.Call(
@@ -451,21 +359,15 @@ def create_block_helper(info_api: info.OpcodeInfoAPI, old_opcode: str, opcode_in
         dropdown_fields, dropdown_specs = create_dropdown_specs(dropdown_infos)
         field_ann_assignments.extend(input_fields)
         field_ann_assignments.extend(dropdown_fields)
-        conversion_body = create_to_second_body(input_specs, dropdown_specs)
-        from_second_body = create_from_second_body(input_specs, dropdown_specs)
+        specs_assignments = create_specs_assignments(input_specs, dropdown_specs)
     else:
-        conversion_body = create_unsupported_opcode_body()
-        from_second_body = create_unsupported_opcode_body()
-
-    from_second_method = create_from_second_method(from_second_body)
-    conversion_method = create_to_second_method(conversion_body)
+        specs_assignments = create_specs_assignments(None, None)
 
     return create_block_class_def(
         block_id=block_id,
         new_opcode=new_opcode,
         field_ann_assignments=field_ann_assignments,
-        from_second_method=from_second_method,
-        conversion_method=conversion_method,
+        specs_assignments=specs_assignments,
     )
 
 def create_module(info_api: info.OpcodeInfoAPI, extension_id: str) -> d.Module | None:

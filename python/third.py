@@ -1,10 +1,10 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import ABC
 import copy
 from gceutils import field, grepr_dataclass, enforce_argument_types
 import pmp_manip as p
 from uuid import UUID, uuid4
-from typing import Any, Callable, Self
+from typing import Any, Callable, ClassVar, Self
 
 # TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
@@ -344,8 +344,10 @@ class ThirdScript:
 
 @grepr_dataclass()
 class ThirdBlock(ABC):
-    OPCODE: str | None = None
-    _opcode_registry: dict[str, type[ThirdBlock]] = {}
+    OPCODE: str | None = field(default=None, init=False, compare=False)
+    INPUT_SPECS: ClassVar[tuple[tuple[str, str, type[p.SRInputValue], Callable[[], ThirdBlock] | None], ...] | None] = ()
+    DROPDOWN_SPECS: ClassVar[tuple[tuple[str, str], ...] | None] = ()
+    _opcode_registry: ClassVar[dict[str, type[ThirdBlock]]] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -398,7 +400,7 @@ class ThirdBlock(ABC):
             kwargs[attr_name] = block.dropdowns[dropdown_id].value
 
         return cls(**kwargs)
-    
+
     def _to_second_block(
         self,
         opcode: str,
@@ -423,6 +425,19 @@ class ThirdBlock(ABC):
         return p.SRBlock(opcode=opcode, inputs=inputs, dropdowns=dropdowns)
 
     @classmethod
+    def _get_conversion_specs(
+        cls,
+    ) -> tuple[
+        tuple[tuple[str, str, type[p.SRInputValue], Callable[[], ThirdBlock] | None], ...],
+        tuple[tuple[str, str], ...],
+    ]:
+        if cls.INPUT_SPECS is None or cls.DROPDOWN_SPECS is None:
+            raise NotImplementedError(
+                "This opcode is not supported yet, because it requires flexible input counts."
+            )
+        return cls.INPUT_SPECS, cls.DROPDOWN_SPECS
+
+    @classmethod
     def from_second(cls, block: p.SRBlock) -> Self:
         if cls is ThirdBlock:
             target_cls = ThirdBlock._opcode_registry.get(block.opcode)
@@ -430,11 +445,19 @@ class ThirdBlock(ABC):
                 raise ValueError(f"No ThirdBlock subclass is registered for opcode '{block.opcode}'.")
             return target_cls.from_second(block)
 
-        raise NotImplementedError()
+        if cls.OPCODE is None:
+            raise ValueError("Block class is missing OPCODE metadata.")
 
-    @abstractmethod
+        input_specs, dropdown_specs = cls._get_conversion_specs()
+        return cls._from_second_block(block, cls.OPCODE, input_specs, dropdown_specs)
+
     def to_second(self) -> p.SRBlock:
-        ...
+        cls = type(self)
+        if cls.OPCODE is None:
+            raise ValueError("Block class is missing OPCODE metadata.")
+
+        input_specs, dropdown_specs = cls._get_conversion_specs()
+        return self._to_second_block(cls.OPCODE, input_specs, dropdown_specs)
 
 
 # TODO: properly convert the following to actual classes not just conversion helper
