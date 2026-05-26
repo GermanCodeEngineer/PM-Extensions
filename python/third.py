@@ -1,11 +1,15 @@
 from __future__ import annotations
 from abc import ABC
+import base64
 import copy
 from gceutils import field, grepr_dataclass, enforce_argument_types
+import io
 from lxml import etree
+from PIL import Image
 import pmp_manip as p
+from pydub import AudioSegment
 from uuid import UUID, uuid4
-from typing import Any, Callable, ClassVar, Iterable, Iterator, Self, TYPE_CHECKING as TYPING
+from typing import Any, Callable, ClassVar, Self
 
 # TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
@@ -90,11 +94,18 @@ class ThirdTarget:
 
     @classmethod
     def from_second(cls, target: p.SRTarget) -> Self:
+        converted_costumes = []
+        for costume in target.costumes:
+            if isinstance(costume, p.SRVectorCostume):
+                converted_costumes.append(ThirdVectorCostume.from_second(costume))
+            elif isinstance(costume, p.SRBitmapCostume):
+                converted_costumes.append(ThirdBitmapCostume.from_second(costume))
+        
         return cls(
             scripts=[ThirdScript.from_second(script) for script in target.scripts],
             comments=copy.deepcopy(target.comments),
-            costumes=copy.deepcopy(target.costumes),
-            sounds=copy.deepcopy(target.sounds),
+            costumes=converted_costumes,
+            sounds=[ThirdSound.from_second(sound) for sound in target.sounds],
             costume_index=target.costume_index,
             volume=target.volume,
         )
@@ -104,7 +115,7 @@ class ThirdTarget:
         return cls(
             scripts=[],
             comments=[],
-            costumes=[p.SRVectorCostume.create_empty()],
+            costumes=[ThirdVectorCostume.create_empty()],
             sounds=[],
             costume_index=0,
             volume=100,
@@ -114,8 +125,8 @@ class ThirdTarget:
         return cls(
             scripts=self._to_second_scripts(),
             comments=copy.deepcopy(self.comments),
-            costumes=copy.deepcopy(self.costumes),
-            sounds=copy.deepcopy(self.sounds),
+            costumes=[costume.to_second() for costume in self.costumes],
+            sounds=[sound.to_second() for sound in self.sounds],
             costume_index=self.costume_index,
             volume=self.volume,
         )
@@ -264,11 +275,18 @@ class ThirdSprite(ThirdTarget):
 
     @classmethod
     def from_second(cls, sprite: p.SRSprite) -> Self:
+        converted_costumes = []
+        for costume in sprite.costumes:
+            if isinstance(costume, p.SRVectorCostume):
+                converted_costumes.append(ThirdVectorCostume.from_second(costume))
+            elif isinstance(costume, p.SRBitmapCostume):
+                converted_costumes.append(ThirdBitmapCostume.from_second(costume))
+        
         return cls(
             scripts=[ThirdScript.from_second(script) for script in sprite.scripts],
             comments=copy.deepcopy(sprite.comments),
-            costumes=copy.deepcopy(sprite.costumes),
-            sounds=copy.deepcopy(sprite.sounds),
+            costumes=converted_costumes,
+            sounds=[ThirdSound.from_second(sound) for sound in sprite.sounds],
             costume_index=sprite.costume_index,
             volume=sprite.volume,
             name=sprite.name,
@@ -288,7 +306,7 @@ class ThirdSprite(ThirdTarget):
         return cls(
             scripts=[],
             comments=[],
-            costumes=[p.SRVectorCostume.create_empty()],
+            costumes=[ThirdVectorCostume.create_empty()],
             sounds=[],
             costume_index=0,
             volume=100,
@@ -308,8 +326,8 @@ class ThirdSprite(ThirdTarget):
         return cls(
             scripts=self._to_second_scripts(),
             comments=copy.deepcopy(self.comments),
-            costumes=copy.deepcopy(self.costumes),
-            sounds=copy.deepcopy(self.sounds),
+            costumes=[costume.to_second() for costume in self.costumes],
+            sounds=[sound.to_second() for sound in self.sounds],
             costume_index=self.costume_index,
             volume=self.volume,
             name=self.name,
@@ -556,107 +574,86 @@ p.SRVectorCostume
 @grepr_dataclass()
 class ThirdVectorCostume(p.SRVectorCostume):
 
-    content: ThirdVectorCostumeContent
+    content: str
 
     @classmethod
-    def create_empty(cls, name: str = "empty") -> SRCostume:
-        super_result = super().create_empty(name)
+    def from_second(cls, costume: p.SRVectorCostume) -> Self:
+        xml_bytes: bytes = etree.tostring(costume.content, method="c14n")
         return cls(
-            name = super_result.name,
-            file_extension  = super_result.file_extension,
-            rotation_center = super_result.rotation_center,
-            content = ThirdVectorCostumeContent(super_result.content),
+            name=costume.name,
+            file_extension=costume.file_extension,
+            rotation_center=copy.copy(costume.rotation_center),
+            content=xml_bytes.decode("utf-8"),
         )
 
-    def __eq__(self, other) -> bool:
-        """
-        Checks whether a SRVectorCostume is equal to another.
-        Requires same XML data. Ignores wrong identity of content.
-
-        Args:
-            other: the object to compare to
-
-        Returns:
-            bool: wether self is equal to other
-        """
-        if not super().__eq__(other):
-            return False
-        other: SRVectorCostume = other
-        return xml_equal(self.content, other.content)
-
-    def post_validate(self, path: AbstractTreePath) -> None:
-        """
-        Ensure an instance is valid, raise GU_ValidationError if not
-
-        Args:
-            path: the path from the project to itself. Used for better error messages
-
-        Raises:
-            GU_ValidationError: if the instance is invalid
-        """
-        ValidateAttribute.VA_EQUAL(self, path, "file_extension", "svg")
-
-    def to_first(self) -> tuple[FRCostume, bytes]:
-        """
-        Converts a SRVectorCostume into a FRCostume
-
-        Returns:
-            the FRCostume
-        """
-        file_bytes: bytes = etree.tostring(self.content, method="c14n")
-        md5 = generate_md5(file_bytes)
-        # I am using the md5 hash here(guessed by "md5ext").
-        # I do not know which hashing method Scratch uses.
-        # Scratch md5ext and mine do NOT match. I have uploaded generated project multiple times
-        # and there do not seem to be any consequences.
-        return (FRCostume(
-            name              = self.name,
-            asset_id          = md5,
-            data_format       = self.file_extension,
-            md5ext            = f"{md5}.{self.file_extension}",
-            rotation_center_x = self.rotation_center[0],
-            rotation_center_y = self.rotation_center[1],
-            bitmap_resolution = None,
-        ), file_bytes)
-
-if TYPING:
-    class ThirdVectorCostumeContent(etree._Element):
-        text: str | None
-        tail: str | None
-        attrib: dict[str, str]
-
-        def __init__(self, element: etree._Element) -> None: ...
-
-        def __iter__(self) -> Iterator[ThirdVectorCostumeContent]: ...
-        def append(self, element: ThirdVectorCostumeContent) -> None: ...
-        def extend(self, elements: Iterable[ThirdVectorCostumeContent]) -> None: ...
-        def insert(self, index: int, element: ThirdVectorCostumeContent) -> None: ...
-        def remove(self, element: ThirdVectorCostumeContent) -> None: ...
-
-        def get(self, key: str, default: str | None = None) -> str | None: ...
-        def set(self, key: str, value: str) -> None: ...
-        def keys(self) -> list[str]: ...
-        def values(self) -> list[str]: ...
-        def items(self) -> list[tuple[str, str]]: ...
-else:
-    class ThirdVectorCostumeContent(etree._Element):
-        def __init__(self, element: etree._Element):
-            etree.tostring(element, method="c14n")
-            # LEFT HERE
-
-            super().__init__(element.tag, element.attrib, element.nsmap)
-            self.text = element.text
-            self.tail = element.tail
-            for child in element:
-                self.append(ThirdVectorCostumeContent(child))
+    @classmethod
+    def create_empty(cls, name: str = "empty") -> Self:
+        return cls.from_second(super().create_empty(name))
     
+    def to_second(self) -> p.SRVectorCostume:
+        element = etree.fromstring(self.content)
+        return p.SRVectorCostume(
+            name=self.name,
+            file_extension=self.file_extension,
+            rotation_center=copy.copy(self.rotation_center),
+            content=element,
+        )
 
 p.SRBitmapCostume
 @grepr_dataclass()
 class ThirdBitmapCostume(p.SRBitmapCostume):
-    ...
+
+    content: str
+
+    @classmethod
+    def from_second(cls, costume: p.SRBitmapCostume) -> Self:
+        image_bytes_io = io.BytesIO()
+        costume.content.save(image_bytes_io, format=costume.file_extension)
+        return cls(
+            name=costume.name,
+            file_extension=costume.file_extension,
+            rotation_center=copy.copy(costume.rotation_center),
+            content=base64.b64encode(image_bytes_io.getvalue()).decode("ascii"),
+            has_double_resolution=costume.has_double_resolution,
+        )
+
+    @classmethod
+    def create_empty(cls, name: str = "empty") -> Self:
+        return cls.from_second(super().create_empty(name))
+
+    def to_second(self) -> p.SRBitmapCostume:
+        image_bytes_io = io.BytesIO(base64.b64decode(self.content.encode("ascii")))
+        image = Image.open(image_bytes_io)
+        image.load()
+        return p.SRBitmapCostume(
+            name=self.name,
+            file_extension=self.file_extension,
+            rotation_center=copy.copy(self.rotation_center),
+            content=image,
+            has_double_resolution=self.has_double_resolution,
+        )
 
 p.SRSound
 @grepr_dataclass()
 class ThirdSound(p.SRSound):
-    ...
+
+    content: str
+
+    @classmethod
+    def from_second(cls, sound: p.SRSound) -> Self:
+        sound_bytes_io = io.BytesIO()
+        sound.content.export(sound_bytes_io, format=sound.file_extension)
+        return cls(
+            name=sound.name,
+            file_extension=sound.file_extension,
+            content=base64.b64encode(sound_bytes_io.getvalue()).decode("ascii"),
+        )
+    
+    def to_second(self) -> p.SRSound:
+        sound_bytes_io = io.BytesIO(base64.b64decode(self.content.encode("ascii")))
+        audio_segment = AudioSegment.from_file(sound_bytes_io, format=self.file_extension)
+        return p.SRSound(
+            name=self.name,
+            file_extension=self.file_extension,
+            content=audio_segment,
+        )

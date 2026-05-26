@@ -3,11 +3,13 @@ ThirdProject(
         scripts=[],
         comments=[],
         costumes=[
-            SRVectorCostume(
+            ThirdVectorCostume(
                 name="empty",
                 file_extension="svg",
                 rotation_center=(240, 180),
-                content=<Element {http://www.w3.org/2000/svg}svg at 0x171ecf28600>,
+                content='<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="2" version="1.1" viewBox="-1 -1 2 2" width="2">
+  <!-- Exported by Scratch - http://scratch.mit.edu/ -->
+</svg>',
             ),
         ],
         sounds=[],
@@ -6958,11 +6960,13 @@ ThirdProject(
             ],
             comments=[],
             costumes=[
-                SRVectorCostume(
+                ThirdVectorCostume(
                     name="empty",
                     file_extension="svg",
                     rotation_center=(240, 180),
-                    content=<Element {http://www.w3.org/2000/svg}svg at 0x171eee15240>,
+                    content='<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="2" version="1.1" viewBox="-1 -1 2 2" width="2">
+  <!-- Exported by Scratch - http://scratch.mit.edu/ -->
+</svg>',
                 ),
             ],
             sounds=[],
@@ -6978,11 +6982,11 @@ ThirdProject(
             direction=90,
             is_draggable=False,
             rotation_style=SRSpriteRotationStyle.ALL_AROUND,
-            uuid=UUID('2a236d88-e038-401a-ad70-dccbea08dbfd'),
+            uuid=UUID('c65ed9a3-1461-432b-9aa9-ab997c4c6ccd'),
         ),
     ],
     sprite_layer_stack=[
-        UUID('68b02678-599c-44f4-a630-ceeb7b70733d'),
+        UUID('285ec256-0a06-4a64-b9ca-b6b4b0d963ab'),
     ],
     global_variables=[],
     global_lists=[],
