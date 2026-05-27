@@ -2,14 +2,16 @@ from __future__ import annotations
 from abc import ABC
 import base64
 import copy
-from gceutils import field, grepr_dataclass, enforce_argument_types
+from gceutils import field, grepr_dataclass, enforce_argument_types, AbstractTreePath, GreprRepresentationImplementation
 import io
 from lxml import etree
 from PIL import Image
 import pmp_manip as p
 from pydub import AudioSegment
 from uuid import UUID, uuid4
+from types import NotImplementedType
 from typing import Any, Callable, ClassVar, Self
+import builtins
 
 # TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
@@ -657,3 +659,33 @@ class ThirdSound(p.SRSound):
             file_extension=self.file_extension,
             content=audio_segment,
         )
+
+def third_repr(obj: Any) -> str:
+    return ThirdReprPythonCodeImplementation(
+        vanilla_strings=True,
+    ).recursively_format(obj)
+
+class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
+    # Is called for a new top-level request => reset state
+    def recursively_format(self, obj: Any) -> str:
+        self.seen_classes = set()
+        result = super().recursively_format(obj)
+        
+        for cls in self.seen_classes:
+            print("Unknown class", cls)
+        
+        return result
+
+    # Is always called for all objects => reliable
+    def implement_special_cases(
+        self,
+        obj: Any,
+        level: int,
+        path: AbstractTreePath | None = None,
+    ) -> tuple[str, bool] | str | NotImplementedType:
+        # Keep track of all used classes
+        if (getattr(builtins, type(obj).__name__, None) is not type(obj)) and (not issubclass(type(obj), ThirdBlock)):
+            self.seen_classes.add(type(obj))
+        return NotImplemented
+
+

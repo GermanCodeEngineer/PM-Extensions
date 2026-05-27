@@ -48,7 +48,7 @@ def main() -> None:
     configure()
     test_projects_dir = Path("test_projects")
     trproject = load_project_from_file(test_projects_dir / "test_united.pmp")
-    (test_projects_dir / "test_united.py").write_text(repr(trproject))
+    (test_projects_dir / "test_united.py").write_text(third.third_repr(trproject))
 
 if __name__ == "__main__":
     main()

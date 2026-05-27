@@ -125,8 +125,6 @@ def convert_project(test_project: TestProject) -> p.FRProject:
     for extension in srproject.extensions:
         extension.url = "https://example.com/"
 
-    print("TR UUIDS:", trproject.sprite_layer_stack, "SR UUIDS:", srproject.sprite_layer_stack)
-    print("TR SPRITES:", [sprite.uuid for sprite in trproject.sprites], "SR SPRITES:", [sprite.uuid for sprite in srproject.sprites])
     srproject.validate(AbstractTreePath(), info_api_copy)
     srproject.extensions = extensions_before
 
