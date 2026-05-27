@@ -5,7 +5,6 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from gceutils import grepr_dataclass
 import pmp_manip as p
 from pmp_manip.opcode_info.api import OpcodeInfoAPI
 import third
@@ -48,7 +47,7 @@ def main() -> None:
     configure()
     test_projects_dir = Path("test_projects")
     trproject = load_project_from_file(test_projects_dir / "test_united.pmp")
-    (test_projects_dir / "test_united.py").write_text(third.third_repr(trproject))
+    (test_projects_dir.parent / "python" / "output" / "test_united.py").write_text(third.third_repr(trproject))
 
 if __name__ == "__main__":
     main()

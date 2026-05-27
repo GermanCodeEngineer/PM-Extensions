@@ -1,22 +1,24 @@
 from __future__ import annotations
 from abc import ABC
 import base64
+import builtins
 import copy
-from gceutils import field, grepr_dataclass, enforce_argument_types, AbstractTreePath, GreprRepresentationImplementation
+from gceutils import field, grepr_dataclass, enforce_argument_types, AbstractTreePath, GEnum, GreprRepresentationImplementation
 import io
 from lxml import etree
 from PIL import Image
 import pmp_manip as p
 from pydub import AudioSegment
-from uuid import UUID, uuid4
+from uuid import UUID as _UUID, uuid4
 from types import NotImplementedType
 from typing import Any, Callable, ClassVar, Self
-import builtins
 
-# TODO: add relevant methods?
 # TODO: (atleast for scripts/blocks): implement cached conversion to SR on init + call validate immediately for good feedback if possible
 
 # Derived from SR of py-pmp-manip
+
+UUID = _UUID # make importing this easier
+
 p.SRProject
 @grepr_dataclass()
 class ThirdProject:
@@ -488,7 +490,6 @@ class ThirdBlock(ABC):
         return self._to_second_block(cls.OPCODE, input_specs, dropdown_specs)
 
 
-# TODO: properly convert the following to actual classes not just conversion helper
 p.SRInputValue
 @grepr_dataclass()
 class ThirdInputValue:
@@ -674,6 +675,11 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
         for cls in self.seen_classes:
             print("Unknown class", cls)
         
+        result = (
+            "import pmp_manip as p\n"
+            "import third as t\n"
+            "import helpers as h\n\n"
+        ) + result
         return result
 
     # Is always called for all objects => reliable
@@ -686,6 +692,38 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
         # Keep track of all used classes
         if (getattr(builtins, type(obj).__name__, None) is not type(obj)) and (not issubclass(type(obj), ThirdBlock)):
             self.seen_classes.add(type(obj))
+        
+        # Special case for GEnum (used by pmp_manip)
+        if not(self.is_compatible_dataclass_instance(obj)) and isinstance(obj, GEnum):
+            return f"{self.third_class_descr_for(obj, level, path)}.{obj.name}", True
+
+        # Special case for UUID
+        if isinstance(obj, UUID):
+            return f"t.{repr(obj)}", True
+        
         return NotImplemented
+    
+    def format_compatible_obj(
+        self,
+        obj: Any,
+        level: int,
+        prefix: str,
+        sep: str,
+        end_sep: str,
+        path: AbstractTreePath | None = None,
+    ) -> tuple[str, bool]:
+        result, is_simple = super().format_compatible_obj(obj, level, prefix, sep, end_sep, path)
+        result = result.removeprefix(type(obj).__name__)
+        result = self.third_class_descr_for(obj, level, path) + result
+        return (result, is_simple)
 
-
+    def third_class_descr_for(self, obj: Any, level: int, path: AbstractTreePath | None) -> str:
+        module_name = type(obj).__module__
+        if module_name.startswith("pmp_manip.core"):
+            return f"p.{type(obj).__name__}"
+        elif module_name.startswith("third"):
+            return f"t.{type(obj).__name__}"
+        elif isinstance(obj, ThirdBlock) and module_name.startswith("helpers."):
+            module_name = module_name.removeprefix("helpers.")
+            return f"h.{module_name}.{type(obj).__name__}"
+        return type(obj).__name__
