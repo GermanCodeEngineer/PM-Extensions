@@ -19,6 +19,7 @@ GREPR_DATACLASS_NAME = d.Name(id="grepr_dataclass", ctx=d.Load())
 THIRD_BLOCK_NAME = d.Name(id="ThirdBlock", ctx=d.Load())
 INPUT_COMPATIBLE_T_NAME = d.Name(id="INPUT_COMPATIBLE_T", ctx=d.Load())
 STR_NAME = d.Name(id="str", ctx=d.Load())
+CLASSVAR_NAME = d.Name(id="ClassVar", ctx=d.Load())
 
 def to_snake_case(target_name: str) -> str:
     target_name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", target_name)
@@ -73,6 +74,13 @@ def create_imports() -> list[d.Import | d.ImportFrom]:
             ],
             level=0,
         ),
+        d.ImportFrom(
+            module="typing",
+            names=[
+                d.alias(name=CLASSVAR_NAME.id, asname=None),
+            ],
+            level=0,
+        ),
     ]
 
 def get_new_input_ids_infos(opcode_info: info.OpcodeInfo) -> dict[str, info.InputInfo] | None:
@@ -89,6 +97,10 @@ def create_specs_value(specs: list[d.Tuple] | None) -> d.Tuple | d.Constant:
     if specs is None:
         return d.Constant(value=None, kind=None)
     return d.Tuple(elts=specs, ctx=d.Load())
+
+
+def create_classvar_annotation() -> d.Name:
+    return CLASSVAR_NAME
 
 
 def create_input_specs(
@@ -187,15 +199,19 @@ def create_dropdown_specs(
 def create_specs_assignments(
     input_specs: list[d.Tuple] | None,
     dropdown_specs: list[d.Tuple] | None,
-) -> list[d.Assign]:
+) -> list[d.AnnAssign]:
     return [
-        d.Assign(
-            targets=[d.Name(id="INPUT_SPECS", ctx=d.Store())],
+        d.AnnAssign(
+            target=d.Name(id="INPUT_SPECS", ctx=d.Store()),
+            annotation=create_classvar_annotation(),
             value=create_specs_value(input_specs),
+            simple=1,
         ),
-        d.Assign(
-            targets=[d.Name(id="DROPDOWN_SPECS", ctx=d.Store())],
+        d.AnnAssign(
+            target=d.Name(id="DROPDOWN_SPECS", ctx=d.Store()),
+            annotation=create_classvar_annotation(),
             value=create_specs_value(dropdown_specs),
+            simple=1,
         ),
     ]
 
@@ -204,16 +220,18 @@ def create_block_class_def(
     block_id: str,
     new_opcode: str,
     field_ann_assignments: list[d.AnnAssign],
-    specs_assignments: list[d.Assign],
+    specs_assignments: list[d.AnnAssign],
 ) -> d.ClassDef:
     return d.ClassDef(
         name=block_id,
         bases=[THIRD_BLOCK_NAME],
         keywords=[],
         body=[
-            d.Assign(
-                targets=[d.Name(id="OPCODE", ctx=d.Store())],
+            d.AnnAssign(
+                target=d.Name(id="OPCODE", ctx=d.Store()),
+                annotation=create_classvar_annotation(),
                 value=d.Constant(value=new_opcode, kind=None),
+                simple=1,
             ),
             *specs_assignments,
             *field_ann_assignments,
