@@ -679,7 +679,8 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
             "import pmp_manip as p\n"
             "import third as t\n"
             "import helpers as h\n\n"
-        ) + result
+            "PROJECT = "
+        ) + result + "\n"
         return result
 
     # Is always called for all objects => reliable
