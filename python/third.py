@@ -17,14 +17,12 @@ from typing import Any, Callable, ClassVar, Self
 
 # Derived from SR of py-pmp-manip
 
-UUID = _UUID # make importing this easier
-
 p.SRProject
 @grepr_dataclass()
 class ThirdProject:
     stage: ThirdStage
     sprites: list[ThirdSprite]
-    sprite_layer_stack: list[UUID]
+    sprite_layer_stack: list[str]
     global_variables: list[p.SRVariable]
     global_lists: list[p.SRList]
     global_monitors: list[p.SRMonitor]
@@ -32,10 +30,18 @@ class ThirdProject:
 
     @classmethod
     def from_second(cls, project: p.SRProject) -> Self:
+        uuid_to_name = {sprite.uuid: sprite.name for sprite in project.sprites}
+        missing_uuids = [uuid for uuid in project.sprite_layer_stack if uuid not in uuid_to_name]
+        if missing_uuids:
+            raise ValueError(
+                "Project sprite_layer_stack contains UUIDs that are not present in project.sprites: "
+                f"{missing_uuids}"
+            )
+        name_stack = [uuid_to_name[uuid] for uuid in project.sprite_layer_stack]
         return cls(
             stage=ThirdStage.from_second(project.stage),
             sprites=[ThirdSprite.from_second(sprite) for sprite in project.sprites],
-            sprite_layer_stack=copy.copy(project.sprite_layer_stack),
+            sprite_layer_stack=name_stack,
             global_variables=copy.deepcopy(project.global_variables),
             global_lists=copy.deepcopy(project.global_lists),
             global_monitors=copy.deepcopy(project.global_monitors),
@@ -56,13 +62,14 @@ class ThirdProject:
 
     def to_second(self) -> p.SRProject:
         converted_sprites = [sprite.to_second() for sprite in self.sprites]
-        
-        uuid_stack = []
-        for uuid_idx, uuid in enumerate(self.sprite_layer_stack):
-            for sprite_idx, sprite in enumerate(self.sprites):
-                if sprite.uuid == uuid:
-                    uuid_stack.append(converted_sprites[sprite_idx].uuid)
-                    break
+        name_to_uuid = {sprite.name: converted_sprite.uuid for sprite, converted_sprite in zip(self.sprites, converted_sprites)}
+        missing_names = [name for name in self.sprite_layer_stack if name not in name_to_uuid]
+        if missing_names:
+            raise ValueError(
+                "Project sprite_layer_stack contains names that are not present in project.sprites: "
+                f"{missing_names}"
+            )
+        uuid_stack = [name_to_uuid[name] for name in self.sprite_layer_stack]
 
         return p.SRProject(
             stage=self.stage.to_second(),
@@ -275,7 +282,6 @@ class ThirdSprite(ThirdTarget):
     direction: int | float
     is_draggable: bool
     rotation_style: p.SRSpriteRotationStyle
-    uuid: UUID = field(default_factory=uuid4, init=False, compare=False)
 
     @classmethod
     def from_second(cls, sprite: p.SRSprite) -> Self:
@@ -669,11 +675,7 @@ def third_repr(obj: Any) -> str:
 class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
     # Is called for a new top-level request => reset state
     def recursively_format(self, obj: Any) -> str:
-        self.seen_classes = set()
         result = super().recursively_format(obj)
-        
-        for cls in self.seen_classes:
-            print("Unknown class", cls)
         
         result = (
             "import pmp_manip as p\n"
@@ -689,18 +691,10 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
         obj: Any,
         level: int,
         path: AbstractTreePath | None = None,
-    ) -> tuple[str, bool] | str | NotImplementedType:
-        # Keep track of all used classes
-        if (getattr(builtins, type(obj).__name__, None) is not type(obj)) and (not issubclass(type(obj), ThirdBlock)):
-            self.seen_classes.add(type(obj))
-        
+    ) -> tuple[str, bool] | str | NotImplementedType:        
         # Special case for GEnum (used by pmp_manip)
         if not(self.is_compatible_dataclass_instance(obj)) and isinstance(obj, GEnum):
             return f"{self.third_class_descr_for(obj, level, path)}.{obj.name}", True
-
-        # Special case for UUID
-        if isinstance(obj, UUID):
-            return f"t.{repr(obj)}", True
         
         return NotImplemented
     

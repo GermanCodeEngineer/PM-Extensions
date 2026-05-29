@@ -1,22 +1,19 @@
 from __future__ import annotations
 
-from dataclasses import fields as get_fields, is_dataclass
-from gceutils import AbstractTreePath, grepr
-import json
-from lxml import etree
+import importlib.util
 from pathlib import Path
-from PIL import Image
 import pmp_manip as p
-from pydub import AudioSegment
+from pmp_manip.opcode_info.api import OpcodeInfoAPI
+import sys
 import shutil
-from typing import Any
-import re
 
+PROJECT_SCRIPT_NAME = "project.py"
 
-def sanitize_filename(filename: str) -> str:
-    """Replace invalid path characters in filename with underscores."""
-    return re.sub(r'[<>:"/\\|?*]', '_', filename)
+PYTHON_ROOT = Path(__file__).resolve().parent.parent
+if str(PYTHON_ROOT) not in sys.path:
+    sys.path.append(str(PYTHON_ROOT))
 
+import third
 
 def configure() -> None:
     cfg = p.get_default_config()
@@ -36,77 +33,60 @@ def configure() -> None:
         else:
             raise
 
-def export_vector_costume(target: p.FRTarget, frcostume: p.FRCostume, srcostume: p.SRVectorCostume, unpacked_dir: Path) -> None:
-    safe_name = sanitize_filename(frcostume.name)
-    file_path = unpacked_dir / f"{target.name}-{safe_name}.svg"
-    xml_content: etree._Element = srcostume.content
-    etree.ElementTree(xml_content).write(
-        str(file_path),
-        encoding="utf-8",
-        pretty_print=True,
-        xml_declaration=True
-    )
+def fr_to_tr_project(frproject: p.FRProject) -> third.ThirdProject:
+    opcode_info_copy = p.info_api.opcode_info.copy()
+    info_api_copy = OpcodeInfoAPI(opcode_info_copy)
+    frproject.add_all_extensions_to_info_api(info_api_copy)
 
-def export_bitmap_costume(target: p.FRTarget, frcostume: p.FRCostume, srcostume: p.SRBitmapCostumex, unpacked_dir: Path) -> None:
-    bmp_content: Image.Image = srcostume.content
-    safe_name = sanitize_filename(frcostume.name)
-    file_path = unpacked_dir / f"{target.name}-{safe_name}.png"
-    bmp_content.save(str(file_path), format="PNG")
+    # Ensure Third block subclasses are available before Third conversion.
+    import helpers  # noqa: F401
 
-def export_sound(target: p.FRTarget, frsound: p.FRSound, srsound: p.SRSound, unpacked_dir: Path) -> None:
-    audio_content: AudioSegment = srsound.content
-    safe_name = sanitize_filename(frsound.name)
-    file_path = unpacked_dir / f"{target.name}-{safe_name}.wav"
-    audio_content.export(str(file_path), format="wav")
+    srproject = frproject.to_second(info_api_copy)
+    return third.ThirdProject.from_second(srproject)
+
+
+def tr_to_fr_project(trproject: third.ThirdProject) -> p.FRProject:
+    srproject = trproject.to_second()
+    opcode_info_copy = p.info_api.opcode_info.copy()
+    info_api_copy = OpcodeInfoAPI(opcode_info_copy)
+    srproject.add_all_extensions_to_info_api(info_api_copy)
+    return srproject.to_first(info_api_copy)
+
+
+def load_tr_project_from_script(script_path: Path) -> third.ThirdProject:
+    module_name = f"pm_project_{script_path.stem}"
+    spec = importlib.util.spec_from_file_location(module_name, script_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load module spec from {script_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    project = getattr(module, "PROJECT", None)
+    if not isinstance(project, third.ThirdProject):
+        raise ValueError(f"{script_path} must define PROJECT as a third.ThirdProject")
+    return project
 
 def unpack_project(packed_file: Path, unpacked_dir: Path) -> None:
     configure()
 
     frproject = p.FRProject.from_file(str(packed_file))
-    project_json, asset_files = frproject.to_data()
+    trproject = fr_to_tr_project(frproject)
 
     shutil.rmtree(unpacked_dir, ignore_errors=True)
     unpacked_dir.mkdir(parents=True, exist_ok=True)
-    (unpacked_dir / "project.json").write_text(
-        json.dumps(project_json, indent=4)
-    )
-
-    for target in frproject.targets:
-        for frcostume in target.costumes:
-            srcostume = frcostume.to_second(asset_files)
-            if isinstance(srcostume, p.SRVectorCostume):
-                export_vector_costume(target, frcostume, srcostume, unpacked_dir)
-
-            elif isinstance(srcostume, p.SRBitmapCostume):
-                export_bitmap_costume(target, frcostume, srcostume, unpacked_dir)
-
-        for frsound in target.sounds:
-            srsound = frsound.to_second(asset_files)
-            export_sound(target, frsound, srsound, unpacked_dir)
+    output_script = unpacked_dir / PROJECT_SCRIPT_NAME
+    output_script.write_text(third.third_repr(trproject), encoding="utf-8")
 
 
 def pack_project(packed_file: Path, unpacked_dir: Path) -> None:
     configure()
 
-    project_json = json.loads((unpacked_dir / "project.json").read_text())
-    frproject = p.FRProject.from_data(project_json, asset_files={}) # Pass empty asset_files for now, see below
+    script_path = unpacked_dir / PROJECT_SCRIPT_NAME
+    if not script_path.exists():
+        raise FileNotFoundError(f"Expected {PROJECT_SCRIPT_NAME} in {unpacked_dir}")
 
-    asset_files = {}
-    for target in frproject.targets:
-        for frcostume in target.costumes:
-            vector_file_path = unpacked_dir / f"{target.name}-{frcostume.name}.svg"
-            bitmap_file_path = unpacked_dir / f"{target.name}-{frcostume.name}.png"
-            if vector_file_path.exists():
-                asset_files[frcostume.md5ext] = vector_file_path.read_bytes()
-            elif bitmap_file_path.exists():
-                asset_files[frcostume.md5ext] = bitmap_file_path.read_bytes()
-
-        for frsound in target.sounds:
-            sound_file_path = unpacked_dir / f"{target.name}-{frsound.name}.wav"
-            if sound_file_path.exists():
-                asset_files[frsound.md5ext] = sound_file_path.read_bytes()
-
-    frproject.asset_files = asset_files
+    trproject = load_tr_project_from_script(script_path)
+    frproject = tr_to_fr_project(trproject)
     frproject.to_file(str(packed_file))
 
 def main() -> None:
