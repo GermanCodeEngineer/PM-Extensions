@@ -11,15 +11,11 @@ import pmp_manip as p
 from pmp_manip.opcode_info.api import OpcodeInfoAPI
 import third
 
-from helpers.gceFuncsScopes import gceFuncsScopes
-from helpers.gceOOP import gceOOP
-from helpers.gceTestRunner import gceTestRunner as tr
-from helpers.jwProto import jwProto as labels
-import helpers as h
-
-
-class o(gceOOP, gceFuncsScopes): # Combine both OOP extensions
+from helpers import h
+class o(h.gceOOP, h.gceFuncsScopes): # Combine both OOP extensions
     pass
+tr = h.gceTestRunner
+labels = h.jwProto
 
 EXTENSION_URL_BASE = (
     #"https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"

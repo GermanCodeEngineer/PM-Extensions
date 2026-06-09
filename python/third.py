@@ -392,6 +392,7 @@ class ThirdBlock(ABC):
         opcode = getattr(cls, "OPCODE", None)
         if opcode is not None:
             ThirdBlock._opcode_registry[opcode] = cls
+            # TODO: possible use alternative system (no registry), where the "helpers" module is provided and sub-accessed
 
     @classmethod
     def _from_second_block(
@@ -680,7 +681,7 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
         result = (
             "import pmp_manip as p\n"
             "import third as t\n"
-            "import helpers as h\n\n"
+            "from helpers import h\n\n"
             "PROJECT = "
         ) + result + "\n"
         return result
@@ -719,6 +720,5 @@ class ThirdReprPythonCodeImplementation(GreprRepresentationImplementation):
         elif module_name.startswith("third"):
             return f"t.{type(obj).__name__}"
         elif isinstance(obj, ThirdBlock) and module_name.startswith("helpers."):
-            module_name = module_name.removeprefix("helpers.")
             return f"h.{module_name}.{type(obj).__name__}"
         return type(obj).__name__

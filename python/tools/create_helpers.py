@@ -11,6 +11,7 @@ import keyword
 import re
 import pmp_manip as p
 from pmp_manip.opcode_info import api as info
+from pmp_manip.utility.errors import MANIP_ExtensionFetchError
 
 
 GCEUTILS_NAME = d.Name(id="gceutils", ctx=d.Load())
@@ -148,7 +149,11 @@ def create_input_specs(
                         ),
                         body=d.Call(
                             func=d.Attribute(
-                                value=d.Name(id=class_name, ctx=d.Load()),
+                                value=d.Attribute(
+                                    value=d.Name(id="h", ctx=d.Load()),
+                                    attr=class_name,
+                                    ctx=d.Load(),
+                                ),
                                 attr=shadow_method_name,
                                 ctx=d.Load(),
                             ),
@@ -197,24 +202,29 @@ def create_dropdown_specs(
 
 
 def create_specs_assignments(
-    input_specs: list[d.Tuple] | None,
-    dropdown_specs: list[d.Tuple] | None,
+    input_specs: list[d.Tuple],
+    dropdown_specs: list[d.Tuple],
 ) -> list[d.AnnAssign]:
-    return [
-        d.AnnAssign(
-            target=d.Name(id="INPUT_SPECS", ctx=d.Store()),
-            annotation=create_classvar_annotation(),
-            value=create_specs_value(input_specs),
-            simple=1,
-        ),
-        d.AnnAssign(
-            target=d.Name(id="DROPDOWN_SPECS", ctx=d.Store()),
-            annotation=create_classvar_annotation(),
-            value=create_specs_value(dropdown_specs),
-            simple=1,
-        ),
-    ]
-
+    assigns = []
+    if input_specs:
+        assigns.append(
+            d.AnnAssign(
+                target=d.Name(id="INPUT_SPECS", ctx=d.Store()),
+                annotation=create_classvar_annotation(),
+                value=create_specs_value(input_specs),
+                simple=1,
+            )
+        )
+    if dropdown_specs:
+        assigns.append(
+            d.AnnAssign(
+                target=d.Name(id="DROPDOWN_SPECS", ctx=d.Store()),
+                annotation=create_classvar_annotation(),
+                value=create_specs_value(dropdown_specs),
+                simple=1,
+            )
+        )
+    return assigns
 
 def create_block_class_def(
     block_id: str,
@@ -261,7 +271,7 @@ def create_block_helper(info_api: info.OpcodeInfoAPI, old_opcode: str, opcode_in
         field_ann_assignments.extend(dropdown_fields)
         specs_assignments = create_specs_assignments(input_specs, dropdown_specs)
     else:
-        specs_assignments = create_specs_assignments(None, None)
+        specs_assignments = create_specs_assignments([], [])
 
     return create_block_class_def(
         block_id=block_id,
@@ -270,9 +280,38 @@ def create_block_helper(info_api: info.OpcodeInfoAPI, old_opcode: str, opcode_in
         specs_assignments=specs_assignments,
     )
 
-def create_module(info_api: info.OpcodeInfoAPI, extension_id: str) -> d.Module | None:
-    opcode_prefix = extension_id + "_"
-    class_name = pick_legal_name(extension_id)
+def try_format_code(dcst: d.Module | d.DCST) -> str:
+    if not isinstance(dcst, d.Module):
+        dcst = d.Module(body=[dcst], type_ignores=[])
+    code = d.unparse(dcst)
+    try:
+        return black.format_str(code, mode=black.Mode(line_length=88))
+    except Exception as error:
+        raise ValueError(f"Failed to format code: {error}") from error
+
+def create_category_class(
+        info_api: info.OpcodeInfoAPI, category_id: str,
+        category_source: str | None = None, fallback_source: str | None = None,
+        skip_generation: bool = False
+    ) -> d.ClassDef:
+    if not skip_generation:
+        try:
+            info_api.generate_and_add_extension(
+                extension_id=category_id,
+                extension_source=category_source,
+            )
+        except MANIP_ExtensionFetchError:
+            if fallback_source is not None:
+                info_api.generate_and_add_extension(
+                    extension_id=category_id,
+                    extension_source=fallback_source,
+                )
+            else:
+                raise
+
+    
+    opcode_prefix = category_id + "_"
+    class_name = pick_legal_name(category_id)
     body = []
     for old_opcode in info_api.all_old:
         if not old_opcode.startswith(opcode_prefix):
@@ -284,61 +323,42 @@ def create_module(info_api: info.OpcodeInfoAPI, extension_id: str) -> d.Module |
             opcode_info=info_api.get_info_by_old(old_opcode),
             class_name=class_name,
         ))
-
-    if not body:
-        return None
-
-    return d.Module(
-        body=[
-            *create_imports(),
-            d.ClassDef(
-                name=class_name,
-                bases=[],
-                keywords=[],
-                body=[
-                    *body,
-                ],
-                decorator_list=[],
-                type_params=[],
-            ),
-        ],
-        type_ignores=[],
-    )
-
-def create_category_file(info_api: info.OpcodeInfoAPI, output_path: Path, category_id: str, category_source: str | None = None, skip_generation: bool = False) -> None:
-    if not skip_generation:
-        info_api.generate_and_add_extension(
-            extension_id=category_id,
-            extension_source=category_source,
-        )
     
+    if not body:
+        body.append(d.Pass())
 
-    module = create_module(info_api, category_id)
-    if module is None:
-        return
-    code = d.unparse(module)
-    try:
-        code = black.format_str(code, mode=black.Mode(line_length=88))
-    except Exception as error:
-        print(ValueError(f"Failed to format code: {error}"))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(code, "utf8")
+    cls = d.ClassDef(
+        name=class_name,
+        bases=[],
+        keywords=[],
+        body=[
+            *body,
+        ],
+        decorator_list=[],
+        type_params=[],
+    )
+    
+    # Test classes individually
+    try_format_code(cls)
+    return cls
 
 ##########################################################################################
 
-EXTENSION_URL_BASE = (
-    #"https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/"
-    #"refs/heads/main/extensions"
-    "http://localhost:5173/extensions"
+LOCALHOST_BASE = "http://localhost:5173/extensions"
+RELEASE_BASE = (
+    "https://raw.githubusercontent.com/GermanCodeEngineer/PM-Extensions/refs/heads/main/extensions"
 )
 
-def own_extension_url(filename: str) -> str:
-    return f"{EXTENSION_URL_BASE}/{filename}"
+def own_extension_url_or_fallback(filename: str) -> tuple[str, str]:
+    return (
+        f"{LOCALHOST_BASE}/{filename}",
+        f"{RELEASE_BASE}/{filename}"
+    )
 
 GCE_EXTENSIONS = {
-    "gceOOP": own_extension_url("gceOOP.js"),
-    "gceFuncsScopes": own_extension_url("gceFuncsScopes.js"),
-    "gceTestRunner": own_extension_url("gceTestRunner.js"),
+    "gceOOP": own_extension_url_or_fallback("gceOOP.js"),
+    "gceFuncsScopes": own_extension_url_or_fallback("gceFuncsScopes.js"),
+    "gceTestRunner": own_extension_url_or_fallback("gceTestRunner.js"),
 }
 EXTENSIONS = GCE_EXTENSIONS | {
     "agBuffer": "https://extensions.penguinmod.com/extensions/AndrewGaming587/agBuffer.js",
@@ -384,24 +404,55 @@ def create_helpers(info_api: info.OpcodeInfoAPI) -> None:
     p.init_config(cfg)
 
     added_categories = set()
+    extension_classes: list[d.ClassDef] = []
+    
     for old_opcode in info_api.all_old:
         opcode_category = old_opcode.split("_")[0]
         if opcode_category not in added_categories:
             added_categories.add(opcode_category)
-            create_category_file(
+            
+            extension_classes.append(create_category_class(
                 info_api=info_api,
-                output_path=Path(f"python/helpers/{opcode_category}.py"),
                 category_id=opcode_category,
                 skip_generation=True,
-            )
+            ))
     
     for extension_id, extension_source in EXTENSIONS.items():
-        create_category_file(
+        if isinstance(extension_source, tuple):
+            extension_source, fallback_source = extension_source
+        else:
+            fallback_source = None
+        extension_classes.append(create_category_class(
             info_api=info_api,
-            output_path=Path(f"python/helpers/{extension_id}.py"),
             category_id=extension_id,
             category_source=extension_source,
-        )
+            fallback_source=fallback_source,
+        ))
+    
+    final_class = d.ClassDef(
+        name="BlockHelpers",
+        bases=[],
+        keywords=[],
+        body=[
+            *extension_classes,
+        ],
+        decorator_list=[],
+        type_params=[],
+    )
+    final_module = d.Module(
+        body=[
+            *create_imports(),
+            final_class,
+            d.Assign(
+                targets=[d.Name(id="h", ctx=d.Store())],
+                value=d.Name(id="BlockHelpers", ctx=d.Load()),
+            ),
+        ],
+        type_ignores=[],
+    )
+    code = try_format_code(final_module)
+
+    Path(f"python/helpers.py").write_text(code, encoding="utf-8")
 
 def main() -> None:
     parser = argparse.ArgumentParser()
